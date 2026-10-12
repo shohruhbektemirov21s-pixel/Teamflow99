@@ -1,96 +1,130 @@
-import { UserCheck, Users, MessageCircle, Heart } from "lucide-react";
+import { useMutation } from "@tanstack/react-query";
+import { FolderKanban, MessageSquare, Search, Star, UserCheck, UserPlus, Users } from "lucide-react";
 import { useState } from "react";
+
 import { useModal } from "@/app/modals";
-import { usePagedList } from "@/app/queries";
+import { usePagedList, useRefresh } from "@/app/queries";
+import { api } from "@/shared/api";
 import { useDebounced } from "@/shared/hooks";
 import { T } from "@/shared/text";
 import type { PortfolioDeveloper } from "@/shared/types";
-import { Avatar, SkeletonRows, Empty, ErrorBox } from "@/shared/ui";
+import { Avatar, Button, Empty, ErrorBox, Segmented, SkeletonRows, useToast } from "@/shared/ui";
 import { Pagination } from "@/shared/ui/Pagination";
+
 import { Stars } from "../portfolio/Stars";
 
-export default function UserDashboard() {
+const HINT_KEY = "user-how-seen";
+
+function readSeen() {
+  try {
+    return localStorage.getItem(HINT_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function HowItWorks({ onClose }: { onClose: () => void }) {
+  return (
+    <section className="card uhow" aria-label={T.user.howTitle}>
+      <b>{T.user.howTitle}</b>
+      <ol>
+        {T.user.howSteps.map((step) => <li key={step}>{step}</li>)}
+      </ol>
+      <Button size="sm" onClick={onClose}>{T.user.howClose}</Button>
+    </section>
+  );
+}
+
+function DeveloperCard({ d }: { d: PortfolioDeveloper }) {
   const { open } = useModal();
-  const [q] = useState("");
-  const search = useDebounced(q.trim());
-  const list = usePagedList<PortfolioDeveloper>(["portfolio", "list", search], "/portfolio/", { q: search });
-  const rows = list.data ?? [];
+  const toast = useToast();
+  const refresh = useRefresh(["portfolio"]);
+  const follow = useMutation({
+    mutationFn: (on: boolean) => (on ? api.post(`/portfolio/${d.id}/follow/`) : api.del(`/portfolio/${d.id}/follow/`)),
+    onSuccess: (_r, on) => {
+      toast(on ? T.portfolio.followedToast : T.portfolio.unfollowedToast);
+      refresh();
+    },
+  });
 
   return (
-    <div className="instagram-feed stack" style={{ padding: "16px 0", gap: 24 }}>
+    <article className="card ucard">
+      <div className="row ucard-head">
+        <Avatar user={d} />
+        <div className="grow" style={{ minWidth: 0 }}>
+          <b className="ellipsis" style={{ display: "block" }}>{d.full_name}</b>
+          <span className="small muted ellipsis" style={{ display: "block" }}>{d.specialty || T.portfolio.developer}</span>
+        </div>
+        {d.rank !== null && (
+          <span className={`rank-pill ${d.rank <= 3 ? `top top-${d.rank}` : ""}`} aria-label={T.portfolio.rank(d.rank)}>{d.rank}</span>
+        )}
+      </div>
+      <Stars value={d.rating} />
+      <div className="row-wrap small muted ucard-stats">
+        <span className="row"><FolderKanban size={14} aria-hidden /> {T.portfolio.projectsN(d.projects_count)}</span>
+        <span className="row"><MessageSquare size={14} aria-hidden /> {T.portfolio.reviewsN(d.reviews_count)}</span>
+        <span className="row"><Users size={14} aria-hidden /> {T.portfolio.followersN(d.followers_count)}</span>
+      </div>
+      <div className="ucard-actions">
+        <Button variant="primary" icon={<Star size={16} />} onClick={() => open({ portfolio: d.id })}>{T.user.view}</Button>
+        <Button
+          icon={d.is_following ? <UserCheck size={16} /> : <UserPlus size={16} />}
+          loading={follow.isPending}
+          onClick={() => follow.mutate(!d.is_following)}
+        >
+          {d.is_following ? T.portfolio.following : T.portfolio.follow}
+        </Button>
+      </div>
+    </article>
+  );
+}
+
+/** Oddiy foydalanuvchi bosh sahifasi: qidirish, "Hammasi / Kuzatayotganlarim" va dasturchilar kartalari. */
+export default function UserDashboard() {
+  const [q, setQ] = useState("");
+  const [only, setOnly] = useState<"all" | "following">("all");
+  const [seen, setSeen] = useState(readSeen);
+  const search = useDebounced(q.trim());
+  const list = usePagedList<PortfolioDeveloper>(["portfolio", "list", search, only], "/portfolio/",
+    { q: search, following: only === "following" ? 1 : undefined });
+  const rows = list.data ?? [];
+
+  const closeHint = () => {
+    setSeen(true);
+    try {
+      localStorage.setItem(HINT_KEY, "1");
+    } catch {
+      /* brauzer xotirasi yopiq bo'lishi mumkin */
+    }
+  };
+
+  return (
+    <div className="stack">
+      {!seen && <HowItWorks onClose={closeHint} />}
+      <label className="people-search">
+        <Search size={18} className="muted" aria-hidden />
+        <input type="search" placeholder={T.portfolio.searchPh} aria-label={T.portfolio.searchPh} value={q} onChange={(e) => setQ(e.target.value)} />
+      </label>
+      <Segmented
+        label={T.user.filterLabel}
+        value={only}
+        onChange={setOnly}
+        options={[{ value: "all", label: T.user.filterAll }, { value: "following", label: T.user.filterFollowing }]}
+      />
 
       {list.error && <ErrorBox error={list.error} onRetry={() => list.refetch()} />}
-      {list.isLoading && <div className="card"><SkeletonRows rows={6} /></div>}
-      {list.data && !rows.length && <div className="card"><Empty icon={<Users />} title="Hech kim yo'q" /></div>}
-      
-      {/* Feed Posts */}
-      <div className="stack" style={{ gap: 24 }}>
-        {rows.map((d) => (
-          <div key={d.id} className="card ig-post" style={{ padding: 0, overflow: "hidden", borderRadius: 12 }}>
-            {/* Post Header */}
-            <div className="row" style={{ padding: "12px 16px", gap: 12, alignItems: "center" }}>
-              <Avatar user={d} />
-              <div className="grow">
-                <div style={{ fontWeight: 600, fontSize: 14 }}>{d.full_name}</div>
-                <div className="small muted">{d.specialty || "Dasturchi"}</div>
-              </div>
-              {d.is_following && <span style={{ color: "var(--brand)" }}><UserCheck size={18} /></span>}
-            </div>
-
-            {/* Post Image (Dummy or Avatar placeholder) */}
-            <div 
-              style={{ 
-                width: "100%", 
-                aspectRatio: "1", 
-                backgroundColor: "var(--hov)", 
-                display: "flex", 
-                alignItems: "center", 
-                justifyContent: "center",
-                cursor: "pointer"
-              }}
-              onClick={() => open({ portfolio: d.id })}
-            >
-              {d.avatar ? (
-                <img src={d.avatar} alt={d.full_name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-              ) : (
-                <Users size={64} style={{ color: "var(--mut)", opacity: 0.2 }} />
-              )}
-            </div>
-
-            {/* Post Actions */}
-            <div className="stack" style={{ padding: "12px 16px", gap: 8 }}>
-              <div className="row" style={{ gap: 16 }}>
-                <button className="icon-btn" onClick={() => open({ portfolio: d.id })}>
-                  <Heart size={24} />
-                </button>
-                <button className="icon-btn" onClick={() => open({ portfolio: d.id })}>
-                  <MessageCircle size={24} />
-                </button>
-                <div className="grow" />
-                <Stars value={d.rating} />
-              </div>
-              
-              <div style={{ fontWeight: 600, fontSize: 14 }}>
-                {d.followers_count} {T.portfolio.followersN(d.followers_count).replace(/\d+ /, "")}
-              </div>
-              
-              <div>
-                <span style={{ fontWeight: 600, marginRight: 8 }}>{d.full_name}</span>
-                <span className="muted">Reyting: {d.rating ? d.rating.toFixed(1) : "Yo'q"} | Loyihalar: {d.projects_count}</span>
-              </div>
-              
-              <button 
-                className="text-btn muted small" 
-                style={{ textAlign: "left", padding: 0 }}
-                onClick={() => open({ portfolio: d.id })}
-              >
-                Barcha {d.reviews_count} ta sharhni ko'rish va baholash...
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
-      
+      {list.isLoading && <div className="card"><SkeletonRows rows={4} /></div>}
+      {list.data && !rows.length && (
+        <div className="card">
+          {only === "following" && !search ? (
+            <Empty icon={<UserCheck />} title={T.user.emptyFollowing} hint={T.user.emptyFollowingHint}
+              action={<Button variant="primary" onClick={() => setOnly("all")}>{T.user.showAll}</Button>} />
+          ) : (
+            <Empty icon={<Users />} title={T.portfolio.empty} hint={T.portfolio.emptyHint} />
+          )}
+        </div>
+      )}
+      {rows.map((d) => <DeveloperCard key={d.id} d={d} />)}
       <Pagination data={list.pagination} page={list.page} onPageChange={list.onPageChange} />
     </div>
   );

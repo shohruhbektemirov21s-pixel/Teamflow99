@@ -32,9 +32,10 @@ def _item_payload(item, user):
 
 @api_view(["GET"])
 def developer_list(request):
-    """Barcha dasturchilar reyting bo'yicha (eng balandi tepada). `q` — ism, familiya yoki mutaxassislik."""
+    """Barcha dasturchilar reyting bo'yicha (eng balandi tepada). `q` — ism, familiya yoki mutaxassislik; `following=1` — faqat kuzatayotganlarim."""
     q = request.query_params.get("q", "").strip()[:200]
-    if not q and "page" not in request.query_params and "page_size" not in request.query_params:
+    only_following = request.query_params.get("following") == "1"
+    if not q and not only_following and "page" not in request.query_params and "page_size" not in request.query_params:
         payload = cache.get(DEVELOPER_RANKING_CACHE_KEY)
         if payload is None:
             paginator = BoundedPagination()
@@ -54,10 +55,12 @@ def developer_list(request):
     qs = developers_with_stats(request.user)
     if q:
         qs = qs.filter(Q(first_name__icontains=q) | Q(last_name__icontains=q) | Q(specialty__name__icontains=q))
+    if only_following:
+        qs = qs.filter(followers__follower=request.user)
     paginator = BoundedPagination()
     page = paginator.paginate_queryset(qs, request)
     first = (paginator.page.start_index() if paginator.page else 1)
-    rows = [developer_row(u, None if q else first + i) for i, u in enumerate(page)]
+    rows = [developer_row(u, None if q or only_following else first + i) for i, u in enumerate(page)]
     return paginator.get_paginated_response(rows)
 
 

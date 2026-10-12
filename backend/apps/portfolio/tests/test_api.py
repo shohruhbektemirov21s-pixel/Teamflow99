@@ -107,6 +107,16 @@ class ViewTests(PortfolioTestCase):
         self.assertEqual([r["id"] for r in res.data["results"]], [self.other.pk])
         self.assertIsNone(res.data["results"][0]["rank"])
 
+    def test_following_filter_lists_only_followed_developers(self):
+        client = client_for(self.dept)
+        self.assertEqual(client.get("/api/portfolio/?following=1").data["results"], [])
+        client.post(f"/api/portfolio/{self.dev.pk}/follow/")
+        res = client.get("/api/portfolio/?following=1")
+        self.assertEqual([r["id"] for r in res.data["results"]], [self.dev.pk])
+        self.assertTrue(res.data["results"][0]["is_following"])
+        self.assertIsNone(res.data["results"][0]["rank"])
+        self.assertEqual(client_for(self.pm).get("/api/portfolio/?following=1").data["count"], 0)
+
 
 class EditTests(PortfolioTestCase):
     def test_developer_adds_and_edits_own_project(self):

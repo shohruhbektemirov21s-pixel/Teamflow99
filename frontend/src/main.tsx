@@ -7,7 +7,7 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 
 import { AuthProvider, isManager, useAuth } from "./app/auth";
 import Layout from "./app/Layout";
-import InstagramLayout from "./app/InstagramLayout";
+import UserLayout from "./app/UserLayout";
 import { LoginPage, RegisterPage } from "./features/auth/AuthPages";
 import LandingPage from "./features/auth/LandingPage";
 import { ApiError } from "./shared/api";
@@ -72,7 +72,7 @@ function AppRoutes() {
       ) : (
         <Routes>
           {isUserRole ? (
-            <Route element={<InstagramLayout />}>
+            <Route element={<UserLayout />}>
               <Route index element={page(<UserDashboard />)} />
               <Route path="profil" element={page(<ProfilePage />)} />
               <Route path="*" element={<Navigate to="/" replace />} />

@@ -12,7 +12,7 @@ import { ModalHost, useModal } from "./modals";
 import { navFor, pageTitle } from "./nav";
 import { useCounters } from "./queries";
 
-function useTheme() {
+export function useTheme() {
   const [theme, setTheme] = useState<"light" | "dark">(() => {
     try {
       const saved = localStorage.getItem("theme");
