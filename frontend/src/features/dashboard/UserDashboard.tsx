@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { Search, Star, UserCheck, Users } from "lucide-react";
-import { useState } from "react";
+import { ChevronRight, FolderKanban, Search, Star, UserCheck, Users } from "lucide-react";
+import { type ReactNode, useState } from "react";
 
 import { useModal } from "@/app/modals";
 import { usePagedList } from "@/app/queries";
@@ -36,19 +36,26 @@ function HowItWorks({ onClose }: { onClose: () => void }) {
   );
 }
 
-function StatCard({ value, label, star }: { value: string | number; label: string; star?: boolean }) {
+function StatCard({ value, label, icon, star, loading }: { value: string | number; label: string; icon: ReactNode; star?: boolean; loading?: boolean }) {
   return (
     <div className="card ustat">
-      <b className="ustat-value">{value}{star && <Star size={22} className="ustar" aria-hidden />}</b>
-      <span className="muted">{label}</span>
+      <span className="ustat-icon" aria-hidden>{icon}</span>
+      <div className="ustat-text">
+        <b className="ustat-value">
+          {loading ? <span className="skeleton ustat-skel" /> : value}
+          {star && !loading && <Star size={20} className="ustar" aria-hidden />}
+        </b>
+        <span className="muted">{label}</span>
+      </div>
     </div>
   );
 }
 
 function DeveloperCard({ d }: { d: PortfolioDeveloper }) {
   const { open } = useModal();
+  const openProfile = () => open({ portfolio: d.id });
   return (
-    <article className="card ucard">
+    <article className="card ucard" onClick={openProfile}>
       <Avatar user={d} size="lg" />
       <div className="ucard-body">
         <div className="ucard-name">
@@ -59,7 +66,10 @@ function DeveloperCard({ d }: { d: PortfolioDeveloper }) {
         <div className="ucard-foot">
           <span className="ucard-rating">
             {d.rating === null ? (
-              <span className="muted">{T.portfolio.noRating}</span>
+              <>
+                <Star size={16} className="ustar-empty" aria-hidden />
+                <span className="muted">{T.user.unratedLine(d.projects_count)}</span>
+              </>
             ) : (
               <>
                 <Star size={16} className="ustar" aria-hidden />
@@ -68,7 +78,9 @@ function DeveloperCard({ d }: { d: PortfolioDeveloper }) {
               </>
             )}
           </span>
-          <button type="button" className="uview" onClick={() => open({ portfolio: d.id })}>{T.user.viewProfile}</button>
+          <button type="button" className="uview" onClick={(e) => { e.stopPropagation(); openProfile(); }}>
+            {T.user.viewProfile}<ChevronRight size={16} aria-hidden />
+          </button>
         </div>
       </div>
     </article>
@@ -123,9 +135,9 @@ export default function UserDashboard() {
       {!seen && <HowItWorks onClose={closeHint} />}
 
       <div className="ustats">
-        <StatCard value={stats ? stats.developers : "–"} label={T.user.statDevelopers} />
-        <StatCard value={stats?.average_rating != null ? stats.average_rating.toFixed(1) : "–"} label={T.user.statRating} star={stats?.average_rating != null} />
-        <StatCard value={stats ? stats.rated_projects : "–"} label={T.user.statRated} />
+        <StatCard icon={<Users size={22} />} loading={summary.isLoading} value={stats ? stats.developers : "–"} label={T.user.statDevelopers} />
+        <StatCard icon={<Star size={22} />} loading={summary.isLoading} value={stats?.average_rating != null ? stats.average_rating.toFixed(1) : "–"} label={T.user.statRating} star={stats?.average_rating != null} />
+        <StatCard icon={<FolderKanban size={22} />} loading={summary.isLoading} value={stats ? stats.rated_projects : "–"} label={T.user.statRated} />
       </div>
 
       <div className="uchips" role="group" aria-label={T.user.filterLabel}>

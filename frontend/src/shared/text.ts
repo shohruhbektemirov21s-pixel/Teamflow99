@@ -649,6 +649,7 @@ export const T = {
       reviews: "Saralash: Ko'p sharhli",
     },
     ratingLine: (count: number, projects: number) => `(${count} sharh) · ${projects} loyiha`,
+    unratedLine: (projects: number) => `Hali baholanmagan · ${projects} loyiha`,
     profileLink: "Profilim",
     activityReviews: (n: number) => `${n} ta baho qo'ydingiz`,
     activityFollowing: (n: number) => `${n} ta dasturchini kuzatyapsiz`,
