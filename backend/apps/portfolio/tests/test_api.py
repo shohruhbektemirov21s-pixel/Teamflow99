@@ -242,6 +242,41 @@ class ReviewTests(PortfolioTestCase):
         self.assertIsNone(res.data["my_review"])
         self.assertFalse(PortfolioReview.objects.exists())
 
+    def test_my_reviews_lists_only_own_reviews_and_profile_counts_them(self):
+        user = make_user(Role.USER)
+        mine, theirs = self.manual_item(), self.manual_item(owner=self.other, title="Boshqa")
+        client_for(user).post(f"/api/portfolio/items/{mine.pk}/reviews/", {"stars": 5, "text": "Ajoyib"}, format="json")
+        client_for(self.dept).post(f"/api/portfolio/items/{theirs.pk}/reviews/", {"stars": 1}, format="json")
+        client_for(user).post(f"/api/portfolio/{self.dev.pk}/follow/")
+        res = client_for(user).get("/api/portfolio/my-reviews/")
+        self.assertEqual(res.data["count"], 1)
+        row = res.data["results"][0]
+        self.assertEqual((row["item_id"], row["stars"], row["developer"]["id"]), (mine.pk, 5, self.dev.pk))
+        self.assertEqual(client_for(user).get("/api/auth/profile/").data["activity"], {"reviews": 1, "following": 1})
+        self.assertIsNone(client_for(self.dev).get("/api/auth/profile/").data["activity"])
+
+    def test_summary_and_specialty_filter(self):
+        from apps.accounts.models import Specialty
+        spec = Specialty.objects.create(name="Backend")
+        self.dev.specialty = spec
+        self.dev.save()
+        item = self.manual_item()
+        client_for(self.dept).post(f"/api/portfolio/items/{item.pk}/reviews/", {"stars": 4}, format="json")
+        client_for(self.pm).post(f"/api/portfolio/items/{item.pk}/reviews/", {"stars": 5}, format="json")
+        cache.clear()
+        data = client_for(self.dept).get("/api/portfolio/summary/").data
+        self.assertEqual((data["developers"], data["average_rating"], data["rated_projects"]), (2, 4.5, 1))
+        self.assertEqual(data["specialties"], [{"id": spec.pk, "name": "Backend"}])
+        res = client_for(self.dept).get(f"/api/portfolio/?specialty={spec.pk}")
+        self.assertEqual([r["id"] for r in res.data["results"]], [self.dev.pk])
+
+    def test_sort_by_followers(self):
+        client_for(self.dept).post(f"/api/portfolio/{self.other.pk}/follow/")
+        res = client_for(self.pm).get("/api/portfolio/?sort=followers")
+        self.assertEqual(res.data["results"][0]["id"], self.other.pk)
+        self.assertIsNone(res.data["results"][0]["rank"])
+        self.assertEqual(client_for(self.pm).get("/api/portfolio/?sort=bad").data["results"][0]["rank"], 1)
+
     def test_owner_cannot_review_own_project(self):
         item = self.manual_item()
         res = client_for(self.dev).post(f"/api/portfolio/items/{item.pk}/reviews/", {"stars": 5}, format="json")

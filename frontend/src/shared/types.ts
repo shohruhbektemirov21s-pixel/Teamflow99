@@ -21,6 +21,25 @@ export interface Me {
 export interface Profile extends Me {
   date_joined: string;
   stats?: { active: number; in_review: number; done: number; overdue: number };
+  /** Faqat oddiy foydalanuvchida: nechta baho qo'ygan va nechta dasturchini kuzatadi. */
+  activity?: { reviews: number; following: number } | null;
+}
+
+export interface PortfolioSummary {
+  developers: number;
+  average_rating: number | null;
+  rated_projects: number;
+  specialties: { id: number; name: string }[];
+}
+
+export interface MyReview {
+  id: number;
+  item_id: number;
+  item_title: string;
+  developer: { id: number; full_name: string };
+  stars: number;
+  text: string;
+  updated_at: string;
 }
 
 export interface UserBrief {

@@ -10,9 +10,10 @@ import { fmtDate } from "@/shared/format";
 import { useMeta } from "@/shared/meta";
 import { T } from "@/shared/text";
 import type { Profile, Task } from "@/shared/types";
-import { Button, ErrorBox, Field, SkeletonRows, useToast } from "@/shared/ui";
+import { Badge, Button, ErrorBox, Field, SkeletonRows, useToast } from "@/shared/ui";
 import { Pagination } from "@/shared/ui/Pagination";
 
+import { MyReviews } from "../portfolio/MyReviews";
 import { ProfileHeader } from "./ProfileHeader";
 import { BusinessTripPanel } from "./BusinessTripPanel";
 
@@ -120,6 +121,13 @@ export default function ProfilePage() {
           }
         />
 
+        {p?.activity && (
+          <div className="row-wrap" aria-label={T.profile.stats}>
+            <Badge tone="info">{T.user.activityReviews(p.activity.reviews)}</Badge>
+            <Badge tone="success">{T.user.activityFollowing(p.activity.following)}</Badge>
+          </div>
+        )}
+
         <h3>{T.profile.editInfoTitle}</h3>
         {q.isLoading ? (
           <SkeletonRows rows={2} />
@@ -171,6 +179,8 @@ export default function ProfilePage() {
       </div>
 
       {me.role === "boss" && <BusinessTripPanel />}
+
+      {me.role === "user" && <MyReviews />}
 
       {developer && (
         <section className="card" aria-label={T.profile.myTasks}>

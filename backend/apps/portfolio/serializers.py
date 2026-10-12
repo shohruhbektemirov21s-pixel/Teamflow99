@@ -60,6 +60,13 @@ def review_row(review):
             "created_at": review.created_at, "updated_at": review.updated_at}
 
 
+def my_review_row(review):
+    owner = review.item.owner
+    return {"id": review.pk, "item_id": review.item_id, "item_title": review.item.display_title,
+            "developer": {"id": owner.pk, "full_name": owner.full_name}, "stars": review.stars,
+            "text": review.text, "updated_at": review.updated_at}
+
+
 def item_detail(item, user, tasks_done, my_review):
     editable = can_edit_item(user, item)
     return {

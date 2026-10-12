@@ -15,8 +15,11 @@ from . import services
 from .files import video_response
 from .models import Follow, PortfolioReview, PortfolioVideo
 from .permissions import can_follow, portfolio_owners
-from .serializers import ItemInput, ReviewInput, developer_row, item_detail, item_row, review_row, video_row
-from .stats import DEVELOPER_RANKING_CACHE_KEY, developers_with_stats, experience, items_with_stats, recent_tasks, tasks_done_by_project, years
+from .serializers import ItemInput, ReviewInput, developer_row, my_review_row, item_detail, item_row, review_row, video_row
+from .stats import DEVELOPER_RANKING_CACHE_KEY, SUMMARY_CACHE_KEY, developers_with_stats, experience, items_with_stats, recent_tasks, summary, tasks_done_by_project, years
+
+
+SORTS = {"followers": ("-followers_count",), "projects": ("-projects_count",), "reviews": ("-reviews_count",)}
 
 
 def _item(pk):
@@ -35,7 +38,10 @@ def developer_list(request):
     """Barcha dasturchilar reyting bo'yicha (eng balandi tepada). `q` — ism, familiya yoki mutaxassislik; `following=1` — faqat kuzatayotganlarim."""
     q = request.query_params.get("q", "").strip()[:200]
     only_following = request.query_params.get("following") == "1"
-    if not q and not only_following and "page" not in request.query_params and "page_size" not in request.query_params:
+    sort = request.query_params.get("sort") if request.query_params.get("sort") in SORTS else None
+    specialty = request.query_params.get("specialty", "")
+    specialty = int(specialty) if specialty.isdigit() else None
+    if not q and not only_following and sort is None and specialty is None and "page" not in request.query_params and "page_size" not in request.query_params:
         payload = cache.get(DEVELOPER_RANKING_CACHE_KEY)
         if payload is None:
             paginator = BoundedPagination()
@@ -57,10 +63,14 @@ def developer_list(request):
         qs = qs.filter(Q(first_name__icontains=q) | Q(last_name__icontains=q) | Q(specialty__name__icontains=q))
     if only_following:
         qs = qs.filter(followers__follower=request.user)
+    if specialty is not None:
+        qs = qs.filter(specialty_id=specialty)
+    if sort:
+        qs = qs.order_by(*SORTS[sort], "first_name", "last_name", "pk")
     paginator = BoundedPagination()
     page = paginator.paginate_queryset(qs, request)
     first = (paginator.page.start_index() if paginator.page else 1)
-    rows = [developer_row(u, None if q or only_following else first + i) for i, u in enumerate(page)]
+    rows = [developer_row(u, None if q or only_following or sort or specialty is not None else first + i) for i, u in enumerate(page)]
     return paginator.get_paginated_response(rows)
 
 
@@ -111,6 +121,26 @@ def item(request, pk):
         services.update_item(obj, request.user, **s.validated_data)
         obj = _item(pk)
     return Response(_item_payload(obj, request.user))
+
+
+@api_view(["GET"])
+def developers_summary(request):
+    """Umumiy ko'rsatkichlar (jami dasturchilar, o'rtacha reyting, baholangan loyihalar) va mutaxassisliklar."""
+    payload = cache.get(SUMMARY_CACHE_KEY)
+    if payload is None:
+        payload = summary()
+        cache.set(SUMMARY_CACHE_KEY, payload, settings.PORTFOLIO_RANKING_CACHE_SECONDS)
+    return Response(payload)
+
+
+@api_view(["GET"])
+def my_reviews(request):
+    """Men qo'ygan baholar (eng yangisi tepada)."""
+    qs = (PortfolioReview.objects.filter(author=request.user, item__owner__in=portfolio_owners())
+          .select_related("item__project", "item__owner").order_by("-updated_at", "-id"))
+    paginator = BoundedPagination()
+    page = paginator.paginate_queryset(qs, request)
+    return paginator.get_paginated_response([my_review_row(r) for r in page])
 
 
 @api_view(["GET", "POST", "DELETE"])

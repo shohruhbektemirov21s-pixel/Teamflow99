@@ -1,19 +1,20 @@
-import { useMutation } from "@tanstack/react-query";
-import { FolderKanban, MessageSquare, Search, Star, UserCheck, UserPlus, Users } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { Search, Star, UserCheck, Users } from "lucide-react";
 import { useState } from "react";
 
 import { useModal } from "@/app/modals";
-import { usePagedList, useRefresh } from "@/app/queries";
+import { usePagedList } from "@/app/queries";
 import { api } from "@/shared/api";
 import { useDebounced } from "@/shared/hooks";
 import { T } from "@/shared/text";
-import type { PortfolioDeveloper } from "@/shared/types";
-import { Avatar, Button, Empty, ErrorBox, Segmented, SkeletonRows, useToast } from "@/shared/ui";
+import type { PortfolioDeveloper, PortfolioSummary } from "@/shared/types";
+import { Avatar, Button, Empty, ErrorBox, SkeletonRows } from "@/shared/ui";
 import { Pagination } from "@/shared/ui/Pagination";
 
-import { Stars } from "../portfolio/Stars";
-
 const HINT_KEY = "user-how-seen";
+type SortKey = keyof typeof T.user.sort;
+/** "all" · "following" · `s:<mutaxassislik id>` */
+type Chip = string;
 
 function readSeen() {
   try {
@@ -35,59 +36,61 @@ function HowItWorks({ onClose }: { onClose: () => void }) {
   );
 }
 
+function StatCard({ value, label, star }: { value: string | number; label: string; star?: boolean }) {
+  return (
+    <div className="card ustat">
+      <b className="ustat-value">{value}{star && <Star size={22} className="ustar" aria-hidden />}</b>
+      <span className="muted">{label}</span>
+    </div>
+  );
+}
+
 function DeveloperCard({ d }: { d: PortfolioDeveloper }) {
   const { open } = useModal();
-  const toast = useToast();
-  const refresh = useRefresh(["portfolio"]);
-  const follow = useMutation({
-    mutationFn: (on: boolean) => (on ? api.post(`/portfolio/${d.id}/follow/`) : api.del(`/portfolio/${d.id}/follow/`)),
-    onSuccess: (_r, on) => {
-      toast(on ? T.portfolio.followedToast : T.portfolio.unfollowedToast);
-      refresh();
-    },
-  });
-
   return (
     <article className="card ucard">
-      <div className="row ucard-head">
-        <Avatar user={d} />
-        <div className="grow" style={{ minWidth: 0 }}>
-          <b className="ellipsis" style={{ display: "block" }}>{d.full_name}</b>
-          <span className="small muted ellipsis" style={{ display: "block" }}>{d.specialty || T.portfolio.developer}</span>
+      <Avatar user={d} size="lg" />
+      <div className="ucard-body">
+        <div className="ucard-name">
+          <b className="ellipsis">{d.full_name}</b>
+          {d.is_following && <UserCheck size={16} className="ucard-following" aria-label={T.portfolio.following} />}
         </div>
-        {d.rank !== null && (
-          <span className={`rank-pill ${d.rank <= 3 ? `top top-${d.rank}` : ""}`} aria-label={T.portfolio.rank(d.rank)}>{d.rank}</span>
-        )}
-      </div>
-      <Stars value={d.rating} />
-      <div className="row-wrap small muted ucard-stats">
-        <span className="row"><FolderKanban size={14} aria-hidden /> {T.portfolio.projectsN(d.projects_count)}</span>
-        <span className="row"><MessageSquare size={14} aria-hidden /> {T.portfolio.reviewsN(d.reviews_count)}</span>
-        <span className="row"><Users size={14} aria-hidden /> {T.portfolio.followersN(d.followers_count)}</span>
-      </div>
-      <div className="ucard-actions">
-        <Button variant="primary" icon={<Star size={16} />} onClick={() => open({ portfolio: d.id })}>{T.user.view}</Button>
-        <Button
-          icon={d.is_following ? <UserCheck size={16} /> : <UserPlus size={16} />}
-          loading={follow.isPending}
-          onClick={() => follow.mutate(!d.is_following)}
-        >
-          {d.is_following ? T.portfolio.following : T.portfolio.follow}
-        </Button>
+        <span className="muted ellipsis">{d.specialty || T.portfolio.developer}</span>
+        <div className="ucard-foot">
+          <span className="ucard-rating">
+            {d.rating === null ? (
+              <span className="muted">{T.portfolio.noRating}</span>
+            ) : (
+              <>
+                <Star size={16} className="ustar" aria-hidden />
+                <b>{d.rating.toFixed(1)}</b>
+                <span className="muted">{T.user.ratingLine(d.reviews_count, d.projects_count)}</span>
+              </>
+            )}
+          </span>
+          <button type="button" className="uview" onClick={() => open({ portfolio: d.id })}>{T.user.viewProfile}</button>
+        </div>
       </div>
     </article>
   );
 }
 
-/** Oddiy foydalanuvchi bosh sahifasi: qidirish, "Hammasi / Kuzatayotganlarim" va dasturchilar kartalari. */
+/** Oddiy foydalanuvchi bosh sahifasi: sarlavha, qidiruv, saralash, umumiy ko'rsatkichlar, chiplar va kartalar. */
 export default function UserDashboard() {
   const [q, setQ] = useState("");
-  const [only, setOnly] = useState<"all" | "following">("all");
+  const [chip, setChip] = useState<Chip>("all");
+  const [sort, setSort] = useState<SortKey>("rating");
   const [seen, setSeen] = useState(readSeen);
   const search = useDebounced(q.trim());
-  const list = usePagedList<PortfolioDeveloper>(["portfolio", "list", search, only], "/portfolio/",
-    { q: search, following: only === "following" ? 1 : undefined });
+  const summary = useQuery({ queryKey: ["portfolio", "summary"], queryFn: () => api.get<PortfolioSummary>("/portfolio/summary/") });
+  const list = usePagedList<PortfolioDeveloper>(["portfolio", "list", search, chip, sort], "/portfolio/", {
+    q: search,
+    following: chip === "following" ? 1 : undefined,
+    specialty: chip.startsWith("s:") ? Number(chip.slice(2)) : undefined,
+    sort: sort === "rating" ? undefined : sort,
+  });
   const rows = list.data ?? [];
+  const stats = summary.data;
 
   const closeHint = () => {
     setSeen(true);
@@ -98,33 +101,54 @@ export default function UserDashboard() {
     }
   };
 
+  const chips: { key: Chip; label: string }[] = [
+    { key: "all", label: T.user.filterAll },
+    { key: "following", label: T.user.filterFollowing },
+    ...(stats?.specialties ?? []).map((s) => ({ key: `s:${s.id}`, label: s.name })),
+  ];
+
   return (
     <div className="stack">
+      <div className="uhead">
+        <h1 className="uhead-title">{T.user.title}</h1>
+        <label className="people-search uhead-search">
+          <Search size={18} className="muted" aria-hidden />
+          <input type="search" placeholder={T.user.searchPh} aria-label={T.user.searchPh} value={q} onChange={(e) => setQ(e.target.value)} />
+        </label>
+        <select className="input usort" aria-label={T.user.sortLabel} value={sort} onChange={(e) => setSort(e.target.value as SortKey)}>
+          {(Object.keys(T.user.sort) as SortKey[]).map((key) => <option key={key} value={key}>{T.user.sort[key]}</option>)}
+        </select>
+      </div>
+
       {!seen && <HowItWorks onClose={closeHint} />}
-      <label className="people-search">
-        <Search size={18} className="muted" aria-hidden />
-        <input type="search" placeholder={T.portfolio.searchPh} aria-label={T.portfolio.searchPh} value={q} onChange={(e) => setQ(e.target.value)} />
-      </label>
-      <Segmented
-        label={T.user.filterLabel}
-        value={only}
-        onChange={setOnly}
-        options={[{ value: "all", label: T.user.filterAll }, { value: "following", label: T.user.filterFollowing }]}
-      />
+
+      <div className="ustats">
+        <StatCard value={stats ? stats.developers : "–"} label={T.user.statDevelopers} />
+        <StatCard value={stats?.average_rating != null ? stats.average_rating.toFixed(1) : "–"} label={T.user.statRating} star={stats?.average_rating != null} />
+        <StatCard value={stats ? stats.rated_projects : "–"} label={T.user.statRated} />
+      </div>
+
+      <div className="uchips" role="group" aria-label={T.user.filterLabel}>
+        {chips.map((c) => (
+          <button key={c.key} type="button" className="uchip" aria-pressed={chip === c.key} onClick={() => setChip(c.key)}>{c.label}</button>
+        ))}
+      </div>
 
       {list.error && <ErrorBox error={list.error} onRetry={() => list.refetch()} />}
       {list.isLoading && <div className="card"><SkeletonRows rows={4} /></div>}
       {list.data && !rows.length && (
         <div className="card">
-          {only === "following" && !search ? (
+          {chip === "following" && !search ? (
             <Empty icon={<UserCheck />} title={T.user.emptyFollowing} hint={T.user.emptyFollowingHint}
-              action={<Button variant="primary" onClick={() => setOnly("all")}>{T.user.showAll}</Button>} />
+              action={<Button variant="primary" onClick={() => setChip("all")}>{T.user.showAll}</Button>} />
           ) : (
             <Empty icon={<Users />} title={T.portfolio.empty} hint={T.portfolio.emptyHint} />
           )}
         </div>
       )}
-      {rows.map((d) => <DeveloperCard key={d.id} d={d} />)}
+      <div className="ugrid">
+        {rows.map((d) => <DeveloperCard key={d.id} d={d} />)}
+      </div>
       <Pagination data={list.pagination} page={list.page} onPageChange={list.onPageChange} />
     </div>
   );

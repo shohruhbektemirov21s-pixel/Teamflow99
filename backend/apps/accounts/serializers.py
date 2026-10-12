@@ -106,6 +106,7 @@ class ProfileSerializer(serializers.ModelSerializer):
     role_label = serializers.CharField(source="get_role_display", read_only=True)
     specialty = serializers.StringRelatedField()
     stats = serializers.SerializerMethodField()
+    activity = serializers.SerializerMethodField()
     avatar = serializers.SerializerMethodField()
 
     class Meta:
@@ -113,8 +114,16 @@ class ProfileSerializer(serializers.ModelSerializer):
         fields = [
             "id", "username", "first_name", "last_name", "full_name",
             "role", "role_label", "specialty", "department_name",
-            "telegram_username", "date_joined", "stats", "avatar",
+            "telegram_username", "date_joined", "stats", "activity", "avatar",
         ]
+
+    def get_activity(self, user):
+        """Oddiy foydalanuvchi faolligi: nechta baho qo'ygan va kimni kuzatadi."""
+        if not user.is_ordinary_user:
+            return None
+        from apps.portfolio.models import Follow, PortfolioReview
+        return {"reviews": PortfolioReview.objects.filter(author=user).count(),
+                "following": Follow.objects.filter(follower=user).count()}
 
     def get_avatar(self, obj):
         return avatar_url(obj)

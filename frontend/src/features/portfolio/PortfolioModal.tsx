@@ -91,6 +91,7 @@ function PortfolioOverview({ id }: { id: number }) {
 
           <section>
             <h3 className="section-title">{T.portfolio.projects}</h3>
+            {data.items.length > 0 && !data.actions.add && <p className="small muted">{T.portfolio.rateHint}</p>}
             {data.items.length ? (
               <div className="portfolio-items">
                 {data.items.map((i) => <ItemCard key={i.id} item={i} onOpen={() => open({ portfolio: id, item: i.id })} />)}

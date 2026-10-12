@@ -17,12 +17,28 @@ from .permissions import portfolio_owners
 
 
 DEVELOPER_RANKING_CACHE_KEY = "portfolio:developer-ranking:default"
+SUMMARY_CACHE_KEY = "portfolio:summary"
 
 
 def invalidate_developer_ranking():
     """Tranzaksiya tasdiqlangach o'chiriladi: undan oldin o'chirilsa, parallel so'rov keshni eski
     (hali commit bo'lmagan) ma'lumot bilan qayta to'ldirib, 60 soniya noto'g'ri reyting ko'rsatardi."""
-    transaction.on_commit(lambda: cache.delete(DEVELOPER_RANKING_CACHE_KEY))
+    transaction.on_commit(lambda: cache.delete_many([DEVELOPER_RANKING_CACHE_KEY, SUMMARY_CACHE_KEY]))
+
+
+def summary():
+    """Dasturchilar sahifasi tepasidagi umumiy ko'rsatkichlar va mutaxassislik filtri chiplari."""
+    owners = portfolio_owners()
+    reviews = PortfolioReview.objects.filter(item__owner__in=owners)
+    totals = reviews.aggregate(avg=Avg("stars"), rated=Count("item", distinct=True))
+    specialties = (owners.exclude(specialty=None).values("specialty_id", "specialty__name")
+                   .annotate(n=Count("pk")).order_by("specialty__name"))
+    return {
+        "developers": owners.count(),
+        "average_rating": round(totals["avg"], 1) if totals["avg"] is not None else None,
+        "rated_projects": totals["rated"],
+        "specialties": [{"id": row["specialty_id"], "name": row["specialty__name"]} for row in specialties],
+    }
 
 
 def _count(qs, group):
