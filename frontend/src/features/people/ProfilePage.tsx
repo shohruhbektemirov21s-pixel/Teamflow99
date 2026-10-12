@@ -15,6 +15,7 @@ import { Pagination } from "@/shared/ui/Pagination";
 
 import { ProfileHeader } from "./ProfileHeader";
 import { BusinessTripPanel } from "./BusinessTripPanel";
+import { UserProfileView } from "./UserProfileView";
 
 const fieldError = (err: unknown, name: string) => (err instanceof ApiError ? err.field(name) : undefined);
 /** Maydonga bog'lanmagan xato bo'lsa — toast bilan ko'rsatiladi (maydon xatolari maydon yonida). */
@@ -23,6 +24,9 @@ const generalError = (err: unknown) =>
 
 export default function ProfilePage() {
   const me = useMe();
+  if (me.role === "user") {
+    return <UserProfileView />;
+  }
   const bot = useMeta().telegram_bot;
   const { refresh } = useAuth();
   const toast = useToast();
@@ -49,7 +53,11 @@ export default function ProfilePage() {
   }, [p]);
 
   const infoMut = useMutation({
-    mutationFn: () => api.patch<Profile>("/auth/profile/", { first_name: first, last_name: last, telegram_username: telegram }),
+    mutationFn: () => api.patch<Profile>("/auth/profile/", {
+      first_name: first,
+      last_name: last,
+      telegram_username: telegram,
+    }),
     onSuccess: () => {
       toast(T.profile.savedToast);
       qc.invalidateQueries({ queryKey: ["profile"] });
@@ -92,7 +100,7 @@ export default function ProfilePage() {
       <div className="card card-pad stack">
         <ProfileHeader
           user={me}
-          subtitle={me.department_name || (me.role === "user" ? me.role_label : me.specialty || me.role_label)}
+          subtitle={me.department_name || me.specialty || me.role_label}
           stats={p?.stats && { active: p.stats.active, overdue: p.stats.overdue, review: p.stats.in_review, done: p.stats.done }}
           actions={
             <>

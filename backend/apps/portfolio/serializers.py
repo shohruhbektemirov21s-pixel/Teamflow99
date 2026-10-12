@@ -6,6 +6,8 @@ from apps.core.api_utils import avatar_url, user_brief
 
 from .permissions import can_edit_item, can_review_item
 from .stats import round_rating
+from .technologies import normalize_technologies
+from .files import cover_url
 
 
 class ItemInput(serializers.Serializer):
@@ -15,9 +17,16 @@ class ItemInput(serializers.Serializer):
                                 validators=[URLValidator(schemes=["http", "https"])])
     start_date = serializers.DateField(required=False, allow_null=True)
     end_date = serializers.DateField(required=False, allow_null=True)
+    technologies = serializers.JSONField(required=False)
 
     def validate_title(self, value):
         return value.strip()
+
+    def validate_technologies(self, value):
+        try:
+            return normalize_technologies(value)
+        except ValueError as exc:
+            raise serializers.ValidationError(str(exc)) from exc
 
 
 class ReviewInput(serializers.Serializer):
@@ -30,8 +39,10 @@ def developer_row(user, rank=None, highlights=None):
     return {
         "projects": highlights.get("projects", []), "projects_extra": highlights.get("projects_extra", 0),
         "experience_months": highlights.get("experience_months"),
+        "technologies": highlights.get("technologies", []), "cover": highlights.get("cover"),
         "id": user.pk, "full_name": user.full_name, "role": user.role, "department_name": user.department_name,
         "avatar": avatar_url(user), "specialty": user.specialty.name if user.specialty else "",
+        "bio": user.bio, "email": user.email, "telegram_username": user.telegram_username,
         "rating": round_rating(user.rating), "reviews_count": user.reviews_count,
         "followers_count": user.followers_count, "projects_count": user.projects_count,
         "tasks_done": user.tasks_done, "is_following": user.is_following, "rank": rank,
@@ -43,6 +54,7 @@ def item_row(item, tasks_done=None):
     project = item.project
     return {
         "id": item.pk, "is_auto": item.is_auto, "title": item.display_title, "link": item.link,
+        "technologies": item.technologies, "cover": cover_url(item),
         "start_date": start, "end_date": end,
         "project": {"code": project.code, "stage": project.stage} if project else None,
         "tasks_done": tasks_done if item.is_auto else None,
@@ -61,6 +73,13 @@ def video_row(video):
 def review_row(review):
     return {"id": review.pk, "author": user_brief(review.author), "stars": review.stars, "text": review.text,
             "created_at": review.created_at, "updated_at": review.updated_at}
+
+
+def developer_review_row(review):
+    return {
+        **review_row(review),
+        "item": {"id": review.item_id, "title": review.item.display_title},
+    }
 
 
 def my_review_row(review):

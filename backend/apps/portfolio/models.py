@@ -11,6 +11,7 @@ from django.db.models import F, Q
 from apps.core.files import UploadTo
 
 from .files import validate_video
+from .technologies import normalize_technologies
 
 
 class PortfolioItem(models.Model):
@@ -28,6 +29,8 @@ class PortfolioItem(models.Model):
     link = models.URLField("Havola", max_length=500, blank=True, validators=[URLValidator(schemes=["http", "https"])])
     start_date = models.DateField("Boshlanish", null=True, blank=True)
     end_date = models.DateField("Tugash", null=True, blank=True)
+    technologies = models.JSONField("Texnologiyalar", default=list, blank=True)
+    cover = models.ImageField("Muqova rasmi", upload_to=UploadTo("portfolio/covers"), blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -47,6 +50,10 @@ class PortfolioItem(models.Model):
             raise ValidationError({"title": "Loyiha nomi majburiy."})
         if self.start_date and self.end_date and self.end_date < self.start_date:
             raise ValidationError({"end_date": "Tugash sanasi boshlanish sanasidan oldin bo'lishi mumkin emas."})
+        try:
+            self.technologies = normalize_technologies(self.technologies)
+        except ValueError as exc:
+            raise ValidationError({"technologies": str(exc)}) from exc
 
     @property
     def is_auto(self):

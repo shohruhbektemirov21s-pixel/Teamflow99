@@ -153,6 +153,7 @@ export default function MessagesPage() {
               {msgsQuery.data?.map((m) => (
                 <div key={m.id} className={`bubble ${m.author_id === me.id ? "mine" : ""}`} title={fmtDateTime(m.created_at)}>
                   {m.text}
+                  <time className="bubble-time" dateTime={m.created_at}>{fmtDateTime(m.created_at)}</time>
                 </div>
               ))}
               <div ref={chatEndRef} />

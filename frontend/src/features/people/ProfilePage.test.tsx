@@ -78,4 +78,31 @@ describe("ProfilePage", () => {
     const sent = vi.mocked(api.post).mock.calls[0]![1] as FormData;
     expect(sent.get("avatar")).toBe(file);
   });
+
+  it("oddiy foydalanuvchi email va bio ma'lumotlarini tahrirlaydi", async () => {
+    testUser.current = { ...PM, id: 20, role: "user", role_label: "Oddiy foydalanuvchi" };
+    mockGet({
+      "/auth/profile/": {
+        ...PROFILE,
+        ...testUser.current,
+        email: "user@example.com",
+        bio: "Mahsulotlarni baholashni yaxshi ko'raman.",
+        stats: null,
+        activity: { reviews: 2, following: 1 },
+      },
+    });
+    vi.mocked(api.patch).mockResolvedValue({});
+    renderApp(<ProfilePage />);
+
+    const email = await screen.findByLabelText("Email");
+    const bio = screen.getByLabelText("Bio");
+    fireEvent.change(email, { target: { value: "new@example.com" } });
+    fireEvent.change(bio, { target: { value: "Yangi qisqacha ma'lumot" } });
+    fireEvent.click(screen.getByRole("button", { name: T.common.save }));
+
+    await waitFor(() => expect(api.patch).toHaveBeenCalledWith("/auth/profile/", expect.objectContaining({
+      email: "new@example.com",
+      bio: "Yangi qisqacha ma'lumot",
+    })));
+  });
 });

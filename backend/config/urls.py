@@ -65,6 +65,8 @@ api = [
     path("portfolio/items/<int:pk>/videos/", portfolio.video_upload),
     path("portfolio/items/<int:pk>/videos/<int:video_pk>/", portfolio.video_delete),
     path("portfolio/videos/<int:pk>/", portfolio.video_file),
+    path("portfolio/items/<int:pk>/cover/", portfolio.cover),
+    path("portfolio/covers/<int:pk>/", portfolio.cover_file),
     path("ai/web-agent/", WebAgentView.as_view()),
     path("ai/web-agent/<int:pk>/", WebAgentView.as_view()),
     path("", include(router.urls)),

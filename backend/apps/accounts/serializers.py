@@ -94,7 +94,7 @@ class MeSerializer(serializers.ModelSerializer):
         model = User
         fields = [
             "id", "username", "first_name", "last_name", "full_name",
-            "role", "role_label", "specialty", "department_name", "telegram_username", "avatar",
+            "role", "role_label", "specialty", "department_name", "telegram_username", "avatar", "email", "bio",
         ]
 
     def get_avatar(self, obj):
@@ -114,7 +114,7 @@ class ProfileSerializer(serializers.ModelSerializer):
         fields = [
             "id", "username", "first_name", "last_name", "full_name",
             "role", "role_label", "specialty", "department_name",
-            "telegram_username", "date_joined", "stats", "activity", "avatar",
+            "telegram_username", "date_joined", "stats", "activity", "avatar", "email", "bio",
         ]
 
     def get_activity(self, user):
@@ -147,6 +147,14 @@ class ProfileUpdateSerializer(serializers.Serializer):
     first_name = serializers.CharField(max_length=150, required=False)
     last_name = serializers.CharField(max_length=150, required=False)
     telegram_username = serializers.CharField(max_length=100, required=False, allow_blank=True)
+    email = serializers.EmailField(max_length=254, required=False, allow_blank=True)
+    bio = serializers.CharField(max_length=1000, required=False, allow_blank=True, trim_whitespace=True)
+
+    def validate_email(self, value):
+        return value.strip()
+
+    def validate_bio(self, value):
+        return value.strip()
 
     def validate_telegram_username(self, value):
         value = normalize_telegram(value)

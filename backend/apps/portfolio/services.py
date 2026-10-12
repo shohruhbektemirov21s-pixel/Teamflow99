@@ -5,7 +5,7 @@ from rest_framework.exceptions import PermissionDenied
 
 from apps.core.api_utils import ServiceError
 
-from .files import validate_video
+from .files import normalized_cover, validate_video
 from .models import Follow, PortfolioItem, PortfolioReview, PortfolioVideo
 from .permissions import can_edit_item, can_follow, can_review_item
 from .stats import invalidate_developer_ranking
@@ -37,6 +37,31 @@ def update_item(item, user, **data):
         setattr(item, field, value)
     item.full_clean()
     item.save()
+    invalidate_developer_ranking()
+    return item
+
+
+def set_cover(item, user, upload):
+    _require_owner(user, item)
+    content = normalized_cover(upload)
+    old_storage = item.cover.storage if item.cover else None
+    old_name = item.cover.name if item.cover else ""
+    item.cover.save(content.name, content, save=False)
+    item.save(update_fields=["cover", "updated_at"])
+    if old_storage and old_name:
+        transaction.on_commit(lambda: old_storage.delete(old_name))
+    invalidate_developer_ranking()
+    return item
+
+
+def remove_cover(item, user):
+    _require_owner(user, item)
+    if item.cover:
+        storage, name = item.cover.storage, item.cover.name
+        item.cover = ""
+        item.save(update_fields=["cover", "updated_at"])
+        transaction.on_commit(lambda: storage.delete(name))
+        invalidate_developer_ranking()
     return item
 
 

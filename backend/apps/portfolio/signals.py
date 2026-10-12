@@ -24,3 +24,10 @@ def delete_video_file(sender, instance, **kwargs):
     if instance.file:
         storage, name = instance.file.storage, instance.file.name
         transaction.on_commit(lambda: storage.delete(name))
+
+
+@receiver(post_delete, sender=PortfolioItem)
+def delete_cover_file(sender, instance, **kwargs):
+    if instance.cover:
+        storage, name = instance.cover.storage, instance.cover.name
+        transaction.on_commit(lambda: storage.delete(name))

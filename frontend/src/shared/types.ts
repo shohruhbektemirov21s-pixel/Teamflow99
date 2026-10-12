@@ -20,6 +20,8 @@ export interface Me {
 
 export interface Profile extends Me {
   date_joined: string;
+  email: string;
+  bio: string;
   stats?: { active: number; in_review: number; done: number; overdue: number };
   /** Faqat oddiy foydalanuvchida: nechta baho qo'ygan va nechta dasturchini kuzatadi. */
   activity?: { reviews: number; following: number } | null;
@@ -314,6 +316,11 @@ export interface PortfolioDeveloper extends UserBrief {
   projects?: string[];
   projects_extra?: number;
   experience_months?: number | null;
+  /** Oxirgi portfolio loyihasidan olingan haqiqiy muqova va jamlangan texnologiyalar. */
+  cover?: string | null;
+  technologies?: string[];
+  email?: string;
+  telegram_username?: string;
 }
 
 export interface PortfolioItem {
@@ -329,13 +336,17 @@ export interface PortfolioItem {
   rating: number | null;
   reviews_count: number;
   videos_count: number;
+  cover?: string | null;
+  technologies?: string[];
 }
 
 export interface PortfolioDetail extends PortfolioDeveloper {
+  bio?: string;
   experience: { since: string; months: number };
   years: { year: number; projects: number; tasks: number }[];
   items: PortfolioItem[];
   recent_tasks: { id: number; code: string; title: string; project: string; completed_at: string | null }[];
+  reviews?: PortfolioDeveloperReview[];
   actions: { follow: boolean; add: boolean };
 }
 
@@ -346,6 +357,10 @@ export interface PortfolioReview {
   text: string;
   created_at: string;
   updated_at: string;
+}
+
+export interface PortfolioDeveloperReview extends PortfolioReview {
+  item: { id: number; title: string };
 }
 
 export interface PortfolioItemDetail extends PortfolioItem {

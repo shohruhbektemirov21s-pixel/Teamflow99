@@ -1,11 +1,14 @@
 """Portfolio videolari: tur, hajm va fayl boshidagi belgi (magic bytes) tekshiruvi; qismlab berish (Range)."""
+import io
 import os
 import re
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
+from django.core.files.base import ContentFile
 from django.http import FileResponse, HttpResponse, StreamingHttpResponse
 from django.utils.http import content_disposition_header
+from PIL import Image, ImageOps, UnidentifiedImageError
 
 _RANGE = re.compile(r"^bytes=(\d*)-(\d*)$")
 _CHUNK = 256 * 1024
@@ -14,6 +17,34 @@ VIDEO_TYPES = {"mp4": "video/mp4", "webm": "video/webm", "mov": "video/quicktime
 # MP4/MOV (ISO BMFF) faylining 4–8 baytlari — birinchi "box" turi; WebM — EBML sarlavhasi.
 _ISO_BOXES = {b"ftyp", b"moov", b"mdat", b"wide", b"free", b"skip"}
 _EBML = b"\x1a\x45\xdf\xa3"
+
+
+def cover_url(item):
+    if not item.cover:
+        return None
+    version = item.updated_at.strftime("%Y%m%d%H%M%S%f") if item.updated_at else item.pk
+    return f"/api/portfolio/covers/{item.pk}/?v={version}"
+
+
+def normalized_cover(upload):
+    """Rasm tarkibini tekshiradi, EXIFni olib tashlaydi va xavfsiz JPEG qaytaradi."""
+    if upload.size > settings.PORTFOLIO_COVER_MAX_MB * 1024 * 1024:
+        raise ValidationError(f"Rasm hajmi {settings.PORTFOLIO_COVER_MAX_MB} MB dan oshmasligi kerak.")
+    try:
+        image = Image.open(upload)
+        if image.format not in ("JPEG", "PNG", "WEBP"):
+            raise ValidationError("Faqat JPG, PNG yoki WEBP rasm yuklang.")
+        image = ImageOps.exif_transpose(image)
+        image.thumbnail((settings.PORTFOLIO_COVER_MAX_PX, settings.PORTFOLIO_COVER_MAX_PX))
+        if image.mode != "RGB":
+            background = Image.new("RGB", image.size, "white")
+            background.paste(image, mask=image.convert("RGBA").split()[-1])
+            image = background
+        buffer = io.BytesIO()
+        image.save(buffer, "JPEG", quality=85)
+    except (UnidentifiedImageError, OSError, Image.DecompressionBombError) as exc:
+        raise ValidationError("Bu fayl rasm emas yoki buzilgan. Boshqa rasm tanlang.") from exc
+    return ContentFile(buffer.getvalue(), name="cover.jpg")
 
 
 def video_content_type(name):

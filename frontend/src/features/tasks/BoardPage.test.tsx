@@ -22,6 +22,7 @@ describe("Board card controls", () => {
     });
     renderApp(<><BoardPage /><CurrentModal /></>);
     const open = await screen.findByRole("button", { name: new RegExp(`^${task.code}`) });
+    expect(screen.getByText(task.assignees[0]!.full_name)).toBeTruthy();
     const drag = screen.getByRole("button", { name: `${T.board.dragTask}: ${task.title}` });
     expect(drag.parentElement?.closest('[role="button"]')).toBeNull();
     expect(open.parentElement?.closest('[role="button"]')).toBeNull();

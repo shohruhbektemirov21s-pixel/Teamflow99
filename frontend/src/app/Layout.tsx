@@ -20,7 +20,9 @@ export function useTheme() {
     } catch {
       /* brauzer xotirasi yopiq bo'lishi mumkin */
     }
-    return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    return typeof window !== "undefined" && window.matchMedia?.("(prefers-color-scheme: dark)")?.matches
+      ? "dark"
+      : "light";
   });
   useEffect(() => {
     document.documentElement.dataset.theme = theme;

@@ -81,6 +81,13 @@ class Command(BaseCommand):
                                     description="Kiruvchi va chiquvchi hujjatlarni ro'yxatga olish",
                                     priority="urgent", requested_due_date=today + timedelta(days=45),
                                     file=ContentFile(b"demo", name="TZ-hujjat-aylanishi.docx"))
+        from apps.portfolio.models import PortfolioItem
+        PortfolioItem.objects.filter(owner=dev1).update(technologies=["Python", "Django", "PostgreSQL", "REST API", "Redis", "Docker"])
+        PortfolioItem.objects.filter(owner=dev2).update(technologies=["React", "TypeScript", "Next.js", "Tailwind", "Redux", "Vite"])
+        b = User.objects.filter(username="bobur").first()
+        if b:
+            PortfolioItem.objects.filter(owner=b).update(technologies=["Flutter", "Dart", "Firebase", "Mobile App", "Android", "iOS"])
+
         self.stdout.write(self.style.SUCCESS(
             f"Tayyor. Loginlar: boshliq, pm, jasur, malika, bobur, oddiy, it_boshqarma. Parol: {PASSWORD}. "
             f"Buyurtma #{order.pk} tasdiqlanishini kutmoqda."

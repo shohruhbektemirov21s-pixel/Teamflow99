@@ -45,6 +45,8 @@ describe("MessagesPage", () => {
     const mine = await screen.findByText("Assalomu alaykum");
     expect(mine.className).toContain("mine");
     expect(screen.getByText("Salom!").className).not.toContain("mine");
+    expect(mine.querySelector("time")?.getAttribute("datetime")).toBe("2026-09-30T08:01:00Z");
+    expect(mine.querySelector("time")?.textContent).toBeTruthy();
     expect(screen.getByLabelText(T.chat.messagePh)).toBeTruthy();
   });
 });

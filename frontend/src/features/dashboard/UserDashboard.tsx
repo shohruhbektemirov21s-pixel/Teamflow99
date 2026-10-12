@@ -1,5 +1,5 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { ChevronRight, FolderKanban, Heart, LayoutGrid, List, Search, Star, TrendingUp, UserCheck, Users } from "lucide-react";
+import { ChevronRight, FolderKanban, Heart, Search, Star, TrendingUp, UserCheck, Users, X } from "lucide-react";
 import { type ReactNode, useEffect, useRef, useState } from "react";
 
 import { useModal } from "@/app/modals";
@@ -11,42 +11,7 @@ import type { PortfolioDeveloper, PortfolioSummary } from "@/shared/types";
 import { Avatar, Button, Empty, ErrorBox, SkeletonRows, useToast } from "@/shared/ui";
 import { Pagination } from "@/shared/ui/Pagination";
 
-const HINT_KEY = "user-how-seen";
-const VIEW_KEY = "user-view";
 type SortKey = keyof typeof T.user.sort;
-type View = "grid" | "list";
-/** "all" · "following" · `s:<mutaxassislik id>` */
-type Chip = string;
-
-function readStorage(key: string): string | null {
-  try {
-    return localStorage.getItem(key);
-  } catch {
-    return null;
-  }
-}
-
-function writeStorage(key: string, value: string) {
-  try {
-    localStorage.setItem(key, value);
-  } catch {
-    /* brauzer xotirasi yopiq bo'lishi mumkin */
-  }
-}
-
-function HowItWorks({ onClose }: { onClose: () => void }) {
-  return (
-    <section className="card uhow" aria-label={T.user.howTitle}>
-      <b className="uhow-title">{T.user.howTitle}</b>
-      <ol className="uhow-steps">
-        {T.user.howSteps.map((step, i) => (
-          <li key={step}><span className="uhow-num" aria-hidden>{i + 1}</span>{step}</li>
-        ))}
-      </ol>
-      <Button size="sm" onClick={onClose}>{T.user.howClose}</Button>
-    </section>
-  );
-}
 
 function StatCard({ value, label, icon, tone, badge, star, loading }: {
   value: string | number; label: string; icon: ReactNode; tone: "violet" | "amber" | "blue" | "indigo";
@@ -79,71 +44,69 @@ function RatingLine({ d }: { d: PortfolioDeveloper }) {
   );
 }
 
-function DeveloperCard({ d, view }: { d: PortfolioDeveloper; view: View }) {
+function DeveloperCard({ d }: { d: PortfolioDeveloper }) {
   const { open } = useModal();
   const toast = useToast();
-  const refresh = useRefresh(["portfolio"]);
+  const refresh = useRefresh(["portfolio", "profile"]);
   const follow = useMutation({
     mutationFn: (on: boolean) => (on ? api.post(`/portfolio/${d.id}/follow/`) : api.del(`/portfolio/${d.id}/follow/`)),
     onSuccess: (_r, on) => {
       toast(on ? T.portfolio.followedToast : T.portfolio.unfollowedToast);
       refresh();
     },
+    onError: (error) => toast(error.message, "error"),
   });
   const openProfile = () => open({ portfolio: d.id });
-  const heart = (
-    <button
-      type="button"
-      className="uheart"
-      aria-pressed={d.is_following}
-      aria-label={d.is_following ? T.user.unfollowAria(d.full_name) : T.user.followAria(d.full_name)}
-      disabled={follow.isPending}
-      onClick={(e) => { e.stopPropagation(); follow.mutate(!d.is_following); }}
-    >
-      <Heart size={18} aria-hidden />
-    </button>
-  );
-  const viewBtn = (
-    <button type="button" className="uview" onClick={(e) => { e.stopPropagation(); openProfile(); }}>
-      {T.user.viewProfile}<ChevronRight size={16} aria-hidden />
-    </button>
-  );
   const experience = d.experience_months != null ? T.user.experienceShort(d.experience_months) : "–";
-
-  if (view === "list") {
-    return (
-      <article className="card urow" onClick={openProfile}>
-        <Avatar user={d} size="lg" card={false} />
-        <div className="urow-name">
-          <b className="ellipsis">{d.full_name}</b>
-          <span className="muted ellipsis">{d.specialty || T.portfolio.developer}</span>
-        </div>
-        <RatingLine d={d} />
-        <span className="urow-meta muted"><FolderKanban size={14} aria-hidden /> {T.portfolio.projectsN(d.projects_count)}</span>
-        <span className="urow-meta muted">{experience}</span>
-        {heart}
-        {viewBtn}
-      </article>
-    );
-  }
 
   return (
     <article className="card ucard" onClick={openProfile}>
-      <div className={`ucover ucover-${d.id % 6}`}>{heart}</div>
+      <div
+        className={d.cover ? "ucover" : `ucover ucover-${((d.id - 1) % 5) + 1}`}
+        role={!d.cover ? "img" : undefined}
+        aria-label={!d.cover ? T.user.developerCoverEmpty(d.full_name) : undefined}
+      >
+        {d.cover && (
+          <img
+            src={d.cover}
+            alt={T.user.developerCoverAlt(d.full_name)}
+            loading="lazy"
+            style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "inherit" }}
+          />
+        )}
+        <button
+          type="button"
+          className="uheart"
+          aria-pressed={d.is_following}
+          aria-label={d.is_following ? T.user.unfollowAria(d.full_name) : T.user.followAria(d.full_name)}
+          disabled={follow.isPending}
+          onClick={(event) => {
+            event.stopPropagation();
+            follow.mutate(!d.is_following);
+          }}
+        >
+          <Heart size={18} aria-hidden />
+        </button>
+      </div>
       <div className="ucard-main">
-        <span className="ucard-avatar"><Avatar user={d} size="xl" card={false} /></span>
+        <span className="ucard-avatar">
+          <Avatar user={d} size="xl" card={false} />
+          <span className="uonline-dot" aria-hidden />
+        </span>
         <div className="ucard-head">
           <div className="ucard-id">
             <b className="ucard-name ellipsis">{d.full_name}</b>
             <span className="muted ellipsis">{d.specialty || T.portfolio.developer}</span>
           </div>
-          {viewBtn}
+          <button type="button" className="uview" onClick={(event) => { event.stopPropagation(); openProfile(); }}>
+            {T.user.viewProfile}<ChevronRight size={16} aria-hidden />
+          </button>
         </div>
         <RatingLine d={d} />
-        {!!d.projects?.length && (
-          <div className="ucard-tags" aria-label={T.user.cardProjects}>
-            {d.projects.map((title) => <span key={title} className="utag" title={title}>{title}</span>)}
-            {!!d.projects_extra && <span className="utag utag-more">+{d.projects_extra}</span>}
+        {!!d.technologies?.length && (
+          <div className="ucard-tags" aria-label={T.portfolio.technologies}>
+            {d.technologies.slice(0, 3).map((technology) => <span key={technology} className="utag">{technology}</span>)}
+            {d.technologies.length > 3 && <span className="utag utag-more">+{d.technologies.length - 3}</span>}
           </div>
         )}
         <dl className="ucard-stats">
@@ -156,29 +119,24 @@ function DeveloperCard({ d, view }: { d: PortfolioDeveloper; view: View }) {
   );
 }
 
-/** Oddiy foydalanuvchi bosh sahifasi ("Dasturchilar portfoliosi"): barcha ma'lumot backenddan. */
+/** Oddiy foydalanuvchi bosh sahifasi: qidiruv, reyting saralashi va haqiqiy portfolio ma'lumotlari. */
 export default function UserDashboard() {
   const [q, setQ] = useState("");
-  const [chip, setChip] = useState<Chip>("all");
   const [sort, setSort] = useState<SortKey>("rating");
-  const [view, setView] = useState<View>(() => (readStorage(VIEW_KEY) === "list" ? "list" : "grid"));
-  const [seen, setSeen] = useState(() => readStorage(HINT_KEY) === "1");
   const searchRef = useRef<HTMLInputElement>(null);
   const search = useDebounced(q.trim());
   const summary = useQuery({ queryKey: ["portfolio", "summary"], queryFn: () => api.get<PortfolioSummary>("/portfolio/summary/") });
-  const list = usePagedList<PortfolioDeveloper>(["portfolio", "list", search, chip, sort], "/portfolio/", {
+  const list = usePagedList<PortfolioDeveloper>(["portfolio", "list", search, sort], "/portfolio/", {
     q: search,
-    following: chip === "following" ? 1 : undefined,
-    specialty: chip.startsWith("s:") ? Number(chip.slice(2)) : undefined,
     sort: sort === "rating" ? undefined : sort,
   });
   const rows = list.data ?? [];
   const stats = summary.data;
 
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
-        e.preventDefault();
+    const onKey = (event: KeyboardEvent) => {
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
         searchRef.current?.focus();
       }
     };
@@ -186,80 +144,78 @@ export default function UserDashboard() {
     return () => document.removeEventListener("keydown", onKey);
   }, []);
 
-  const closeHint = () => {
-    setSeen(true);
-    writeStorage(HINT_KEY, "1");
-  };
-  const changeView = (next: View) => {
-    setView(next);
-    writeStorage(VIEW_KEY, next);
-  };
-
-  const chips: { key: Chip; label: string }[] = [
-    { key: "all", label: `${T.user.filterAll}${stats ? ` (${stats.developers})` : ""}` },
-    { key: "following", label: `${T.user.filterFollowing}${stats ? ` (${stats.following})` : ""}` },
-    ...(stats?.specialties ?? []).map((s) => ({ key: `s:${s.id}`, label: `${s.name} (${s.count})` })),
-  ];
-  const loading = summary.isLoading;
-
   return (
     <div className="stack">
-      <div className="uhead">
-        <div className="uhead-text">
-          <h1 className="uhead-title">{T.user.title}</h1>
-          <p className="muted uhead-sub">{T.user.subtitle}</p>
-        </div>
-      </div>
+      <div className="uhead"><div className="uhead-text"><h1 className="uhead-title">{T.user.title}</h1></div></div>
 
       <div className="utoolbar">
         <label className="people-search uhead-search">
           <Search size={18} className="muted" aria-hidden />
-          <input ref={searchRef} type="search" placeholder={T.user.searchPh} aria-label={T.user.searchPh} value={q} onChange={(e) => setQ(e.target.value)} />
-          <kbd className="ukbd" aria-hidden>{T.user.searchKbd}</kbd>
+          <input
+            ref={searchRef}
+            type="search"
+            placeholder={T.user.searchPh}
+            aria-label={T.user.searchPh}
+            value={q}
+            onChange={(event) => setQ(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === "Escape" && q) {
+                event.preventDefault();
+                setQ("");
+              }
+            }}
+          />
+          {q ? (
+            <button
+              type="button"
+              className="uhead-clear-btn"
+              aria-label={T.common.clear}
+              title={T.common.clear}
+              onClick={(event) => {
+                event.preventDefault();
+                setQ("");
+                searchRef.current?.focus();
+              }}
+            >
+              <X size={15} aria-hidden />
+            </button>
+          ) : (
+            <kbd className="ukbd" aria-hidden>{T.user.searchKbd}</kbd>
+          )}
         </label>
-        <select className="input usort" aria-label={T.user.sortLabel} value={sort} onChange={(e) => setSort(e.target.value as SortKey)}>
+        <select className="input usort" aria-label={T.user.sortLabel} value={sort} onChange={(event) => setSort(event.target.value as SortKey)}>
           {(Object.keys(T.user.sort) as SortKey[]).map((key) => <option key={key} value={key}>{T.user.sort[key]}</option>)}
         </select>
       </div>
 
-      {!seen && <HowItWorks onClose={closeHint} />}
-
       <div className="ustats">
-        <StatCard tone="violet" icon={<Users size={22} />} loading={loading} value={stats ? stats.developers : "–"} label={T.user.statDevelopers}
+        <StatCard tone="violet" icon={<Users size={22} />} loading={summary.isLoading} value={stats ? stats.developers : "–"} label={T.user.statDevelopers}
           badge={stats?.developers_growth ? `+${stats.developers_growth}%` : null} />
-        <StatCard tone="amber" icon={<Star size={22} />} loading={loading} value={stats?.average_rating != null ? stats.average_rating.toFixed(1) : "–"}
+        <StatCard tone="amber" icon={<Star size={22} />} loading={summary.isLoading} value={stats?.average_rating != null ? stats.average_rating.toFixed(1) : "–"}
           label={T.user.statRating} star={stats?.average_rating != null} />
-        <StatCard tone="blue" icon={<FolderKanban size={22} />} loading={loading} value={stats ? stats.rated_projects : "–"} label={T.user.statRated} />
-        <StatCard tone="indigo" icon={<TrendingUp size={22} />} loading={loading} value={stats ? stats.active_projects : "–"} label={T.user.statActive} />
-      </div>
-
-      <div className="uchips-row">
-        <div className="uchips" role="group" aria-label={T.user.filterLabel}>
-          {chips.map((c) => (
-            <button key={c.key} type="button" className="uchip" aria-pressed={chip === c.key} onClick={() => setChip(c.key)}>{c.label}</button>
-          ))}
-        </div>
-        <div className="uview-toggle" role="group" aria-label={T.user.viewLabel}>
-          <button type="button" aria-pressed={view === "grid"} aria-label={T.user.viewGrid} title={T.user.viewGrid} onClick={() => changeView("grid")}><LayoutGrid size={18} /></button>
-          <button type="button" aria-pressed={view === "list"} aria-label={T.user.viewList} title={T.user.viewList} onClick={() => changeView("list")}><List size={18} /></button>
-        </div>
+        <StatCard tone="blue" icon={<FolderKanban size={22} />} loading={summary.isLoading} value={stats ? stats.rated_projects : "–"} label={T.user.statRated} />
+        <StatCard tone="indigo" icon={<TrendingUp size={22} />} loading={summary.isLoading} value={stats ? stats.active_projects : "–"} label={T.user.statActive} />
       </div>
 
       {list.error && <ErrorBox error={list.error} onRetry={() => list.refetch()} />}
       {list.isLoading && <div className="card"><SkeletonRows rows={4} /></div>}
       {list.data && !rows.length && (
         <div className="card">
-          {chip === "following" && !search ? (
-            <Empty icon={<UserCheck />} title={T.user.emptyFollowing} hint={T.user.emptyFollowingHint}
-              action={<Button variant="primary" onClick={() => setChip("all")}>{T.user.showAll}</Button>} />
-          ) : (
-            <Empty icon={<Users />} title={T.portfolio.empty} hint={T.portfolio.emptyHint} />
-          )}
+          <Empty
+            icon={<Users />}
+            title={T.portfolio.empty}
+            hint={T.portfolio.emptyHint}
+            action={
+              q ? (
+                <Button size="sm" variant="ghost" onClick={() => { setQ(""); searchRef.current?.focus(); }}>
+                  {T.common.clear}
+                </Button>
+              ) : undefined
+            }
+          />
         </div>
       )}
-      <div className={view === "grid" ? "ugrid" : "ulist"}>
-        {rows.map((d) => <DeveloperCard key={d.id} d={d} view={view} />)}
-      </div>
+      <div className="ugrid">{rows.map((developer) => <DeveloperCard key={developer.id} d={developer} />)}</div>
       <Pagination data={list.pagination} page={list.page} onPageChange={list.onPageChange} />
     </div>
   );

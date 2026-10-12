@@ -55,8 +55,10 @@ describe("Portfolio sahifasi", () => {
 
     fireEvent.click(rows[0]!);
     const dialog = await screen.findByRole("dialog", { name: T.portfolio.title });
+    fireEvent.click(await within(dialog).findByRole("tab", { name: T.portfolio.tabs.projects }));
     expect(await within(dialog).findByRole("button", { name: /Portal/ })).toBeTruthy();
-    expect(within(dialog).getByText(T.portfolio.experience(26))).toBeTruthy();
+    fireEvent.click(within(dialog).getByRole("tab", { name: T.portfolio.tabs.overview }));
+    expect(await within(dialog).findByText(T.portfolio.experience(26))).toBeTruthy();
   }, 20_000); // ModalHost modalni lazy yuklaydi — birinchi transform sekin
 
   it("dasturchiga o'z portfoliosi tugmasi chiqadi", async () => {
@@ -69,6 +71,54 @@ describe("Portfolio sahifasi", () => {
 });
 
 describe("Portfolio oynasi", () => {
+  it("profil ma'lumotlarini Umumiy, Loyihalar va Baholar tablariga ajratadi", async () => {
+    const richDetail = {
+      ...DETAIL,
+      bio: "Murakkab backend tizimlarini yarataman.",
+      items: [{
+        ...DETAIL.items[0]!,
+        cover: "/api/portfolio/covers/10/",
+        technologies: ["Python", "Django"],
+      }],
+      reviews: [{
+        id: 31,
+        author: MALIKA,
+        stars: 5,
+        text: "Juda sifatli loyiha.",
+        created_at: "2026-10-10T08:00:00Z",
+        updated_at: "2026-10-10T08:00:00Z",
+        item: { id: 10, title: "Portal" },
+      }],
+    };
+    mockGet({ [`/portfolio/${JASUR.id}/`]: richDetail });
+    renderApp(<PortfolioModal id={JASUR.id} />);
+
+    const dialog = await screen.findByRole("dialog", { name: T.portfolio.title });
+    expect((await within(dialog).findByRole("tab", { name: T.portfolio.tabs.overview })).getAttribute("aria-selected")).toBe("true");
+    expect(await within(dialog).findByText("Murakkab backend tizimlarini yarataman.")).toBeTruthy();
+    expect(within(dialog).queryByText("Juda sifatli loyiha.")).toBeNull();
+    expect(within(dialog).queryByText("Xabar yuborish")).toBeNull();
+
+    fireEvent.click(within(dialog).getByRole("tab", { name: T.portfolio.tabs.projects }));
+    expect((await within(dialog).findByRole("img", { name: "Portal muqovasi" })).getAttribute("src")).toBe("/api/portfolio/covers/10/");
+    expect(within(dialog).getByText("Python")).toBeTruthy();
+    expect(within(dialog).getByText("Django")).toBeTruthy();
+
+    fireEvent.click(within(dialog).getByRole("tab", { name: T.portfolio.tabs.reviews }));
+    expect(await within(dialog).findByText("Juda sifatli loyiha.")).toBeTruthy();
+    expect(within(dialog).getByText(MALIKA.full_name)).toBeTruthy();
+    expect(within(dialog).getByText("Portal")).toBeTruthy();
+  });
+
+  it("muqovasiz loyiha uchun rasm o'rniga placeholder ko'rsatadi", async () => {
+    mockGet({ [`/portfolio/${JASUR.id}/`]: { ...DETAIL, items: [{ ...DETAIL.items[0]!, cover: null, technologies: [] }] } });
+    renderApp(<PortfolioModal id={JASUR.id} />);
+
+    const dialog = await screen.findByRole("dialog", { name: T.portfolio.title });
+    fireEvent.click(await within(dialog).findByRole("tab", { name: T.portfolio.tabs.projects }));
+    expect(await within(dialog).findByLabelText("Portal uchun muqova mavjud emas")).toBeTruthy();
+  });
+
   it("boshqa foydalanuvchi kuzata oladi", async () => {
     mockGet({ [`/portfolio/${JASUR.id}/`]: DETAIL });
     vi.mocked(api.post).mockResolvedValue({});
@@ -83,7 +133,8 @@ describe("Portfolio oynasi", () => {
     renderApp(<PortfolioModal id={JASUR.id} />);
     expect(await screen.findByRole("button", { name: T.portfolio.add })).toBeTruthy();
     expect(screen.queryByRole("button", { name: T.portfolio.follow })).toBeNull();
-    expect(screen.getByText(T.portfolio.projectsEmptyOwner)).toBeTruthy();
+    fireEvent.click(screen.getByRole("tab", { name: T.portfolio.tabs.projects }));
+    expect(await screen.findByText(T.portfolio.projectsEmptyOwner)).toBeTruthy();
   });
 
   it("loyihada video ko'rinadi va yulduz tanlanib baho saqlanadi", async () => {
@@ -122,17 +173,31 @@ describe("Portfolio oynasi", () => {
     expect(screen.queryByLabelText(new RegExp(T.portfolio.fields.title))).toBeNull();
   });
 
-  it("yangi loyiha formasi nomsiz saqlanmaydi, saqlangach yuboradi", async () => {
+  it("yangi loyiha formasi texnologiya va muqovani saqlaydi", async () => {
     mockGet({});
-    vi.mocked(api.post).mockResolvedValue({ ...ITEM, id: 11 });
+    vi.mocked(api.post).mockImplementation(async (url) => url === "/portfolio/items/" ? { ...ITEM, id: 11 } : {});
     renderApp(<PortfolioModal id={JASUR.id} add />);
     const save = await screen.findByRole("button", { name: T.common.save });
     expect((save as HTMLButtonElement).disabled).toBe(true);
     fireEvent.change(screen.getByLabelText(new RegExp(T.portfolio.fields.title)), { target: { value: "Telegram bot" } });
     fireEvent.change(screen.getByLabelText(T.portfolio.fields.link), { target: { value: "https://github.com/x/bot" } });
+    fireEvent.change(screen.getByLabelText(T.portfolio.fields.technologies), { target: { value: "Python, Django" } });
+    const cover = new File(["cover"], "cover.png", { type: "image/png" });
+    fireEvent.change(screen.getByLabelText(T.portfolio.fields.cover), { target: { files: [cover] } });
     fireEvent.click(save);
     await waitFor(() => expect(api.post).toHaveBeenCalledWith("/portfolio/items/", {
       title: "Telegram bot", description: "", link: "https://github.com/x/bot", start_date: null, end_date: null,
+      technologies: ["Python", "Django"],
     }));
+    await waitFor(() => expect(api.post).toHaveBeenCalledWith("/portfolio/items/11/cover/", expect.any(FormData)));
+    const coverCall = vi.mocked(api.post).mock.calls.find(([url]) => url === "/portfolio/items/11/cover/");
+    expect((coverCall?.[1] as FormData).get("cover")).toBe(cover);
+  });
+
+  it("muqova sifatida rasm bo'lmagan faylni brauzerning o'zida rad etadi", async () => {
+    renderApp(<PortfolioModal id={JASUR.id} add />);
+    const invalid = new File(["x"], "cover.pdf", { type: "application/pdf" });
+    fireEvent.change(await screen.findByLabelText(T.portfolio.fields.cover), { target: { files: [invalid] } });
+    expect((await screen.findByRole("alert")).textContent).toContain("JPG, PNG yoki WEBP");
   });
 });

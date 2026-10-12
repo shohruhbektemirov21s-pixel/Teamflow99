@@ -22,7 +22,7 @@ import { useMeta } from "@/shared/meta";
 import { boardMove, TASK_TONE } from "@/shared/status";
 import { T } from "@/shared/text";
 import type { Paged, Task, TaskStatus } from "@/shared/types";
-import { Button, CodeTag, Due, ErrorBox, PriorityBadge, Segmented, Skeleton, useToast } from "@/shared/ui";
+import { Button, CodeTag, Due, ErrorBox, People, PriorityBadge, Segmented, Skeleton, useToast } from "@/shared/ui";
 import { Pagination } from "@/shared/ui/Pagination";
 
 type DueFilter = "" | "today" | "week";
@@ -282,6 +282,7 @@ function Card({ task, overlay, dragging, onClick, menu }: { task: Task; overlay?
       )}
       <div className="tcard-foot">
         <PriorityBadge priority={task.priority} />
+        <span className="tcard-assignees"><People users={task.assignees} /></span>
         <span className="spacer" />
         {task.due_at && (
           <span className="row small" style={{ gap: 4 }}>

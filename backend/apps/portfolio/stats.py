@@ -16,6 +16,8 @@ from apps.tasks.models import Task, TaskAssignment
 
 from .models import Follow, PortfolioItem, PortfolioReview
 from .permissions import portfolio_owners
+from .files import cover_url
+from .technologies import MAX_TECHNOLOGIES
 
 
 DEVELOPER_RANKING_CACHE_KEY = "portfolio:developer-ranking:default"
@@ -64,10 +66,21 @@ def developer_highlights(users):
     result = {}
     for user in users:
         mine = items.get(user.pk, [])
+        technologies = []
+        technology_keys = set()
+        for item in mine:
+            for technology in item.technologies:
+                key = technology.casefold()
+                if key not in technology_keys and len(technologies) < MAX_TECHNOLOGIES:
+                    technology_keys.add(key)
+                    technologies.append(technology)
+        covered = next((item for item in mine if item.cover), None)
         result[user.pk] = {
             "projects": [i.display_title for i in mine[:3]],
             "projects_extra": max(len(mine) - 3, 0),
             "experience_months": experience(user, mine)["months"],
+            "technologies": technologies,
+            "cover": cover_url(covered) if covered else None,
         }
     return result
 

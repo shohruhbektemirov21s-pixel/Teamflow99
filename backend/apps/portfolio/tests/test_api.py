@@ -1,5 +1,6 @@
 ﻿"""Portfolio: ko'rish, to'ldirish, video, baho/sharh, kuzatish va reyting tartibi."""
 from datetime import timedelta
+import io
 
 from django.core.cache import cache
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -7,6 +8,7 @@ from django.db import connection
 from django.test import TestCase, override_settings
 from django.test.utils import CaptureQueriesContext
 from django.utils import timezone
+from PIL import Image
 
 from apps.accounts.models import Role
 from apps.panel.tests.factories import client_for, make_user, today
@@ -20,6 +22,12 @@ MP4 = b"\x00\x00\x00\x18ftypmp42" + b"\x00" * 200
 
 def mp4(name="demo.mp4", data=MP4):
     return SimpleUploadedFile(name, data, content_type="video/mp4")
+
+
+def image_file(name="cover.png", size=(1800, 1200), fmt="PNG"):
+    buffer = io.BytesIO()
+    Image.new("RGB", size, (80, 40, 180)).save(buffer, fmt)
+    return SimpleUploadedFile(name, buffer.getvalue(), content_type=f"image/{fmt.lower()}")
 
 
 class PortfolioTestCase(TestCase):
@@ -118,6 +126,38 @@ class ViewTests(PortfolioTestCase):
         self.assertIsNone(res.data["results"][0]["rank"])
         self.assertEqual(client_for(self.pm).get("/api/portfolio/?following=1").data["count"], 0)
 
+    def test_developer_rows_aggregate_technologies_and_latest_available_cover(self):
+        older = self.manual_item(title="Older", technologies=["Python", "Django"])
+        older.cover = image_file("older.png")
+        older.save(update_fields=["cover"])
+        newer = self.manual_item(title="Newer", technologies=["Django", "React"])
+
+        row = next(
+            row for row in client_for(self.dept).get("/api/portfolio/").data["results"]
+            if row["id"] == self.dev.pk
+        )
+
+        self.assertEqual(row["technologies"], ["Django", "React", "Python"])
+        self.assertTrue(row["cover"].startswith(f"/api/portfolio/covers/{older.pk}/?v="))
+
+    def test_developer_detail_includes_bio_and_latest_cross_project_reviews(self):
+        self.dev.bio = "Backend va integratsiya mutaxassisi."
+        self.dev.save(update_fields=["bio"])
+        first = self.manual_item(title="Birinchi")
+        second = self.manual_item(title="Ikkinchi")
+        review = PortfolioReview.objects.create(item=second, author=self.pm, stars=5, text="Ajoyib")
+
+        response = client_for(self.dept).get(f"/api/portfolio/{self.dev.pk}/")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["bio"], self.dev.bio)
+        self.assertEqual(response.data["reviews"][0]["id"], review.pk)
+        self.assertEqual(
+            response.data["reviews"][0]["item"],
+            {"id": second.pk, "title": "Ikkinchi"},
+        )
+        self.assertNotEqual(first.pk, second.pk)
+
 
 class EditTests(PortfolioTestCase):
     def test_developer_adds_and_edits_own_project(self):
@@ -166,6 +206,130 @@ class EditTests(PortfolioTestCase):
         item = self.manual_item()
         self.assertEqual(client_for(self.dev).delete(f"/api/portfolio/items/{item.pk}/").status_code, 204)
         self.assertFalse(PortfolioItem.objects.filter(pk=item.pk).exists())
+
+    def test_technologies_are_trimmed_deduplicated_and_returned(self):
+        client = client_for(self.dev)
+        res = client.post(
+            "/api/portfolio/items/",
+            {"title": "Texnologik loyiha", "technologies": [" React ", "react", "TypeScript", " Django "]},
+            format="json",
+        )
+        self.assertEqual(res.status_code, 201, res.data)
+        self.assertEqual(res.data["technologies"], ["React", "TypeScript", "Django"])
+        item = PortfolioItem.objects.get(pk=res.data["id"])
+        self.assertEqual(item.technologies, ["React", "TypeScript", "Django"])
+
+        detail = client.patch(
+            f"/api/portfolio/items/{item.pk}/",
+            {"technologies": ["Python", " PostgreSQL "]},
+            format="json",
+        )
+        self.assertEqual(detail.status_code, 200, detail.data)
+        self.assertEqual(detail.data["technologies"], ["Python", "PostgreSQL"])
+        developer = client.get(f"/api/portfolio/{self.dev.pk}/")
+        by_id = {row["id"]: row for row in developer.data["items"]}
+        self.assertEqual(by_id[item.pk]["technologies"], ["Python", "PostgreSQL"])
+
+    def test_technologies_reject_more_than_ten_or_invalid_values(self):
+        client = client_for(self.dev)
+        too_many = client.post(
+            "/api/portfolio/items/",
+            {"title": "X", "technologies": [f"Tech {index}" for index in range(11)]},
+            format="json",
+        )
+        self.assertEqual(too_many.status_code, 400)
+        self.assertIn("technologies", too_many.data["fields"])
+
+        invalid = client.post(
+            "/api/portfolio/items/",
+            {"title": "X", "technologies": ["React", "   ", 42]},
+            format="json",
+        )
+        self.assertEqual(invalid.status_code, 400)
+        self.assertIn("technologies", invalid.data["fields"])
+
+    def test_model_validation_normalizes_technologies_and_enforces_limit(self):
+        item = PortfolioItem(owner=self.dev, title="Model", technologies=[" React ", "react", "Django"])
+        item.full_clean()
+        self.assertEqual(item.technologies, ["React", "Django"])
+
+        item.technologies = [f"Tech {index}" for index in range(11)]
+        with self.assertRaisesMessage(Exception, "10"):
+            item.full_clean()
+
+
+class CoverTests(PortfolioTestCase):
+    def test_owner_uploads_private_normalized_cover_and_deletes_it(self):
+        item = self.manual_item()
+        owner = client_for(self.dev)
+        upload = owner.post(
+            f"/api/portfolio/items/{item.pk}/cover/",
+            {"cover": image_file()},
+            format="multipart",
+        )
+        self.assertEqual(upload.status_code, 200, upload.data)
+        url = upload.data["cover"]
+        self.assertTrue(url.startswith(f"/api/portfolio/covers/{item.pk}/?v="))
+
+        item.refresh_from_db()
+        with Image.open(item.cover.path) as saved:
+            self.assertEqual(saved.format, "JPEG")
+            self.assertLessEqual(max(saved.size), 1600)
+
+        self.assertEqual(self.client.get(url).status_code, 401)
+        response = client_for(self.dept).get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Type"], "image/jpeg")
+        self.assertEqual(response["Cache-Control"], "private, max-age=86400")
+        self.assertEqual(response["X-Content-Type-Options"], "nosniff")
+
+        delete = owner.delete(f"/api/portfolio/items/{item.pk}/cover/")
+        self.assertEqual(delete.status_code, 200)
+        self.assertIsNone(delete.data["cover"])
+        item.refresh_from_db()
+        self.assertFalse(item.cover)
+        self.assertEqual(client_for(self.dept).get(f"/api/portfolio/covers/{item.pk}/").status_code, 404)
+
+    def test_cover_permissions_validation_and_replacement_cleanup(self):
+        item = self.manual_item()
+        endpoint = f"/api/portfolio/items/{item.pk}/cover/"
+        self.assertEqual(client_for(self.other).post(endpoint, {"cover": image_file()}).status_code, 403)
+        self.assertEqual(client_for(self.dev).post(endpoint, {}).status_code, 400)
+        fake = SimpleUploadedFile("fake.png", b"not-an-image", content_type="image/png")
+        self.assertEqual(client_for(self.dev).post(endpoint, {"cover": fake}).status_code, 400)
+
+        owner = client_for(self.dev)
+        first_upload = owner.post(endpoint, {"cover": image_file("first.png")})
+        self.assertEqual(first_upload.status_code, 200)
+        first_url = first_upload.data["cover"]
+        item.refresh_from_db()
+        storage, old_name = item.cover.storage, item.cover.name
+        with self.captureOnCommitCallbacks(execute=True):
+            second_upload = owner.post(endpoint, {"cover": image_file("second.webp", fmt="WEBP")})
+            self.assertEqual(second_upload.status_code, 200)
+        item.refresh_from_db()
+        self.assertNotEqual(second_upload.data["cover"], first_url)
+        self.assertNotEqual(item.cover.name, old_name)
+        self.assertFalse(storage.exists(old_name))
+
+    @override_settings(PORTFOLIO_COVER_MAX_MB=0)
+    def test_cover_rejects_too_big(self):
+        item = self.manual_item()
+        res = client_for(self.dev).post(
+            f"/api/portfolio/items/{item.pk}/cover/",
+            {"cover": image_file()},
+        )
+        self.assertEqual(res.status_code, 400)
+        self.assertFalse(PortfolioItem.objects.get(pk=item.pk).cover)
+
+    def test_cover_file_removed_after_item_cascade_commit(self):
+        item = self.manual_item()
+        client_for(self.dev).post(f"/api/portfolio/items/{item.pk}/cover/", {"cover": image_file()})
+        item.refresh_from_db()
+        storage, name = item.cover.storage, item.cover.name
+        with self.captureOnCommitCallbacks(execute=True):
+            item.delete()
+        self.assertFalse(storage.exists(name))
 
 
 class VideoTests(PortfolioTestCase):

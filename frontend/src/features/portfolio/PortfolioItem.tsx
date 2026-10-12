@@ -1,10 +1,10 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { ArrowLeft, ExternalLink, MessageSquare, Pencil, Save, Trash2, Upload, Video } from "lucide-react";
-import { type ReactNode, useState } from "react";
+import { ArrowLeft, ExternalLink, Image, MessageSquare, Pencil, Save, Trash2, Upload, Video } from "lucide-react";
+import { type ReactNode, useEffect, useState } from "react";
 
 import { useModal } from "@/app/modals";
 import { usePagedList, useRefresh } from "@/app/queries";
-import { api, ApiError } from "@/shared/api";
+import { api, ApiError, formData } from "@/shared/api";
 import { fileSize, fmtDate, timeAgo } from "@/shared/format";
 import { T } from "@/shared/text";
 import type { PortfolioItemDetail, PortfolioReview } from "@/shared/types";
@@ -16,6 +16,8 @@ import { StarInput, Stars } from "./Stars";
 
 const REVIEW_MAX = 1000;
 const DESCRIPTION_MAX = 2000;
+const COVER_MAX_BYTES = 5 * 1024 * 1024;
+const COVER_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 
 interface Draft {
   title: string;
@@ -23,20 +25,27 @@ interface Draft {
   link: string;
   start_date: string;
   end_date: string;
+  technologies: string;
 }
 
-const EMPTY: Draft = { title: "", description: "", link: "", start_date: "", end_date: "" };
+const EMPTY: Draft = { title: "", description: "", link: "", start_date: "", end_date: "", technologies: "" };
+
+const technologyValues = (value: string) => [...new Set(value.split(",").map((item) => item.trim()).filter(Boolean))];
 
 function payload(draft: Draft, auto: boolean) {
-  const base = { description: draft.description.trim(), link: draft.link.trim() };
+  const base = { description: draft.description.trim(), link: draft.link.trim(), technologies: technologyValues(draft.technologies) };
   if (auto) return base;
   return { ...base, title: draft.title.trim(), start_date: draft.start_date || null, end_date: draft.end_date || null };
 }
 
 /** Loyiha maydonlari: qo'shish va tahrirlashda bir xil. TeamFlow loyihasida nomi va sanalari o'zgarmaydi. */
-function ItemFields({ draft, onChange, error, auto }: { draft: Draft; onChange: (d: Draft) => void; error: unknown; auto: boolean }) {
+function ItemFields({ draft, onChange, error, auto, cover, onCover, currentCover }: {
+  draft: Draft; onChange: (d: Draft) => void; error: unknown; auto: boolean;
+  cover: File | null; onCover: (file: File | null) => void; currentCover?: string | null;
+}) {
   const err = (name: string) => (error instanceof ApiError ? error.field(name) : undefined);
   const set = (k: keyof Draft) => (e: { target: { value: string } }) => onChange({ ...draft, [k]: e.target.value });
+  const technologiesError = technologyValues(draft.technologies).length > 10 ? T.portfolio.fields.technologiesHint : err("technologies");
   return (
     <div className="stack">
       {auto ? (
@@ -62,9 +71,63 @@ function ItemFields({ draft, onChange, error, auto }: { draft: Draft; onChange: 
       <Field label={T.portfolio.fields.link} hint={T.portfolio.fields.linkHint} error={err("link")}>
         {(id, invalid) => <input id={id} type="url" inputMode="url" className="input" maxLength={500} aria-invalid={invalid} placeholder={T.portfolio.fields.linkPh} value={draft.link} onChange={set("link")} />}
       </Field>
+      <Field label={T.portfolio.fields.technologies} hint={T.portfolio.fields.technologiesHint} error={technologiesError}>
+        {(id, invalid) => <input id={id} className="input" aria-invalid={invalid} placeholder={T.portfolio.fields.technologiesPh} value={draft.technologies} onChange={set("technologies")} />}
+      </Field>
+      <CoverField file={cover} onChange={onCover} current={currentCover} serverError={err("cover")} />
       {error instanceof ApiError && !Object.keys(error.fields).length ? <ErrorBox error={error} /> : null}
       {error && !(error instanceof ApiError) ? <ErrorBox error={error} /> : null}
     </div>
+  );
+}
+
+function CoverField({ file, onChange, current, serverError }: { file: File | null; onChange: (file: File | null) => void; current?: string | null; serverError?: string }) {
+  const [preview, setPreview] = useState<string | null>(current ?? null);
+  const [error, setError] = useState<string>();
+  useEffect(() => {
+    if (!file) {
+      setPreview(current ?? null);
+      return;
+    }
+    if (typeof URL.createObjectURL !== "function") return;
+    const url = URL.createObjectURL(file);
+    setPreview(url);
+    return () => URL.revokeObjectURL(url);
+  }, [file, current]);
+
+  return (
+    <Field label={T.portfolio.fields.cover} hint={T.portfolio.fields.coverHint} error={error || serverError}>
+      {(id, invalid) => (
+        <div className="stack-sm">
+          {preview ? (
+            <img src={preview} alt={T.portfolio.fields.cover} style={{ width: "100%", height: 180, objectFit: "cover", borderRadius: 12 }} />
+          ) : (
+            <div style={{ height: 120, display: "grid", placeItems: "center", border: "1px dashed var(--border)", borderRadius: 12, background: "var(--surface-2)" }}>
+              <Image size={28} className="muted" aria-hidden />
+            </div>
+          )}
+          <input
+            id={id}
+            className="input"
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            aria-invalid={invalid}
+            onChange={(event) => {
+              const next = event.target.files?.[0] ?? null;
+              event.target.value = "";
+              if (next && (!COVER_TYPES.has(next.type) || next.size > COVER_MAX_BYTES)) {
+                setError(T.portfolio.fields.coverInvalid);
+                onChange(null);
+                return;
+              }
+              setError(undefined);
+              onChange(next);
+            }}
+          />
+          {file && <span className="small muted">{file.name}</span>}
+        </div>
+      )}
+    </Field>
   );
 }
 
@@ -74,15 +137,27 @@ export function PortfolioItemForm({ ownerId }: { ownerId: number }) {
   const toast = useToast();
   const refresh = useRefresh(["portfolio"]);
   const [draft, setDraft] = useState<Draft>(EMPTY);
+  const [cover, setCover] = useState<File | null>(null);
   const save = useMutation({
-    mutationFn: () => api.post<PortfolioItemDetail>("/portfolio/items/", payload(draft, false)),
-    onSuccess: (item) => {
+    mutationFn: async () => {
+      const item = await api.post<PortfolioItemDetail>("/portfolio/items/", payload(draft, false));
+      if (!cover) return { item, coverFailed: false };
+      try {
+        await api.post<PortfolioItemDetail>(`/portfolio/items/${item.id}/cover/`, formData({}, [cover], "cover"));
+        return { item, coverFailed: false };
+      } catch {
+        return { item, coverFailed: true };
+      }
+    },
+    onSuccess: ({ item, coverFailed }) => {
       toast(T.portfolio.savedToast);
+      if (coverFailed) toast(T.portfolio.fields.coverUploadFailed, "error");
       void refresh();
       open({ portfolio: ownerId, item: item.id }, true);
     },
   });
-  const dirty = JSON.stringify(draft) !== JSON.stringify(EMPTY);
+  const dirty = JSON.stringify(draft) !== JSON.stringify(EMPTY) || cover !== null;
+  const tooManyTechnologies = technologyValues(draft.technologies).length > 10;
   return (
     <Modal
       title={T.portfolio.addTitle}
@@ -92,13 +167,14 @@ export function PortfolioItemForm({ ownerId }: { ownerId: number }) {
         <>
           <span className="spacer" />
           <Button onClick={close}>{T.common.cancel}</Button>
-          <Button variant="primary" icon={<Save size={16} />} loading={save.isPending} disabled={!draft.title.trim()} onClick={() => save.mutate()}>
+          <Button variant="primary" icon={<Save size={16} />} loading={save.isPending} disabled={!draft.title.trim() || tooManyTechnologies} onClick={() => save.mutate()}>
             {T.common.save}
           </Button>
         </>
       }
     >
-      <ItemFields draft={draft} onChange={(d) => (setDraft(d), save.reset())} error={save.error} auto={false} />
+      <ItemFields draft={draft} onChange={(d) => (setDraft(d), save.reset())} error={save.error} auto={false}
+        cover={cover} onCover={(file) => { setCover(file); save.reset(); }} />
     </Modal>
   );
 }
@@ -138,7 +214,7 @@ export function PortfolioItemView({ id }: { id: number }) {
       dirty={reviewDirty}
       onDirty={setReviewDirty}
       onEdit={() => setEditing({ title: item.manual.title, description: item.description, link: item.link,
-        start_date: item.manual.start_date ?? "", end_date: item.manual.end_date ?? "" })}
+        start_date: item.manual.start_date ?? "", end_date: item.manual.end_date ?? "", technologies: (item.technologies ?? []).join(", ") })}
     />
   );
 }
@@ -146,10 +222,21 @@ export function PortfolioItemView({ id }: { id: number }) {
 function ItemEdit({ item, draft, onDraft, onDone, subtitle }: { item: PortfolioItemDetail; draft: Draft; onDraft: (d: Draft) => void; onDone: () => void; subtitle: ReactNode }) {
   const toast = useToast();
   const refresh = useRefresh(["portfolio"]);
+  const [cover, setCover] = useState<File | null>(null);
   const save = useMutation({
-    mutationFn: () => api.patch<PortfolioItemDetail>(`/portfolio/items/${item.id}/`, payload(draft, item.is_auto)),
-    onSuccess: () => {
+    mutationFn: async () => {
+      const updated = await api.patch<PortfolioItemDetail>(`/portfolio/items/${item.id}/`, payload(draft, item.is_auto));
+      if (!cover) return { updated, coverFailed: false };
+      try {
+        await api.post<PortfolioItemDetail>(`/portfolio/items/${item.id}/cover/`, formData({}, [cover], "cover"));
+        return { updated, coverFailed: false };
+      } catch {
+        return { updated, coverFailed: true };
+      }
+    },
+    onSuccess: ({ coverFailed }) => {
       toast(T.portfolio.savedToast);
+      if (coverFailed) toast(T.portfolio.fields.coverUploadFailed, "error");
       void refresh();
       onDone();
     },
@@ -164,13 +251,15 @@ function ItemEdit({ item, draft, onDraft, onDone, subtitle }: { item: PortfolioI
         <>
           <span className="spacer" />
           <Button onClick={onDone}>{T.common.cancel}</Button>
-          <Button variant="primary" icon={<Save size={16} />} loading={save.isPending} disabled={!item.is_auto && !draft.title.trim()} onClick={() => save.mutate()}>
+          <Button variant="primary" icon={<Save size={16} />} loading={save.isPending}
+            disabled={(!item.is_auto && !draft.title.trim()) || technologyValues(draft.technologies).length > 10} onClick={() => save.mutate()}>
             {T.common.save}
           </Button>
         </>
       }
     >
-      <ItemFields draft={draft} onChange={(d) => (onDraft(d), save.reset())} error={save.error} auto={item.is_auto} />
+      <ItemFields draft={draft} onChange={(d) => (onDraft(d), save.reset())} error={save.error} auto={item.is_auto}
+        cover={cover} onCover={(file) => { setCover(file); save.reset(); }} currentCover={item.cover} />
     </Modal>
   );
 }
@@ -180,7 +269,7 @@ function ItemDetails({ item, subtitle, dirty, onDirty, onEdit }: {
 }) {
   const { close } = useModal();
   const toast = useToast();
-  const refresh = useRefresh(["portfolio"]);
+  const refresh = useRefresh(["portfolio", "profile"]);
   const [stars, setStars] = useState(item.my_review?.stars ?? 0);
   const [text, setText] = useState(item.my_review?.text ?? "");
   const [starsError, setStarsError] = useState(false);
@@ -262,6 +351,14 @@ function ItemDetails({ item, subtitle, dirty, onDirty, onEdit }: {
           </span>
         </div>
 
+        {item.cover ? (
+          <img src={item.cover} alt={T.portfolio.coverAlt(item.title)} style={{ width: "100%", maxHeight: 360, objectFit: "cover", borderRadius: 16 }} />
+        ) : (
+          <div role="img" aria-label={T.portfolio.coverEmpty(item.title)} style={{ height: 180, display: "grid", placeItems: "center", borderRadius: 16, background: "var(--surface-2)" }}>
+            <Image size={32} className="muted" aria-hidden />
+          </div>
+        )}
+
         <div className="row-wrap" style={{ justifyContent: "space-between", gap: 12 }}>
           <Stars value={item.rating} count={item.reviews_count} size={20} />
           {item.link && (
@@ -270,6 +367,13 @@ function ItemDetails({ item, subtitle, dirty, onDirty, onEdit }: {
             </a>
           )}
         </div>
+
+        {!!item.technologies?.length && (
+          <section>
+            <h3 className="section-title">{T.portfolio.technologies}</h3>
+            <div className="row-wrap">{item.technologies.map((technology) => <Badge key={technology} dot={false}>{technology}</Badge>)}</div>
+          </section>
+        )}
 
         {item.description && (
           <section>

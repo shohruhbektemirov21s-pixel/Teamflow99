@@ -12,6 +12,7 @@ const dev = (id: number, name: string, following: boolean): PortfolioDeveloper =
   id, full_name: name, role: "developer", department_name: "", avatar: null, specialty: "Backend dasturchi",
   rating: 4.5, reviews_count: 2, followers_count: 3, projects_count: 1, tasks_done: 4, is_following: following, rank: id,
   projects: ["Portal", "Sayt"], projects_extra: 2, experience_months: 30,
+  technologies: ["Python"], cover: null,
 });
 const page = (...rows: PortfolioDeveloper[]) => ({ count: rows.length, next: null, previous: null, results: rows });
 const SUMMARY = {
@@ -34,27 +35,21 @@ describe("UserDashboard", () => {
     expect(await screen.findByText("4.6")).toBeTruthy();
     expect(screen.getByText("+12%")).toBeTruthy();
     expect(screen.getByText(T.user.statActive)).toBeTruthy();
-    expect(screen.getByText("Portal")).toBeTruthy();
-    expect(screen.getByText("+2")).toBeTruthy();
+    expect(screen.getByText("Python")).toBeTruthy();
+    expect(screen.queryByText("Portal")).toBeNull();
     expect(screen.getByText(T.user.experienceShort(30))).toBeTruthy();
-    expect(screen.getByRole("button", { name: T.user.filterAll + " (3)" })).toBeTruthy();
   });
 
-  it("'Kuzatayotganlarim' va mutaxassislik chiplari tegishli filtrni so'raydi", async () => {
-    mockGet({
-      "/portfolio/summary/": SUMMARY,
-      "/portfolio/": page(dev(1, "Jasur Alimov", false)),
-      "/portfolio/?following=1": page(dev(2, "Malika Karimova", true)),
-      "/portfolio/?specialty=5": page(dev(3, "Bobur Rahimov", false)),
-    });
+  it("olib tashlangan subtitle, chiplar, qo'llanma va ko'rinish almashtirgichni ko'rsatmaydi", async () => {
+    mockGet({ "/portfolio/summary/": SUMMARY, "/portfolio/": page(dev(1, "Jasur Alimov", false)) });
     renderApp(<UserDashboard />);
 
     await screen.findByText("Jasur Alimov");
-    fireEvent.click(await screen.findByRole("button", { name: `${T.user.filterFollowing} (1)` }));
-    expect(await screen.findByText("Malika Karimova")).toBeTruthy();
-
-    fireEvent.click(await screen.findByRole("button", { name: "Backend dasturchi (1)" }));
-    expect(await screen.findByText("Bobur Rahimov")).toBeTruthy();
+    expect(screen.queryByText(T.user.subtitle)).toBeNull();
+    expect(screen.queryByText(T.user.howTitle)).toBeNull();
+    expect(screen.queryByText(T.user.filterFollowing)).toBeNull();
+    expect(screen.queryByRole("group", { name: T.user.viewLabel })).toBeNull();
+    expect(screen.queryByRole("button", { name: /Backend dasturchi \(1\)/ })).toBeNull();
   });
 
   it("saralash tanlansa so'rovga sort qo'shiladi", async () => {
@@ -70,16 +65,6 @@ describe("UserDashboard", () => {
     expect(await screen.findByText("Bobur Rahimov")).toBeTruthy();
   });
 
-  it("ro'yxat ko'rinishiga o'tadi va tanlov eslab qolinadi", async () => {
-    mockGet({ "/portfolio/summary/": SUMMARY, "/portfolio/": page(dev(1, "Jasur Alimov", false)) });
-    renderApp(<UserDashboard />);
-
-    await screen.findByText("Jasur Alimov");
-    fireEvent.click(screen.getByRole("button", { name: T.user.viewList }));
-    expect(localStorage.getItem("user-view")).toBe("list");
-    expect(document.querySelector(".urow")).toBeTruthy();
-  });
-
   it("kartadagi yurak tugmasi kuzatish holatini ko'rsatadi", async () => {
     mockGet({ "/portfolio/summary/": SUMMARY, "/portfolio/": page(dev(1, "Jasur Alimov", true)) });
     renderApp(<UserDashboard />);
@@ -88,12 +73,18 @@ describe("UserDashboard", () => {
     expect(heart.getAttribute("aria-pressed")).toBe("true");
   });
 
-  it("'Qanday ishlaydi?' izohi bir marta yopiladi", async () => {
-    mockGet({ "/portfolio/summary/": SUMMARY, "/portfolio/": page() });
+  it("kartada backenddan kelgan real muqova va texnologiyalarni ko'rsatadi", async () => {
+    const developer = {
+      ...dev(1, "Jasur Alimov", false),
+      cover: "/api/portfolio/covers/10/",
+      technologies: ["Python", "Django"],
+    };
+    mockGet({ "/portfolio/summary/": SUMMARY, "/portfolio/": page(developer) });
     renderApp(<UserDashboard />);
 
-    fireEvent.click(await screen.findByRole("button", { name: T.user.howClose }));
-    expect(screen.queryByText(T.user.howTitle)).toBeNull();
-    expect(localStorage.getItem("user-how-seen")).toBe("1");
+    expect((await screen.findByRole("img", { name: T.user.developerCoverAlt("Jasur Alimov") })).getAttribute("src")).toBe(developer.cover);
+    expect(screen.getByText("Python")).toBeTruthy();
+    expect(screen.getByText("Django")).toBeTruthy();
   });
+
 });
