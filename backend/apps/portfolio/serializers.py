@@ -25,8 +25,11 @@ class ReviewInput(serializers.Serializer):
     text = serializers.CharField(max_length=1000, required=False, allow_blank=True, default="")
 
 
-def developer_row(user, rank=None):
+def developer_row(user, rank=None, highlights=None):
+    highlights = highlights or {}
     return {
+        "projects": highlights.get("projects", []), "projects_extra": highlights.get("projects_extra", 0),
+        "experience_months": highlights.get("experience_months"),
         "id": user.pk, "full_name": user.full_name, "role": user.role, "department_name": user.department_name,
         "avatar": avatar_url(user), "specialty": user.specialty.name if user.specialty else "",
         "rating": round_rating(user.rating), "reviews_count": user.reviews_count,

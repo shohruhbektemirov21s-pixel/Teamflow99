@@ -17,6 +17,7 @@ import { Skeleton, ToastProvider } from "./shared/ui";
 const Dashboard = lazy(() => import("./features/dashboard/Dashboard"));
 const DepartmentHome = lazy(() => import("./features/dashboard/DepartmentHome"));
 const UserDashboard = lazy(() => import("./features/dashboard/UserDashboard"));
+const MyReviewsPage = lazy(() => import("./features/portfolio/MyReviewsPage"));
 const TasksPage = lazy(() => import("./features/tasks/TasksPage"));
 const BoardPage = lazy(() => import("./features/tasks/BoardPage"));
 const ReviewPage = lazy(() => import("./features/tasks/ReviewPage"));
@@ -74,6 +75,7 @@ function AppRoutes() {
           {isUserRole ? (
             <Route element={<UserLayout />}>
               <Route index element={page(<UserDashboard />)} />
+              <Route path="baholarim" element={page(<MyReviewsPage />)} />
               <Route path="profil" element={page(<ProfilePage />)} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Route>

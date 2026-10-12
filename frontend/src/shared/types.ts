@@ -27,9 +27,14 @@ export interface Profile extends Me {
 
 export interface PortfolioSummary {
   developers: number;
+  /** So'nggi 30 kunda qo'shilganlar foizi (bo'lmasa null). */
+  developers_growth: number | null;
   average_rating: number | null;
   rated_projects: number;
-  specialties: { id: number; name: string }[];
+  active_projects: number;
+  /** Men kuzatayotgan dasturchilar soni. */
+  following: number;
+  specialties: { id: number; name: string; count: number }[];
 }
 
 export interface MyReview {
@@ -305,6 +310,10 @@ export interface PortfolioDeveloper extends UserBrief {
   is_following: boolean;
   /** Reyting o'rni (qidiruvsiz ro'yxatda). */
   rank: number | null;
+  /** Kartada: oxirgi loyihalar nomi, qolganlari soni va tajriba (oy) — ro'yxat javobida. */
+  projects?: string[];
+  projects_extra?: number;
+  experience_months?: number | null;
 }
 
 export interface PortfolioItem {

@@ -100,7 +100,8 @@ class ViewTests(PortfolioTestCase):
         client = client_for(self.dept)
         with CaptureQueriesContext(connection) as ctx:
             self.assertEqual(client.get("/api/portfolio/").status_code, 200)
-        self.assertLessEqual(len(ctx.captured_queries), 3)
+        # sessiya, foydalanuvchi, reyting ro'yxati, kartalar uchun loyihalar — dasturchilar soniga bog'liq emas
+        self.assertLessEqual(len(ctx.captured_queries), 4)
 
     def test_search_by_name(self):
         res = client_for(self.pm).get(f"/api/portfolio/?q={self.other.first_name}")
@@ -266,9 +267,19 @@ class ReviewTests(PortfolioTestCase):
         cache.clear()
         data = client_for(self.dept).get("/api/portfolio/summary/").data
         self.assertEqual((data["developers"], data["average_rating"], data["rated_projects"]), (2, 4.5, 1))
-        self.assertEqual(data["specialties"], [{"id": spec.pk, "name": "Backend"}])
+        self.assertEqual(data["specialties"], [{"id": spec.pk, "name": "Backend", "count": 1}])
+        self.assertEqual((data["active_projects"], data["following"]), (1, 0))
+        client_for(self.dept).post(f"/api/portfolio/{self.dev.pk}/follow/")
+        self.assertEqual(client_for(self.dept).get("/api/portfolio/summary/").data["following"], 1)
         res = client_for(self.dept).get(f"/api/portfolio/?specialty={spec.pk}")
         self.assertEqual([r["id"] for r in res.data["results"]], [self.dev.pk])
+
+    def test_card_highlights_come_from_backend(self):
+        self.manual_item(title="Shaxsiy sayt")
+        row = next(r for r in client_for(self.dept).get("/api/portfolio/").data["results"] if r["id"] == self.dev.pk)
+        self.assertCountEqual(row["projects"], ["Portal", "Shaxsiy sayt"])
+        self.assertEqual(row["projects_extra"], 0)
+        self.assertGreaterEqual(row["experience_months"], 12)
 
     def test_sort_by_followers(self):
         client_for(self.dept).post(f"/api/portfolio/{self.other.pk}/follow/")

@@ -1,4 +1,4 @@
-import { LogOut, Moon, Sparkles, Sun, User, Users } from "lucide-react";
+import { LogOut, Moon, Sparkles, Star, Sun, User, Users } from "lucide-react";
 import { Link, NavLink, Outlet } from "react-router-dom";
 
 import { T } from "@/shared/text";
@@ -8,32 +8,39 @@ import { useAuth, useMe } from "./auth";
 import { useTheme } from "./Layout";
 import { ModalHost } from "./modals";
 
-/** Oddiy foydalanuvchi: telefonda pastda, kompyuterda tepada ikki bo'lim (Dasturchilar · Profil). */
+/** Oddiy foydalanuvchi: tepada panel, kompyuterda chap menyu, telefonda pastki menyu (Dasturchilar · Mening baholarim · Profil). */
 export default function UserLayout() {
   const me = useMe();
   const { logout } = useAuth();
   const [theme, toggleTheme] = useTheme();
 
   return (
-    <div className="ulayout">
+    <div className="ushell">
       <a className="skip-link" href="#main-content">{T.nav.skipContent}</a>
       <header className="ubar">
-        <span className="ubar-brand"><Sparkles size={20} aria-hidden /> {T.app}</span>
-        <nav className="utabs" aria-label={T.user.menu}>
-          <NavLink to="/" end className="utab"><Users size={22} aria-hidden /><span>{T.user.tabDevelopers}</span></NavLink>
-          <NavLink to="/profil" className="utab"><User size={22} aria-hidden /><span>{T.user.tabProfile}</span></NavLink>
-        </nav>
-        <Link to="/profil" className="ubar-me" aria-label={T.user.profileLink} title={T.user.profileLink}><Avatar user={me} /></Link>
+        <Link to="/" className="ubar-brand"><Sparkles size={22} aria-hidden /> {T.app}</Link>
+        <span className="grow" />
         <button type="button" className="btn btn-ghost" onClick={toggleTheme} aria-label={T.nav.theme} title={T.nav.theme}>
-          {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
+          {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
         </button>
+        <Link to="/profil" className="ubar-me" aria-label={T.user.userMenu}>
+          <Avatar user={me} size="lg" card={false} />
+          <span className="ubar-name ellipsis">{me.first_name || me.full_name}</span>
+        </Link>
         <button type="button" className="btn btn-ghost" onClick={logout}>
-          <LogOut size={16} /> {T.nav.logout}
+          <LogOut size={16} /> <span className="ubar-logout">{T.nav.logout}</span>
         </button>
       </header>
-      <main id="main-content" className="umain" tabIndex={-1}>
-        <Outlet />
-      </main>
+      <div className="ubody">
+        <nav className="utabs" aria-label={T.user.menu}>
+          <NavLink to="/" end className="utab"><Users size={20} aria-hidden /><span>{T.user.navDevelopers}</span></NavLink>
+          <NavLink to="/baholarim" className="utab"><Star size={20} aria-hidden /><span>{T.user.navReviews}</span></NavLink>
+          <NavLink to="/profil" className="utab"><User size={20} aria-hidden /><span>{T.user.navProfile}</span></NavLink>
+        </nav>
+        <main id="main-content" className="umain" tabIndex={-1}>
+          <Outlet />
+        </main>
+      </div>
       <ModalHost />
     </div>
   );

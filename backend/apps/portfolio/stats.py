@@ -3,13 +3,15 @@
 Hisoblanadi, saqlanmaydi (holatdan kelib chiqadigan qiymatni saqlash — nomuvofiqlik manbai).
 Sonlar subquery bilan olinadi: bir nechta JOIN bir-birini ko'paytirib, o'rtacha bahoni buzmasin.
 """
+from datetime import timedelta
+
 from django.core.cache import cache
 from django.db import transaction
 from django.db.models import Avg, BooleanField, Count, Exists, F, IntegerField, OuterRef, Subquery, Value
 from django.db.models.functions import Coalesce, ExtractYear
 from django.utils import timezone
 
-from apps.projects.models import ProjectMember
+from apps.projects.models import Project, ProjectMember
 from apps.tasks.models import Task, TaskAssignment
 
 from .models import Follow, PortfolioItem, PortfolioReview
@@ -33,12 +35,41 @@ def summary():
     totals = reviews.aggregate(avg=Avg("stars"), rated=Count("item", distinct=True))
     specialties = (owners.exclude(specialty=None).values("specialty_id", "specialty__name")
                    .annotate(n=Count("pk")).order_by("specialty__name"))
+    developers = owners.count()
+    joined = owners.filter(date_joined__gte=timezone.now() - timedelta(days=30)).count()
+    before = developers - joined
+    active_projects = (Project.objects.exclude(stage=Project.Stage.DONE)
+                       .filter(memberships__developer__in=owners).distinct().count())
     return {
-        "developers": owners.count(),
+        "developers": developers,
+        "developers_growth": round(joined / before * 100) if joined and before else None,
         "average_rating": round(totals["avg"], 1) if totals["avg"] is not None else None,
         "rated_projects": totals["rated"],
-        "specialties": [{"id": row["specialty_id"], "name": row["specialty__name"]} for row in specialties],
+        "active_projects": active_projects,
+        "specialties": [{"id": row["specialty_id"], "name": row["specialty__name"], "count": row["n"]} for row in specialties],
     }
+
+
+def following_count(viewer):
+    return Follow.objects.filter(follower=viewer, developer__in=portfolio_owners()).count()
+
+
+def developer_highlights(users):
+    """Ro'yxat kartalari uchun: oxirgi 3 ta loyiha nomi, qolganlari soni va tajriba (bitta so'rov)."""
+    users = list(users)
+    items = {}
+    for item in (PortfolioItem.objects.filter(owner__in=users).select_related("project")
+                 .order_by("-created_at", "-id")):
+        items.setdefault(item.owner_id, []).append(item)
+    result = {}
+    for user in users:
+        mine = items.get(user.pk, [])
+        result[user.pk] = {
+            "projects": [i.display_title for i in mine[:3]],
+            "projects_extra": max(len(mine) - 3, 0),
+            "experience_months": experience(user, mine)["months"],
+        }
+    return result
 
 
 def _count(qs, group):

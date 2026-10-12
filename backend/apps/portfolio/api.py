@@ -16,7 +16,7 @@ from .files import video_response
 from .models import Follow, PortfolioReview, PortfolioVideo
 from .permissions import can_follow, portfolio_owners
 from .serializers import ItemInput, ReviewInput, developer_row, my_review_row, item_detail, item_row, review_row, video_row
-from .stats import DEVELOPER_RANKING_CACHE_KEY, SUMMARY_CACHE_KEY, developers_with_stats, experience, items_with_stats, recent_tasks, summary, tasks_done_by_project, years
+from .stats import DEVELOPER_RANKING_CACHE_KEY, SUMMARY_CACHE_KEY, developer_highlights, developers_with_stats, following_count, experience, items_with_stats, recent_tasks, summary, tasks_done_by_project, years
 
 
 SORTS = {"followers": ("-followers_count",), "projects": ("-projects_count",), "reviews": ("-reviews_count",)}
@@ -31,6 +31,12 @@ def _item_payload(item, user):
     done = tasks_done_by_project(item.owner, [item.project_id]).get(item.project_id, 0) if item.is_auto else None
     mine = PortfolioReview.objects.filter(item=item, author=user).select_related("author").first()
     return item_detail(item, user, done, mine)
+
+
+def _rows(users, rank_of):
+    users = list(users)
+    highlights = developer_highlights(users)
+    return [developer_row(u, rank_of(i), highlights[u.pk]) for i, u in enumerate(users)]
 
 
 @api_view(["GET"])
@@ -48,7 +54,7 @@ def developer_list(request):
             page = paginator.paginate_queryset(developers_with_stats(None), request)
             payload = {
                 "count": paginator.page.paginator.count,
-                "rows": [developer_row(user, paginator.page.start_index() + i) for i, user in enumerate(page)],
+                "rows": _rows(page, lambda i: paginator.page.start_index() + i),
             }
             cache.set(DEVELOPER_RANKING_CACHE_KEY, payload, settings.PORTFOLIO_RANKING_CACHE_SECONDS)
         developer_ids = [row["id"] for row in payload["rows"]]
@@ -70,7 +76,8 @@ def developer_list(request):
     paginator = BoundedPagination()
     page = paginator.paginate_queryset(qs, request)
     first = (paginator.page.start_index() if paginator.page else 1)
-    rows = [developer_row(u, None if q or only_following or sort or specialty is not None else first + i) for i, u in enumerate(page)]
+    ranked = not (q or only_following or sort or specialty is not None)
+    rows = _rows(page, lambda i: first + i if ranked else None)
     return paginator.get_paginated_response(rows)
 
 
@@ -130,7 +137,7 @@ def developers_summary(request):
     if payload is None:
         payload = summary()
         cache.set(SUMMARY_CACHE_KEY, payload, settings.PORTFOLIO_RANKING_CACHE_SECONDS)
-    return Response(payload)
+    return Response({**payload, "following": following_count(request.user)})
 
 
 @api_view(["GET"])

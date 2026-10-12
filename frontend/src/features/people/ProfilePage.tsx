@@ -13,7 +13,6 @@ import type { Profile, Task } from "@/shared/types";
 import { Badge, Button, ErrorBox, Field, SkeletonRows, useToast } from "@/shared/ui";
 import { Pagination } from "@/shared/ui/Pagination";
 
-import { MyReviews } from "../portfolio/MyReviews";
 import { ProfileHeader } from "./ProfileHeader";
 import { BusinessTripPanel } from "./BusinessTripPanel";
 
@@ -89,7 +88,6 @@ export default function ProfilePage() {
 
   return (
     <div className="stack" style={{ maxWidth: 800, width: "100%", margin: "0 auto" }}>
-      {me.role === "user" && <MyReviews />}
 
       <div className="card card-pad stack">
         <ProfileHeader
