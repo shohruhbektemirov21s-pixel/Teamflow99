@@ -27,9 +27,11 @@ function readSeen() {
 function HowItWorks({ onClose }: { onClose: () => void }) {
   return (
     <section className="card uhow" aria-label={T.user.howTitle}>
-      <b>{T.user.howTitle}</b>
-      <ol>
-        {T.user.howSteps.map((step) => <li key={step}>{step}</li>)}
+      <b className="uhow-title">{T.user.howTitle}</b>
+      <ol className="uhow-steps">
+        {T.user.howSteps.map((step, i) => (
+          <li key={step}><span className="uhow-num" aria-hidden>{i + 1}</span>{step}</li>
+        ))}
       </ol>
       <Button size="sm" onClick={onClose}>{T.user.howClose}</Button>
     </section>
