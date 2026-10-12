@@ -89,11 +89,12 @@ export default function ProfilePage() {
 
   return (
     <div className="stack" style={{ maxWidth: 800, width: "100%", margin: "0 auto" }}>
+      {me.role === "user" && <MyReviews />}
 
       <div className="card card-pad stack">
         <ProfileHeader
           user={me}
-          subtitle={me.department_name || me.specialty || me.role_label}
+          subtitle={me.department_name || (me.role === "user" ? me.role_label : me.specialty || me.role_label)}
           stats={p?.stats && { active: p.stats.active, overdue: p.stats.overdue, review: p.stats.in_review, done: p.stats.done }}
           actions={
             <>
@@ -179,8 +180,6 @@ export default function ProfilePage() {
       </div>
 
       {me.role === "boss" && <BusinessTripPanel />}
-
-      {me.role === "user" && <MyReviews />}
 
       {developer && (
         <section className="card" aria-label={T.profile.myTasks}>

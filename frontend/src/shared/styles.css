@@ -13,24 +13,24 @@
   --fs-xl: 22px;
   --fs-2xl: 28px;
 
-  --bg: #f3f6f5;
+  --bg: #f3f4f9;
   --surface: #ffffff;
-  --surface-2: #f7f9f8;
-  --surface-hover: #edf2f0;
-  --border: #dde5e2;
-  --border-strong: #c7d3cf;
-  --text: #17211e;
-  --text-2: #43514c;
-  --muted: #64736e; /* oq fonda AA kontrast */
-  --placeholder: #7c8b86;
-  --sidebar-bg: #eef3f1;
-  --auth-panel: #124f45;
+  --surface-2: #f7f7fb;
+  --surface-hover: #eeeff7;
+  --border: #e3e4ee;
+  --border-strong: #cfd1e0;
+  --text: #1a1c2e;
+  --text-2: #46485e;
+  --muted: #666980; /* oq fonda AA kontrast */
+  --placeholder: #80839a;
+  --sidebar-bg: #f0f0f8;
+  --auth-panel: #2a1f75;
 
-  --primary: #176b5b;
-  --primary-hover: #11584b;
-  --primary-solid: #176b5b; /* to'ldirilgan tugma foni */
-  --primary-solid-hover: #11584b;
-  --primary-soft: #e4f1ed;
+  --primary: #5b3fe0;
+  --primary-hover: #4a30c4;
+  --primary-solid: #5b3fe0; /* to'ldirilgan tugma foni */
+  --primary-solid-hover: #4a30c4;
+  --primary-soft: #efebff;
   --primary-text: #ffffff;
   --focus-ring: color-mix(in srgb, var(--primary) 45%, transparent);
   --focus: 0 0 0 3px var(--focus-ring);
@@ -49,8 +49,8 @@
   --info-soft: #e6f1f4;
   --violet: #655a8c;
   --violet-soft: #eeebf5;
-  --slate: #53645e;
-  --slate-soft: #ebf0ee;
+  --slate: #565a73;
+  --slate-soft: #eceef6;
 
   --space-1: 4px;
   --space-2: 8px;
@@ -72,10 +72,10 @@
   --radius-lg: 18px;
   --radius-full: 9999px;
 
-  --shadow: 0 1px 2px rgba(23, 33, 30, 0.04), 0 3px 10px rgba(23, 33, 30, 0.025);
-  --shadow-md: 0 8px 24px -16px rgba(23, 33, 30, 0.3);
-  --shadow-lg: 0 28px 64px -24px rgba(14, 27, 23, 0.38);
-  --overlay: rgba(12, 24, 20, 0.54);
+  --shadow: 0 1px 2px rgba(26, 28, 46, 0.04), 0 3px 10px rgba(26, 28, 46, 0.025);
+  --shadow-md: 0 8px 24px -16px rgba(26, 28, 46, 0.3);
+  --shadow-lg: 0 28px 64px -24px rgba(16, 14, 40, 0.38);
+  --overlay: rgba(14, 12, 36, 0.54);
   --overlay-strong: rgba(6, 8, 14, 0.72); /* modal ustidagi modal foni — ikkala rejimda qora */
   --photo-backdrop: rgba(0, 0, 0, 0.92); /* rasm ko'rish — ikkala rejimda ham to'q (Telegram kabi) */
   --photo-text: #fff;
@@ -86,23 +86,23 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     color-scheme: dark;
-    --bg: #0f1614;
-    --surface: #151e1b;
-    --surface-2: #1a2521;
-    --surface-hover: #22302b;
-    --border: #2a3934;
-    --border-strong: #3b4c46;
-    --text: #edf4f1;
-    --text-2: #bdcac5;
-    --muted: #91a19b;
-    --placeholder: #788a83;
-    --sidebar-bg: #121b18;
-    --auth-panel: #103d35;
-    --primary: #7dcebb;
-    --primary-hover: #9bddcd;
-    --primary-solid: #287563;
-    --primary-solid-hover: #338875;
-    --primary-soft: #19342d;
+    --bg: #0f0f1a;
+    --surface: #171728;
+    --surface-2: #1d1d31;
+    --surface-hover: #26263d;
+    --border: #2f2f4a;
+    --border-strong: #43435f;
+    --text: #eeeef8;
+    --text-2: #c4c4d8;
+    --muted: #9a9ab5;
+    --placeholder: #8080a0;
+    --sidebar-bg: #131324;
+    --auth-panel: #1f1757;
+    --primary: #b3a4ff;
+    --primary-hover: #cabfff;
+    --primary-solid: #6a4df0;
+    --primary-solid-hover: #7c63f4;
+    --primary-soft: #27214f;
     --danger: #f87171;
     --danger-soft: #3b211f;
     --danger-hover: #fca5a5;
@@ -115,8 +115,8 @@
     --info-soft: #193038;
     --violet: #b7a9da;
     --violet-soft: #2a2638;
-    --slate: #a7b5b0;
-    --slate-soft: #25312d;
+    --slate: #aeb0c8;
+    --slate-soft: #2a2a42;
     --overlay: rgba(0, 0, 0, 0.62);
     --shadow: 0 1px 2px rgba(0, 0, 0, 0.28);
     --shadow-md: 0 8px 24px -16px rgba(0, 0, 0, 0.7);
@@ -125,23 +125,23 @@
 }
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --bg: #0f1614;
-  --surface: #151e1b;
-  --surface-2: #1a2521;
-  --surface-hover: #22302b;
-  --border: #2a3934;
-  --border-strong: #3b4c46;
-  --text: #edf4f1;
-  --text-2: #bdcac5;
-  --muted: #91a19b;
-  --placeholder: #788a83;
-  --sidebar-bg: #121b18;
-  --auth-panel: #103d35;
-  --primary: #7dcebb;
-  --primary-hover: #9bddcd;
-  --primary-solid: #287563;
-  --primary-solid-hover: #338875;
-  --primary-soft: #19342d;
+  --bg: #0f0f1a;
+  --surface: #171728;
+  --surface-2: #1d1d31;
+  --surface-hover: #26263d;
+  --border: #2f2f4a;
+  --border-strong: #43435f;
+  --text: #eeeef8;
+  --text-2: #c4c4d8;
+  --muted: #9a9ab5;
+  --placeholder: #8080a0;
+  --sidebar-bg: #131324;
+  --auth-panel: #1f1757;
+  --primary: #b3a4ff;
+  --primary-hover: #cabfff;
+  --primary-solid: #6a4df0;
+  --primary-solid-hover: #7c63f4;
+  --primary-soft: #27214f;
   --danger: #f87171;
   --danger-soft: #3b211f;
   --danger-hover: #fca5a5;
@@ -154,8 +154,8 @@
   --info-soft: #193038;
   --violet: #b7a9da;
   --violet-soft: #2a2638;
-  --slate: #a7b5b0;
-  --slate-soft: #25312d;
+  --slate: #aeb0c8;
+  --slate-soft: #2a2a42;
   --overlay: rgba(0, 0, 0, 0.62);
   --shadow: 0 1px 2px rgba(0, 0, 0, 0.28);
   --shadow-md: 0 8px 24px -16px rgba(0, 0, 0, 0.7);
