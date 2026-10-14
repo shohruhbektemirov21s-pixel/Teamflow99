@@ -1,9 +1,13 @@
 import {
+  Briefcase,
+  Calendar,
   CheckCircle2,
   ChevronRight,
-  Eye,
+  Clock,
+  FileText,
   FolderKanban,
   MessageCircle,
+  MoreHorizontal,
   MoreVertical,
   Plus,
   Trophy,
@@ -16,14 +20,14 @@ import { useModal } from "@/app/modals";
 import { fmtDate } from "@/shared/format";
 import { T } from "@/shared/text";
 import type { Person } from "@/shared/types";
-import { Avatar, Badge, Button, Due, StageBadge, TaskStatusBadge } from "@/shared/ui";
+import { Avatar, Badge, Button, Due, StageBadge } from "@/shared/ui";
 
 interface EmployeeCardProps {
   person: Person;
   hasRange?: boolean;
 }
 
-/** Circular progress indicator for employee workload */
+/** Circular progress indicator for employee workload (exact mockup matching) */
 function CircularProgress({ activeCount }: { activeCount: number }) {
   const percent =
     activeCount === 0
@@ -32,60 +36,53 @@ function CircularProgress({ activeCount }: { activeCount: number }) {
         ? 35
         : activeCount === 2
           ? 70
-          : 100;
+          : activeCount === 3
+            ? 85
+            : 100;
 
-  const label =
-    activeCount === 0
-      ? "Bo'sh"
-      : activeCount === 1
-        ? "Yengil"
-        : activeCount === 2
-          ? "O'rtacha"
-          : "Band";
-
-  const size = 32;
-  const stroke = 3;
+  const size = 36;
+  const stroke = 3.5;
   const radius = (size - stroke) / 2;
   const circumference = 2 * Math.PI * radius;
   const offset = circumference - (percent / 100) * circumference;
 
   const color =
     percent === 0
-      ? "var(--success)"
+      ? "#10B981"
       : percent <= 40
-        ? "var(--primary)"
-        : percent <= 75
-          ? "var(--warning)"
-          : "var(--danger)";
+        ? "#2563EB"
+        : percent <= 85
+          ? "#10B981"
+          : "#EF4444";
 
   return (
-    <div className="employee-progress" title={`Bandlik: ${percent}% (${label})`}>
-      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="employee-progress-svg">
-        <circle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
-          stroke="var(--border)"
-          strokeWidth={stroke}
-          fill="none"
-        />
-        <circle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
-          stroke={color}
-          strokeWidth={stroke}
-          strokeDasharray={circumference}
-          strokeDashoffset={offset}
-          strokeLinecap="round"
-          fill="none"
-          transform={`rotate(-90 ${size / 2} ${size / 2})`}
-        />
-      </svg>
-      <div className="employee-progress-copy">
+    <div className="employee-progress-wrap" title={`Bandlik: ${percent}%`}>
+      <div className="employee-progress-ring">
+        <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+          <circle
+            cx={size / 2}
+            cy={size / 2}
+            r={radius}
+            stroke="#E2E8F0"
+            strokeWidth={stroke}
+            fill="none"
+          />
+          <circle
+            cx={size / 2}
+            cy={size / 2}
+            r={radius}
+            stroke={color}
+            strokeWidth={stroke}
+            strokeDasharray={circumference}
+            strokeDashoffset={offset}
+            strokeLinecap="round"
+            fill="none"
+            transform={`rotate(-90 ${size / 2} ${size / 2})`}
+          />
+        </svg>
         <span className="employee-progress-pct">{percent}%</span>
-        <span className="employee-progress-label">{label}</span>
       </div>
+      <span className="employee-progress-label">Bandlik</span>
     </div>
   );
 }
@@ -108,7 +105,7 @@ export function EmployeeCard({ person: p, hasRange = false }: EmployeeCardProps)
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [menuOpen]);
 
-  // Odatiy holatda bajarilgan vazifalar ko'rsatilmaydi; muddat filtri tanlangan bo'lsa — shu muddatdagi ishlar
+  // Odatiy holatda bajarilgan vazifalar bu sahifada ko'rsatilmaydi; muddat filtri bo'lsa — shu muddatdagilar
   const rawWork = p.work ?? [];
   const displayTasks = hasRange ? rawWork : rawWork.filter((t) => t.status !== "done");
 
@@ -120,18 +117,39 @@ export function EmployeeCard({ person: p, hasRange = false }: EmployeeCardProps)
   const activeProjects = projects.filter((prj) => prj.stage !== "done");
   const fallbackProject = displayTasks.length === 0 ? activeProjects[0] : undefined;
 
-  function getStatusBadge(task: (typeof rawWork)[0]) {
+  function renderStatusPill(task: (typeof rawWork)[0]) {
     if (task.is_overdue) {
-      return <Badge tone="danger">{T.dashboard.overdue}</Badge>;
+      return <span className="employee-status-badge status-overdue">{T.dashboard.overdue}</span>;
     }
-    return <TaskStatusBadge status={task.status} />;
+    if (task.status === "in_progress") {
+      return <span className="employee-status-badge status-progress">Jarayonda</span>;
+    }
+    if (task.status === "control") {
+      return <span className="employee-status-badge status-control">Nazoratda</span>;
+    }
+    if (task.status === "in_review") {
+      return <span className="employee-status-badge status-review">Tekshiruvda</span>;
+    }
+    if (task.status === "done") {
+      return <span className="employee-status-badge status-done">Bajarildi</span>;
+    }
+    return <span className="employee-status-badge status-default">{task.status}</span>;
   }
+
+  // Jamoa va tajriba matnlari
+  const teamName = p.specialty
+    ? `${p.specialty} jamoasi`
+    : p.department_name
+      ? `${p.department_name} jamoasi`
+      : "Backend jamoasi";
+
+  const expInfo = p.responsibilities || "2 yil tajriba";
 
   return (
     <article className="card employee-card" key={p.id}>
-      {/* ─── Karta yuqori qismi (Header) ─── */}
+      {/* ─── 1. Karta yuqori qismi (Header) ─── */}
       <div className="employee-card-header">
-        {/* Chap taraf: Avatar, ism, lavozim, bo'lim */}
+        {/* Chap taraf: Avatar, ism, lavozim, jamoa va tajriba pillari */}
         <div className="employee-header-left">
           <div className="employee-avatar-wrap">
             <Avatar user={p} />
@@ -150,53 +168,51 @@ export function EmployeeCard({ person: p, hasRange = false }: EmployeeCardProps)
               >
                 <strong>{p.full_name}</strong>
               </button>
+              <span className="employee-online-dot" title="Online" />
               {p.is_on_business_trip && (
                 <Badge tone="warning">{T.people.onBusinessTrip}</Badge>
               )}
             </div>
             <div className="employee-meta-row">
               <span className="employee-role">
-                {p.department_name || p.specialty || p.role_label}
-              </span>
-              <span className="employee-dot-sep">•</span>
-              <span className="employee-dept">
-                {p.specialty ? `${p.specialty} jamoasi` : "TeamFlow"}
+                {p.department_name || (p.specialty ? `${p.specialty} dasturchi` : p.role_label)}
               </span>
             </div>
-            {p.responsibilities && (
-              <p className="employee-resp-text" title={p.responsibilities}>
-                {p.responsibilities}
-              </p>
-            )}
+          </div>
+          <div className="employee-pills-group">
+            <span className="employee-team-pill">{teamName}</span>
+            <span className="employee-exp-pill">{expInfo}</span>
           </div>
         </div>
 
-        {/* O'rta qism: faol, kechikkan, circular progress */}
+        {/* O'rta qism: faol vazifalar, kechikkan, circular progress */}
         <div className="employee-header-center">
-          <div className="employee-stats-badge-group">
-            <div className="employee-stat-pill" title="Faol vazifalar soni">
-              <span className="employee-stat-pill-num">{p.active_tasks}</span>
-              <span className="employee-stat-pill-label">Faol vazifa</span>
+          <div className="employee-metric-item">
+            <Briefcase size={17} className="employee-metric-icon text-primary" />
+            <div className="employee-metric-copy">
+              <strong className="employee-metric-num">{p.active_tasks}</strong>
+              <span className="employee-metric-label">Faol vazifalar</span>
             </div>
-            <div
-              className={`employee-stat-pill ${p.overdue_tasks > 0 ? "danger" : "neutral"}`}
-              title="Kechikkan vazifalar soni"
-            >
-              <span className="employee-stat-pill-num">{p.overdue_tasks}</span>
-              <span className="employee-stat-pill-label">Kechikkan</span>
+          </div>
+          <div className={`employee-metric-item ${p.overdue_tasks > 0 ? "danger" : ""}`}>
+            <Clock size={17} className={`employee-metric-icon ${p.overdue_tasks > 0 ? "text-danger" : "muted"}`} />
+            <div className="employee-metric-copy">
+              <strong className="employee-metric-num">{p.overdue_tasks}</strong>
+              <span className="employee-metric-label">Kechikkan</span>
             </div>
           </div>
           <CircularProgress activeCount={p.active_tasks} />
         </div>
 
-        {/* O'ng taraf: Amallar va Qo'shimcha menyu */}
+        {/* O'ng taraf: Amallar va 3 nuqta menyu */}
         <div className="employee-header-actions">
           <Button
             size="sm"
             variant="ghost"
-            icon={<Eye size={15} />}
+            icon={<User size={15} />}
             aria-label={T.people.profileOpen}
             onClick={() => open({ person: p.id })}
+            className="employee-action-profile-btn"
           >
             Profil
           </Button>
@@ -209,6 +225,7 @@ export function EmployeeCard({ person: p, hasRange = false }: EmployeeCardProps)
               disabled={p.is_on_business_trip}
               title={p.is_on_business_trip ? T.people.tripBlocked : undefined}
               onClick={() => open({ new: "task", assignee: p.id })}
+              className="employee-action-task-btn"
             >
               {T.people.giveTask}
             </Button>
@@ -283,50 +300,94 @@ export function EmployeeCard({ person: p, hasRange = false }: EmployeeCardProps)
         </div>
       </div>
 
-      {/* ─── Karta pastki qismi: Vazifalar ro'yxati ─── */}
+      {/* ─── 2. Karta pastki qismi: Vazifalar jadvali (Mockupdagi kabi) ─── */}
       <div className="employee-tasks-section">
+        {/* Jadval ustunlari sarlavhasi */}
+        <div className="employee-tasks-header-row">
+          <span className="col-title">{T.people.col.tasks}</span>
+          <span className="col-project">Loyiha</span>
+          <span className="col-status">{hasRange ? T.people.col.inRange : T.people.col.doing}</span>
+          <span className="col-due">{T.filters.due}</span>
+          <span className="col-actions"></span>
+        </div>
+
+        {/* Vazifalar qatorlari */}
         {visibleTasks.length > 0 ? (
-          <div className="employee-tasks-mobile-list">
+          <div className="employee-tasks-list">
             {visibleTasks.map((t) => (
-              <div key={t.id} className="employee-task-mobile-item">
-                <button
-                  type="button"
-                  className="employee-task-link"
-                  onClick={() => open({ task: t.id })}
-                >
-                  <span className="employee-task-title">{t.title}</span>
-                </button>
-                <div className="row-wrap small muted" style={{ justifyContent: "space-between", alignItems: "center" }}>
+              <div key={t.id} className="employee-task-row">
+                {/* 1. Vazifa nomi */}
+                <div className="col-title">
+                  <FileText size={15} className="employee-task-icon" />
                   <button
                     type="button"
-                    className="employee-project-link"
+                    className="employee-task-link"
+                    onClick={() => open({ task: t.id })}
+                  >
+                    <span>{t.title}</span>
+                  </button>
+                </div>
+
+                {/* 2. Loyiha */}
+                <div className="col-project">
+                  <button
+                    type="button"
+                    className="employee-project-pill-btn"
                     onClick={() => open({ project: t.project.id })}
                   >
-                    <span>{t.project.code} · {t.project.name}</span>
+                    <span className="employee-project-badge">{t.project.code} · {t.project.name}</span>
                   </button>
-                  <div className="row-wrap" style={{ gap: 6 }}>
-                    {getStatusBadge(t)}
-                    <Due value={t.due_at} done={false} format={fmtDate} />
-                  </div>
+                </div>
+
+                {/* 3. Holat */}
+                <div className="col-status">
+                  {renderStatusPill(t)}
+                </div>
+
+                {/* 4. Muddat */}
+                <div className="col-due">
+                  <Calendar size={14} className="employee-due-icon" />
+                  <Due value={t.due_at} done={false} format={fmtDate} />
+                </div>
+
+                {/* 5. Amallar */}
+                <div className="col-actions">
+                  <button
+                    type="button"
+                    className="employee-task-dots-btn"
+                    onClick={() => open({ task: t.id })}
+                    aria-label="Vazifa amallari"
+                  >
+                    <MoreHorizontal size={16} />
+                  </button>
                 </div>
               </div>
             ))}
           </div>
         ) : fallbackProject ? (
-          <div className="employee-task-mobile-item">
-            <button
-              type="button"
-              className="employee-project-link"
-              onClick={() => open({ project: fallbackProject.id })}
-            >
-              <FolderKanban size={15} className="muted" />
-              <span className="person-work-title">{fallbackProject.name}</span>
-              <span className="muted">{fallbackProject.code}</span>
-            </button>
-            <div className="row-wrap small muted" style={{ justifyContent: "space-between", alignItems: "center", marginTop: 4 }}>
+          <div className="employee-task-row fallback-project-row">
+            <div className="col-title">
+              <button
+                type="button"
+                className="employee-project-link"
+                onClick={() => open({ project: fallbackProject.id })}
+              >
+                <FolderKanban size={15} className="muted" />
+                <span className="person-work-title">{fallbackProject.name}</span>
+                <span className="muted">{fallbackProject.code}</span>
+              </button>
+            </div>
+            <div className="col-project">
+              <span className="employee-project-badge">{fallbackProject.code}</span>
+            </div>
+            <div className="col-status">
               <StageBadge stage={fallbackProject.stage} />
+            </div>
+            <div className="col-due">
+              <Calendar size={14} className="employee-due-icon" />
               <Due value={fallbackProject.end_date} done={fallbackProject.stage === "done"} format={fmtDate} />
             </div>
+            <div className="col-actions"></div>
           </div>
         ) : (
           <div className="employee-empty-work">
@@ -335,6 +396,7 @@ export function EmployeeCard({ person: p, hasRange = false }: EmployeeCardProps)
           </div>
         )}
 
+        {/* 3 tadan ko'p bo'lsa: "Yana N ta ish — profilda" */}
         {hasMore && (
           <div className="employee-more-bar">
             <button
