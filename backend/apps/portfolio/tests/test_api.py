@@ -355,6 +355,18 @@ class VideoTests(PortfolioTestCase):
         self.assertEqual(client_for(self.dev).delete(f"/api/portfolio/items/{item.pk}/videos/{video.pk}/").status_code, 204)
         self.assertFalse(PortfolioVideo.objects.exists())
 
+    @override_settings(PROTECTED_MEDIA_ACCEL_PREFIX="/protected-media/")
+    def test_production_hands_video_and_range_to_nginx(self):
+        item = self.manual_item()
+        url = client_for(self.dev).post(f"/api/portfolio/items/{item.pk}/videos/", {"video": mp4()}).data["url"]
+        video = PortfolioVideo.objects.get()
+        part = client_for(self.dept).get(url, HTTP_RANGE="bytes=4-11")
+        self.assertEqual(part.status_code, 200)  # Range'ni Nginx bajaradi (206)
+        self.assertEqual(part["X-Accel-Redirect"], f"/protected-media/{video.file.name}")
+        self.assertEqual(part["Content-Type"], "video/mp4")
+        self.assertEqual(part.content, b"")
+        self.assertIn(self.client.get(url).status_code, (401, 403))
+
     def test_rejects_non_video(self):
         item = self.manual_item()
         client = client_for(self.dev)

@@ -507,18 +507,20 @@ kbd { font-family: var(--mono); font-size: 11px; padding: 2px 6px; border-radius
 .total-icon { width: 42px; height: 42px; border-radius: 12px; display: grid; place-items: center; flex: none; }
 .total-icon svg { width: 20px; height: 20px; }
 .people { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(220px, 240px); gap: 12px; overflow-x: auto; padding-bottom: 4px; }
-.people-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+/* Xodimlar sahifasi: sarlavha, filtr kartasi, har bir xodim — kim · vazifalar · amallar kartasi */
+.people-page { display: grid; gap: 16px; min-width: 0; }
+.people-title { margin: 0; font-size: 28px; line-height: 36px; font-weight: 800; letter-spacing: -0.02em; }
 .people-toolbar { display: grid; gap: 12px; }
-.people-filters { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px; }
-.people-filter-search { flex: 1 1 280px; }
-.people-filter-range { flex: 0 1 320px; }
-.people-filter-role { flex: 0 1 200px; }
-.people-filter-free { min-height: var(--control); }
+.people-filters { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 16px; }
+.people-filter-search { flex: 1 1 320px; }
+.people-filter-range { flex: 0 1 380px; display: grid; gap: 4px; }
+.people-filter-role { flex: 0 1 200px; width: auto; min-height: var(--control-lg); }
+.people-toolbar-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; }
 .people-filter-clear { margin-left: auto; }
-.people-search { display: flex; align-items: center; gap: 10px; min-width: 0; width: 100%; padding: 0 12px; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); background: var(--surface); }
+.people-search { display: flex; align-items: center; gap: 12px; min-width: 0; width: 100%; padding: 0 16px; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); background: var(--surface); }
 .people-search:focus-within { border-color: var(--primary); box-shadow: 0 0 0 2px var(--primary-soft); }
-.people-search input { width: 100%; min-width: 0; height: calc(var(--control) - 2px); border: 0; outline: 0; background: transparent; color: var(--text); font: inherit; }
-.people-range { display: flex; align-items: center; gap: 8px; padding: 0 8px; }
+.people-search input { width: 100%; min-width: 0; height: calc(var(--control-lg) - 2px); border: 0; outline: 0; background: transparent; color: var(--text); font: inherit; }
+.people-range { display: flex; align-items: center; gap: 12px; height: var(--control-lg); padding: 0 16px; }
 .people-range:focus-within { border-color: var(--primary); box-shadow: var(--focus); }
 .people-range.invalid { border-color: var(--danger); }
 .people-range input { flex: 1; min-width: 0; height: 100%; padding: 0; border: 0; outline: 0; background: transparent; color: var(--text); font: inherit; }
@@ -529,33 +531,76 @@ kbd { font-family: var(--mono); font-size: 11px; padding: 2px 6px; border-radius
 .person-identity strong { overflow-wrap: anywhere; }
 .person-identity:hover strong { color: var(--primary); }
 .person-actions { display: flex; flex-wrap: wrap; gap: 8px; }
-.people-table .table tbody tr { cursor: default; }
-.people-table td { vertical-align: top; padding-top: 20px; padding-bottom: 20px; }
-.people-table td:first-child { width: 25%; }
-.people-table td:nth-child(2) { width: 16%; }
-.people-table td:nth-child(3) { width: 37%; }
-.people-table .person-actions { flex-direction: column; align-items: stretch; }
+.people-list { display: grid; gap: 16px; }
+.people-card { display: grid; grid-template-columns: minmax(200px, 1fr) minmax(0, 2.4fr) minmax(200px, 0.9fr); align-items: start; padding: 24px; min-width: 0; }
+.people-card-who { display: grid; gap: 12px; align-content: start; min-width: 0; padding-right: 24px; }
+.people-card-who .person-identity { gap: 16px; }
+.people-card-who .person-identity strong { font-size: var(--fs-lg); }
+.people-card .avatar.lg { width: 64px; height: 64px; font-size: var(--fs-xl); }
+.people-card-work { min-width: 0; padding: 0 24px; border-left: 1px solid var(--border); border-right: 1px solid var(--border); }
+.people-card-actions { display: grid; gap: 16px; align-content: start; padding-left: 24px; }
+.people-card-actions .btn { width: 100%; min-height: var(--control-lg); }
 .person-work { min-width: 0; }
-.person-responsibilities-text { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.6; }
+.person-work-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+.person-work-heading { margin: 0; font-size: var(--fs-md); font-weight: 700; }
+.person-work-all { display: inline-flex; align-items: center; gap: 4px; border: 0; padding: 4px 0; background: transparent; color: var(--primary); font: inherit; font-size: var(--fs-base); font-weight: 600; cursor: pointer; white-space: nowrap; }
+.person-work-all:hover { text-decoration: underline; }
+.person-task-list { margin: 0; padding: 0; list-style: none; border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; }
+.person-task-list li + li { border-top: 1px solid var(--border); }
+.person-task { display: grid; grid-template-columns: auto minmax(0, 1fr) minmax(0, max-content) auto 88px; align-items: center; gap: 12px; width: 100%; min-height: 52px; padding: 8px 16px; border: 0; background: var(--surface); color: var(--text); text-align: left; font: inherit; cursor: pointer; }
+.person-task:hover { background: var(--primary-soft); }
+.person-task:focus-visible { outline: 2px solid var(--primary); outline-offset: -2px; }
+.person-task-icon { color: var(--muted); }
+.person-task-title { font-weight: 600; overflow-wrap: anywhere; }
+.person-task-project { max-width: 140px; padding: 2px 10px; border-radius: var(--radius-full); background: var(--surface-2); border: 1px solid var(--border); color: var(--text-2); font-size: var(--fs-sm); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.person-task-status { display: flex; justify-content: center; }
+.person-task-date { color: var(--muted); font-size: var(--fs-sm); text-align: right; white-space: nowrap; }
+.person-work-none { margin: 0; padding: 16px; border: 1px dashed var(--border); border-radius: var(--radius-sm); }
+/* Mas'ul loyihalar va ularning yangiliklari (xodim oynasi va o'z profilim) */
+.responsible-list { display: grid; gap: 12px; margin: 0; padding: 0; list-style: none; }
+.responsible-item, .responsible-form { padding: 16px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); }
+.responsible-head { display: flex; align-items: flex-start; gap: 12px; }
+.responsible-icon { display: inline-flex; align-items: center; justify-content: center; flex: none; width: 36px; height: 36px; border-radius: var(--radius-sm); background: var(--primary-soft); color: var(--primary); }
+.responsible-name { font-size: var(--fs-md); overflow-wrap: anywhere; }
+.responsible-description { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.6; }
+.responsible-actions { justify-content: flex-end; }
+.responsible-news { padding-top: 16px; border-top: 1px solid var(--border); }
+.responsible-news-list { display: grid; gap: 16px; margin: 0; padding: 0; list-style: none; }
+.responsible-news-item { display: flex; align-items: flex-start; gap: 12px; }
+.responsible-news-text { margin: 4px 0 0; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.6; }
+@media (max-width: 760px) {
+  .responsible-actions { justify-content: stretch; }
+  .responsible-actions > .btn { flex: 1 1 auto; }
+}
 .person-work-item { display: flex; flex-direction: column; align-items: stretch; gap: 6px; width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface-2); color: var(--text); text-align: left; font: inherit; cursor: pointer; }
 .person-work-item:hover { border-color: var(--primary); background: var(--primary-soft); }
 .person-work-item span { overflow-wrap: anywhere; }
 .person-work-title { font-size: 13px; font-weight: 600; }
-.person-work-more { align-self: flex-start; border: 0; background: transparent; color: var(--primary); padding: 4px 0; font: inherit; font-size: 12px; cursor: pointer; }
 .person-section-title { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0 0 6px; font-size: 14px; }
 .person-work-empty { padding: 12px 0; }
-.people-person-card { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
-.person-card-work { flex: 1; border-top: 1px solid var(--border); padding-top: 12px; }
-.people-person-card .person-actions { padding-top: 12px; border-top: 1px solid var(--border); }
-.people-person-card .person-actions .btn { flex: 1; }
-.people-mobile-grid { display: none; }
+/* Karta ustunlari ro'yxatning o'z kengligiga qarab almashadi (yon menyu ochiq/yopiqligidan qat'i nazar) */
+.people-list { container-type: inline-size; }
+@container (max-width: 900px) {
+  /* Kim va amallar yonma-yon, vazifalar pastda to'liq kenglikda */
+  .people-card { grid-template-columns: minmax(0, 1fr) minmax(200px, auto); row-gap: 16px; }
+  .people-card-work { grid-column: 1 / -1; grid-row: 2; padding: 16px 0 0; border: 0; border-top: 1px solid var(--border); }
+  .people-card-actions { padding-left: 0; }
+}
 @media (max-width: 760px) {
-  .people-table { display: none; }
-  .people-mobile-grid { display: grid; }
-  .people-grid { grid-template-columns: minmax(0, 1fr); }
+  .people-title { font-size: var(--fs-xl); line-height: 28px; }
   .people-filters > * { flex: 1 1 100%; }
   .people-filter-clear { margin-left: 0; }
   .person-responsibilities-line { max-width: none; }
+}
+@container (max-width: 560px) {
+  .people-card { grid-template-columns: minmax(0, 1fr); padding: 16px; }
+  .people-card-who { padding-right: 0; }
+  .people-card-work { grid-row: auto; }
+  .people-card-actions { grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 8px; padding-top: 16px; border-top: 1px solid var(--border); }
+  .person-task { grid-template-columns: auto minmax(0, 1fr) auto; row-gap: 6px; padding: 12px; }
+  .person-task-project { grid-column: 2; grid-row: 2; justify-self: start; }
+  .person-task-status { grid-column: 3; grid-row: 1; }
+  .person-task-date { grid-column: 3; grid-row: 2; }
 }
 .person { padding: 16px; display: flex; flex-direction: column; gap: 12px; text-align: left; font: inherit; color: inherit; }
 .person-nums { display: flex; gap: 6px; flex-wrap: wrap; }

@@ -198,7 +198,8 @@ def years(owner, items):
 def recent_tasks(owner, limit=10):
     rows = (done_assignments().filter(developer=owner).select_related("task__project")
             .order_by(F("task__completed_at").desc(nulls_last=True), "-task_id")[:limit])
-    return [{"id": a.task_id, "code": a.task.code, "title": a.task.title, "project": a.task.project.name,
+    return [{"id": a.task_id, "code": a.task.code, "title": a.task.title,
+             "project": a.task.project.name if a.task.project_id else "",
              "completed_at": a.task.completed_at} for a in rows]
 
 

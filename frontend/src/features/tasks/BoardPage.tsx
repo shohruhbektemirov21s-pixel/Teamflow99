@@ -264,7 +264,7 @@ function Card({ task, overlay, dragging, onClick, menu }: { task: Task; overlay?
       onClick={onClick}
     >
       <div className="row">
-        <span className="tcard-project grow ellipsis">{task.project.name}</span>
+        <span className="tcard-project grow ellipsis">{task.project?.name ?? T.tasks.noProject}</span>
         {menu}
       </div>
       {onClick ? <button type="button" className="tcard-title" onClick={(event) => { event.stopPropagation(); onClick(); }}>

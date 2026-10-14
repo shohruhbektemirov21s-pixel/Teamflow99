@@ -15,6 +15,7 @@ import { Pagination } from "@/shared/ui/Pagination";
 
 import { ProfileHeader } from "./ProfileHeader";
 import { BusinessTripPanel } from "./BusinessTripPanel";
+import { ResponsibleProjects } from "./ResponsibleProjects";
 import { UserProfileView } from "./UserProfileView";
 
 const fieldError = (err: unknown, name: string) => (err instanceof ApiError ? err.field(name) : undefined);
@@ -186,6 +187,8 @@ export default function ProfilePage() {
       </div>
 
       {me.role === "boss" && <BusinessTripPanel />}
+
+      {(developer || me.role === "pm") && <ResponsibleProjects employeeId={me.id} own />}
 
       {developer && (
         <section className="card" aria-label={T.profile.myTasks}>

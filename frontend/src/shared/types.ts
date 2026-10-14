@@ -93,7 +93,8 @@ export interface Task {
   code: string;
   title: string;
   description: string;
-  project: { id: number; name: string; code: string };
+  /** null — dasturchining loyihasiz vazifasi. */
+  project: { id: number; name: string; code: string } | null;
   status: TaskStatus;
   priority: Priority;
   starts_at: string | null;
@@ -208,7 +209,8 @@ export interface ProjectDetail extends Project {
 
 export interface Person {
   report?: { total: number; done: number; late: number };
-  responsibilities?: string;
+  /** Boshliq/PM kiritgan mas'ul loyihalar nomlari (yangisi birinchi). */
+  responsible_projects?: string[];
   id: number;
   full_name: string;
   role: Role;
@@ -225,8 +227,32 @@ export interface Person {
   /** Muddat oralig'i filtri tanlanganda — shu oraliqdagi vazifalar soni (aks holda null). */
   range_tasks?: number | null;
   doing: { id: number; title: string }[];
-  work?: { id: number; title: string; status: TaskStatus; due_at: string | null; is_overdue: boolean; project: { id: number; name: string; code: string } }[];
+  work?: { id: number; title: string; status: TaskStatus; due_at: string | null; is_overdue: boolean; project: { id: number; name: string; code: string } | null }[];
   projects?: { id: number; name: string; code: string; stage: ProjectStage; end_date: string }[];
+}
+
+/** Xodim javobgar bo'lgan loyiha — Boshliq/PM qo'lda kiritadi (TeamFlow loyihasiga bog'lanmaydi). */
+export interface ResponsibleProject {
+  id: number;
+  name: string;
+  description: string;
+  created_at: string;
+  updated_at: string;
+  news_count: number;
+  last_news_at: string | null;
+}
+
+export interface ResponsibleProjects {
+  can_manage: boolean;
+  can_post: boolean;
+  projects: ResponsibleProject[];
+}
+
+export interface ResponsibleNews {
+  id: number;
+  text: string;
+  created_at: string;
+  author: { id: number; full_name: string; avatar?: string | null };
 }
 
 export interface Developer {

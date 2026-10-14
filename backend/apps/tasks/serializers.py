@@ -30,6 +30,8 @@ class TaskListSerializer(serializers.ModelSerializer):
                   "subtasks_progress", "created_at", "archived_at"]
 
     def get_project(self, obj):
+        if obj.project_id is None:
+            return None  # dasturchining loyihasiz vazifasi
         return {"id": obj.project_id, "name": obj.project.name, "code": obj.project.code}
 
     def get_assignees(self, obj):
@@ -103,7 +105,7 @@ class TaskDetailSerializer(TaskListSerializer):
         user = self.context["request"].user
         targets = task_targets(obj.status, user.role)
         worker = can_work_on(user, obj)
-        open_project = not completion_locked(obj.project)  # yakunlash davrida ish biriktirilmaydi
+        open_project = obj.project_id is None or not completion_locked(obj.project)  # yakunlash davrida ish biriktirilmaydi
         return {
             "start": worker and Task.Status.IN_PROGRESS in targets and obj.status == Task.Status.CONTROL,
             "submit": worker and Task.Status.IN_REVIEW in targets,
@@ -125,7 +127,8 @@ class SubTaskInput(serializers.Serializer):
 
 
 class TaskCreateSerializer(serializers.Serializer):
-    project = serializers.IntegerField()
+    # Bo'sh — loyihasiz vazifa (faqat dasturchi uchun, servis tekshiradi)
+    project = serializers.IntegerField(required=False, allow_null=True, default=None)
     title = serializers.CharField(max_length=255)
     description = serializers.CharField(required=False, allow_blank=True, default="")
     priority = serializers.ChoiceField(choices=Priority.choices, default=Priority.MEDIUM)

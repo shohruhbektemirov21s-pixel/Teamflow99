@@ -61,7 +61,7 @@ class PeopleWorkTests(TestCase):
 
     def test_queries_do_not_grow_per_employee(self):
         make_task(self.project, self.pm, self.dev, self.other)
-        with self.assertNumQueries(5):
+        with self.assertNumQueries(6):
             rows = _people_rows(User.objects.filter(pk__in=[self.dev.pk, self.other.pk, self.pm.pk]))
         self.assertEqual(len(rows), 3)
 

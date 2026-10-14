@@ -10,6 +10,8 @@ from django.http import FileResponse, HttpResponse, StreamingHttpResponse
 from django.utils.http import content_disposition_header
 from PIL import Image, ImageOps, UnidentifiedImageError
 
+from apps.core.serving import accel_enabled, protected_file
+
 _RANGE = re.compile(r"^bytes=(\d*)-(\d*)$")
 _CHUNK = 256 * 1024
 
@@ -81,8 +83,13 @@ def _read(handle, length):
 
 
 def video_response(request, video):
-    """Videoni brauzerda ko'rsatish: `Range` so'rovi bo'lsa 206 bilan faqat so'ralgan qism (oldinga o'tkazish ishlaydi)."""
+    """Videoni brauzerda ko'rsatish: `Range` so'rovi bo'lsa 206 bilan faqat so'ralgan qism (oldinga o'tkazish ishlaydi).
+    Production'da faylni (Range bilan) Nginx beradi — `apps.core.serving`."""
     content_type = video_content_type(video.original_name)
+    if accel_enabled():
+        # Video id o'zgarmaydi (yangi yuklash — yangi id), shuning uchun brauzer keshlashi xavfsiz.
+        return protected_file(video.file, content_type=content_type, filename=video.original_name,
+                              cache_control="private, max-age=86400")
     size = video.file.size
     match = _RANGE.match(request.META.get("HTTP_RANGE", "").strip())
     if match and (match.group(1) or match.group(2)):

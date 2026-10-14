@@ -2,7 +2,7 @@
 from django.conf import settings
 from django.core.cache import cache
 from django.db.models import Q
-from django.http import FileResponse, Http404
+from django.http import Http404
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.decorators import api_view, parser_classes
@@ -10,6 +10,7 @@ from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.response import Response
 
 from apps.core.pagination import BoundedPagination
+from apps.core.serving import protected_file
 
 from . import services
 from .files import video_response
@@ -227,10 +228,6 @@ def cover_file(request, pk):
     if not obj.cover:
         raise Http404
     try:
-        handle = obj.cover.open("rb")
+        return protected_file(obj.cover, content_type="image/jpeg", cache_control="private, max-age=86400")
     except (FileNotFoundError, ValueError):
         raise Http404
-    response = FileResponse(handle, content_type="image/jpeg")
-    response["X-Content-Type-Options"] = "nosniff"
-    response["Cache-Control"] = "private, max-age=86400"
-    return response

@@ -23,16 +23,17 @@ S = Task.Status
 
 
 def _project_developers(project, ids, field="assignee_ids"):
-    """Ijrochilar faqat shu loyiha jamoasidagi faol dasturchilar bo'lishi kerak."""
+    """Ijrochilar faqat shu loyiha jamoasidagi faol dasturchilar bo'lishi kerak (loyihasiz vazifada — istalgan faol dasturchi)."""
     ids = set(ids or [])
     if not ids:
         return []
-    users = list(
-        get_user_model().objects.select_for_update().filter(
-            pk__in=ids, role=Role.DEVELOPER, is_active=True, project_memberships__project=project
-        )
-    )
+    qs = get_user_model().objects.select_for_update().filter(pk__in=ids, role=Role.DEVELOPER, is_active=True)
+    if project is not None:
+        qs = qs.filter(project_memberships__project=project)
+    users = list(qs)
     if len(users) != len(ids):
+        if project is None:
+            raise ServiceError("Faqat faol dasturchilarni biriktirish mumkin.", field)
         raise ServiceError("Ijrochi loyiha jamoasida bo'lishi kerak. Avval uni loyihaga qo'shing.", field)
     return users
 
@@ -46,15 +47,18 @@ def _check_trip_availability(users, existing_ids=(), field="assignee_ids"):
 
 def _any_developers(project, ids, field, existing_ids=()):
     """Vazifa oynasi: istalgan faol dasturchi tanlanadi; jamoada bo'lmasa, loyiha jamoasiga qo'shiladi.
-    Yakunlangan / yakunlash davridagi loyihada ish biriktirilmaydi (qulflangan qatorda tekshiriladi)."""
-    project = Project.objects.select_for_update().get(pk=project.pk)
-    ensure_open(project, field)
+    Yakunlangan / yakunlash davridagi loyihada ish biriktirilmaydi (qulflangan qatorda tekshiriladi).
+    Loyihasiz vazifada jamoa va qulf yo'q."""
+    if project is not None:
+        project = Project.objects.select_for_update().get(pk=project.pk)
+        ensure_open(project, field)
     ids = set(ids or [])
     users = list(get_user_model().objects.select_for_update().filter(pk__in=ids, role=Role.DEVELOPER, is_active=True))
     if len(users) != len(ids):
         raise ServiceError("Faqat faol dasturchilarni biriktirish mumkin.", field)
     _check_trip_availability(users, existing_ids, field)
-    ensure_members(project, users)
+    if project is not None:
+        ensure_members(project, users)
     return users
 
 
@@ -69,18 +73,23 @@ def _check_times(starts_at, due_at, previous=None):
 
 def _reviewers(task):
     """Tekshiruv haqida kimga xabar boriladi: vazifani bergan menejer va loyiha egasi; bo'lmasa barcha menejerlar."""
-    people = [u for u in (task.created_by, task.project.created_by) if u and u.is_manager]
+    people = [u for u in (task.created_by, task.project.created_by if task.project_id else None) if u and u.is_manager]
     return people or list(managers())
 
 
 @transaction.atomic
 def create_task(user, project, *, title, description="", priority="medium", starts_at=None, due_at=None,
                 assignee_ids=None, subtasks=None, files=None):
-    """Menejer — istalgan jamoa a'zosiga. Dasturchi — faqat o'ziga, o'z loyihasida ("Mening ishim")."""
-    project = Project.objects.select_for_update().get(pk=project.pk)
-    ensure_open(project)
+    """Menejer — istalgan jamoa a'zosiga, loyiha majburiy. Dasturchi — faqat o'ziga: o'z loyihasida yoki
+    loyihasiz (`project=None`, "Mening ishim")."""
+    if project is None:
+        if not user.is_developer:
+            raise ServiceError("Loyihani tanlang.", "project")
+    else:
+        project = Project.objects.select_for_update().get(pk=project.pk)
+        ensure_open(project)
     if user.is_developer:
-        if not project.memberships.filter(developer=user).exists():
+        if project is not None and not project.memberships.filter(developer=user).exists():
             raise ServiceError("Siz bu loyiha jamoasida emassiz.")
         assignee_ids = [user.pk]
         subtasks = [dict(s, assignee_ids=[user.pk]) for s in (subtasks or [])]
@@ -164,7 +173,7 @@ def update_task(task, user, *, assignee_ids=None, subtasks=None, **data):
         raise ServiceError("Vazifani faqat loyiha menejeri yoki boshliq tahrirlaydi.")
     if task.status == S.DONE:
         raise ServiceError("Bajarilgan vazifa o'zgartirilmaydi.")
-    if assignee_ids is not None or subtasks is not None:
+    if task.project_id and (assignee_ids is not None or subtasks is not None):
         ensure_open(Project.objects.select_for_update().get(pk=task.project_id), "assignee_ids")
     previous = (task.starts_at, task.due_at)
     for field in ("title", "description", "priority", "starts_at", "due_at"):

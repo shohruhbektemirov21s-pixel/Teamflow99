@@ -34,7 +34,7 @@ export default function ReviewPage() {
               <div className="task-title">
                 <CodeTag code={t.code} /> {t.title}
               </div>
-              <div className="small muted">{t.project.name}</div>
+              <div className="small muted">{t.project?.name ?? T.tasks.noProject}</div>
             </div>
             <PriorityBadge priority={t.priority} />
             <div style={{ minWidth: 160 }}>

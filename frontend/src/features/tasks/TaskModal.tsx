@@ -235,7 +235,7 @@ export default function TaskModal({ id, submitMode }: { id: number; submitMode?:
           </ConfirmButton>
         )}
         {a.edit && (
-          <Button variant="ghost" icon={<Pencil />} onClick={() => open({ new: "task", edit: task.id, project: task.project.id })}>
+          <Button variant="ghost" icon={<Pencil />} onClick={() => open({ new: "task", edit: task.id, project: task.project?.id })}>
             {T.common.edit}
           </Button>
         )}
@@ -469,7 +469,7 @@ export default function TaskModal({ id, submitMode }: { id: number; submitMode?:
             <details className="details-section" open>
               <summary>{T.tasks.info}</summary>
               <div className="details-content stack-sm">
-                <Meta icon={<FolderKanban />} label={T.tasks.project}>{task.project.name}</Meta>
+                <Meta icon={<FolderKanban />} label={T.tasks.project}>{task.project?.name ?? T.tasks.noProject}</Meta>
                 <Meta icon={<CalendarClock />} label={T.tasks.col.due}>
                   <Due value={task.due_at} done={task.status === "done"} format={fmtDateTime} />
                 </Meta>
