@@ -1,4 +1,6 @@
 import { AlertTriangle, Check, CheckCircle2, Download, Eye, FileText, Inbox, Info, Loader2, Paperclip, UploadCloud, X } from "lucide-react";
+// eslint-disable-next-line @typescript-eslint/no-restricted-imports -- Avatar needs modal access for click-to-profile
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   type ButtonHTMLAttributes,
   type CSSProperties,
@@ -127,64 +129,121 @@ type AvatarUser = Pick<UserBrief, "id" | "full_name"> & Partial<Pick<UserBrief, 
 /**
  * Avatar: rasm bo'lsa rasm, bo'lmasa bosh harflar. Sichqoncha ustiga kelsa — kichik profil kartochkasi
  * (rasm, ism familiya, rol). Kartochka `body` ga chiqariladi — jadval va modal chegarasida kesilmaydi.
+ * `clickable` — bosilganda xodim profili modali ochiladi (default: `card` bilan bir xil, ya'ni lg va xl bo'lmasa).
  */
-export function Avatar({ user, size, card = size !== "lg" }: { user: AvatarUser; size?: "sm" | "lg" | "xl"; card?: boolean }) {
+export function Avatar({ user, size, card = size !== "lg", clickable = false }: { user: AvatarUser; size?: "sm" | "lg" | "xl"; card?: boolean; clickable?: boolean }) {
   const ref = useRef<HTMLSpanElement>(null);
   const timer = useRef<number | undefined>(undefined);
   const [anchor, setAnchor] = useState<DOMRect | null>(null);
+  const navigate = useNavigate();
+  const location = useLocation();
   useEffect(() => () => window.clearTimeout(timer.current), []);
 
   const show = () => {
     window.clearTimeout(timer.current);
-    timer.current = window.setTimeout(() => setAnchor(ref.current?.getBoundingClientRect() ?? null), 250);
+    timer.current = window.setTimeout(() => setAnchor(ref.current?.getBoundingClientRect() ?? null), 150);
   };
   const hide = () => {
     window.clearTimeout(timer.current);
-    setAnchor(null);
+    timer.current = window.setTimeout(() => setAnchor(null), 180);
   };
+
+  const handleClick = clickable
+    ? (e: React.MouseEvent) => {
+        e.stopPropagation();
+        window.clearTimeout(timer.current);
+        setAnchor(null);
+        navigate(
+          { pathname: location.pathname, search: location.search },
+          { state: { modal: { person: user.id }, pushed: true } },
+        );
+      }
+    : undefined;
 
   return (
     <>
       <span
         ref={ref}
-        className={`avatar ${size ?? ""}`}
-        style={{ background: avatarColor(user.id) }}
+        className={`avatar ${size ?? ""}${clickable ? " clickable" : ""}`}
+        style={{ background: avatarColor(user.id), cursor: clickable ? "pointer" : undefined }}
         title={card ? undefined : user.full_name}
-        aria-hidden
+        aria-hidden={!clickable}
+        role={clickable ? "button" : undefined}
+        tabIndex={clickable ? 0 : undefined}
+        aria-label={clickable ? user.full_name : undefined}
+        onClick={handleClick}
+        onKeyDown={clickable ? (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); handleClick?.(e as unknown as React.MouseEvent); } } : undefined}
         onMouseEnter={card ? show : undefined}
         onMouseLeave={card ? hide : undefined}
       >
         {user.avatar ? <img src={user.avatar} alt="" loading="lazy" /> : initials(user.full_name)}
       </span>
-      {anchor && createPortal(<AvatarCard user={user} anchor={anchor} />, document.body)}
+      {anchor && (
+        createPortal(
+          <AvatarCard
+            user={user}
+            anchor={anchor}
+            clickable={clickable}
+            onClick={handleClick}
+            onMouseEnter={() => window.clearTimeout(timer.current)}
+            onMouseLeave={hide}
+          />,
+          document.body,
+        )
+      )}
     </>
   );
 }
 
-function AvatarCard({ user, anchor }: { user: AvatarUser; anchor: DOMRect }) {
+function AvatarCard({
+  user,
+  anchor,
+  clickable,
+  onClick,
+  onMouseEnter,
+  onMouseLeave,
+}: {
+  user: AvatarUser;
+  anchor: DOMRect;
+  clickable?: boolean;
+  onClick?: (e: React.MouseEvent) => void;
+  onMouseEnter?: () => void;
+  onMouseLeave?: () => void;
+}) {
   const meta = useMeta();
   const below = anchor.bottom + 160 < window.innerHeight;
   const left = Math.min(Math.max(anchor.left + anchor.width / 2, 124), window.innerWidth - 124);
   const subtitle = [user.role ? meta.label("roles", user.role) : "", user.department_name].filter(Boolean).join(" · ");
   return (
     <div
-      className="avatar-card"
-      role="tooltip"
-      style={{ left, top: below ? anchor.bottom + 8 : anchor.top - 8, transform: below ? "translateX(-50%)" : "translate(-50%, -100%)" }}
+      className={`avatar-card ${clickable ? "clickable" : ""}`}
+      role={clickable ? "button" : "tooltip"}
+      tabIndex={clickable ? 0 : undefined}
+      style={{
+        left,
+        top: below ? anchor.bottom + 8 : anchor.top - 8,
+        transform: below ? "translateX(-50%)" : "translate(-50%, -100%)",
+        pointerEvents: "auto",
+        cursor: clickable ? "pointer" : "default",
+      }}
+      onClick={onClick}
+      onKeyDown={clickable ? (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onClick?.(e as unknown as React.MouseEvent); } } : undefined}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
     >
-      <Avatar user={user} size="xl" card={false} />
+      <Avatar user={user} size="xl" card={false} clickable={false} />
       <b>{user.full_name}</b>
       {subtitle && <span className="small muted">{subtitle}</span>}
     </div>
   );
 }
 
-export function People({ users, max = 4 }: { users: UserBrief[]; max?: number }) {
+export function People({ users, max = 4, clickable = true }: { users: UserBrief[]; max?: number; clickable?: boolean }) {
   if (!users.length) return <span className="muted">{T.common.notSet}</span>;
   if (users.length === 1)
     return (
       <span className="row">
-        <Avatar user={users[0]!} size="sm" />
+        <Avatar user={users[0]!} size="sm" clickable={clickable} />
         <span className="ellipsis">{users[0]!.full_name}</span>
       </span>
     );
@@ -192,7 +251,7 @@ export function People({ users, max = 4 }: { users: UserBrief[]; max?: number })
     <span className="row" title={users.map((u) => u.full_name).join(", ")}>
       <span className="avatar-stack">
         {users.slice(0, max).map((u) => (
-          <Avatar key={u.id} user={u} size="sm" />
+          <Avatar key={u.id} user={u} size="sm" clickable={clickable} />
         ))}
       </span>
       <span className="small muted">{T.common.count(users.length)}</span>

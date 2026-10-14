@@ -53,7 +53,7 @@ export default function PortfolioPage() {
                   {d.rank}
                 </span>
               )}
-              <Avatar user={d} />
+              <Avatar user={d} clickable={false} />
               <span className="grow stack-sm" style={{ gap: 4, minWidth: 0 }}>
                 <span className="row-wrap" style={{ gap: 8 }}>
                   <b className="ellipsis">{d.full_name}</b>

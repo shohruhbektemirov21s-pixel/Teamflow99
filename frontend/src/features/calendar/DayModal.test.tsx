@@ -56,6 +56,17 @@ describe("Taqvim: kun modali", () => {
     expect(screen.getByLabelText("modal").textContent).toBe("project=7");
   });
 
+  it("loyihadagi a'zo avatari bosilsa xodim profili modali ochiladi", async () => {
+    mockGet({
+      [`/tasks/?date=${DAY}`]: [],
+      [`/projects/?end_from=${DAY}&end_to=${DAY}`]: [PROJECT],
+    });
+    renderDay();
+
+    fireEvent.click(await screen.findByRole("button", { name: JASUR.full_name }));
+    expect(screen.getByLabelText("modal").textContent).toBe(`person=${JASUR.id}`);
+  });
+
   it("bo'sh kunda nima qilish kerakligi yoziladi", async () => {
     mockGet({ [`/tasks/?date=${DAY}`]: [], [`/projects/?end_from=${DAY}&end_to=${DAY}`]: [] });
     renderDay();

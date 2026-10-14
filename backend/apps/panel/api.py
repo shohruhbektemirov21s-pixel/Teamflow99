@@ -363,8 +363,7 @@ def workdone(request):
 
 @api_view(["GET"])
 def person_profile(request, pk):
-    """Bitta xodim (xodim oynasi) — ro'yxatdagi bilan bir xil shakl. Faqat menejerlar ko'radi."""
-    require_manager(request.user)
+    """Bitta xodim (xodim oynasi) — ro'yxatdagi bilan bir xil shakl. Dasturchilar ham dasturchilar profilini ko'ra oladi."""
     qs = User.objects.filter(pk=pk, is_active=True).exclude(role="")
     if not request.user.is_boss:
         qs = qs.filter(role=Role.DEVELOPER)

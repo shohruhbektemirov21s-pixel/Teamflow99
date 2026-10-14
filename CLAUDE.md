@@ -129,6 +129,8 @@ Har bir app ichidagi qatlamlar (`models`, `workflow`, `services`, `permissions`,
 
 ## 13. Foydalanuvchi qo'shimchalari
 
+- **2026-10-14:** Taqvim kuni modali (DayModal) va boshqa ro'yxatlardagi jamoa a'zolari avatarlari (People) bosilganda xodimning profili modali (PersonModal) ochiladi; avatar ustiga sichqoncha borganda chiquvchi hover-kartochka ham interaktiv va bosiladigan qilindi. Backend person_profile API'sidan require_manager cheklovi olib tashlanib, dasturchilarga ham o'zaro xodim profilini ko'rishga ruxsat berildi.
+
 - **2026-10-06:** PM loyihani yakunlashda izoh (1000 belgigacha) va fayllarni alohida modal orqali yuboradi. Loyiha oynasi orqada ko'rinib turadi va inert bo'ladi; umumiy Modal stacked uslubi ishlatiladi. Dasturchilar tasdig'idan keyin boshqarma buyurtma oynasida yakunlash hisoboti va fayllarini ko'radi. Fayllar faqat tegishli boshqarma uchun ochiladi.
 
 - 2026-10-06: Bosh panel va Vazifalar jadvalidagi qidiruv vazifa yoki loyiha kodining bir qismi, hatto 1–2 raqam kiritilganda ham mos vazifalarni topishi kerak. `tasks/filters.py` da kodlar uchun qisman qidiruv qo'shildi; to'liq kod uchun aniq moslik saqlandi. Regression testi: `DashboardTests.test_task_list_searches_one_or_two_digit_code_fragments`.

@@ -53,7 +53,8 @@ class PeopleWorkTests(TestCase):
     def test_permissions_remain_enforced(self):
         for actor in (self.dev, make_user(Role.DEPARTMENT)):
             for path in ("/api/people/", f"/api/people/{self.dev.pk}/"):
-                self.assertEqual(client_for(actor).get(path).status_code, 403)
+                expected = 200 if path != "/api/people/" else 403
+                self.assertEqual(client_for(actor).get(path).status_code, expected)
         self.assertEqual(client_for(self.pm).get(f"/api/people/{self.boss.pk}/").status_code, 404)
         self.dev.is_active = False
         self.dev.save(update_fields=["is_active"])

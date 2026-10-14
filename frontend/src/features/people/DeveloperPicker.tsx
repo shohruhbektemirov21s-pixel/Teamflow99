@@ -53,7 +53,7 @@ export function DeveloperPicker({
             const person = byId.get(id) ?? { id, full_name: `#${id}` };
             return (
               <span key={id} className="chip person-chip">
-                <Avatar user={person} size="sm" />
+                <Avatar user={person} size="sm" clickable={false} />
                 {person.full_name}
                 {!locked.includes(id) && (
                   <button
@@ -107,7 +107,7 @@ export function DeveloperPicker({
                 setQ("");
               }}
             >
-              <Avatar user={p} size="sm" />
+              <Avatar user={p} size="sm" clickable={false} />
               <span className="grow">
                 <b style={{ fontWeight: 600 }}>{p.full_name}</b>
                 {p.specialty && <span className="small muted"> · {p.specialty}</span>}

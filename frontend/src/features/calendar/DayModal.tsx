@@ -42,7 +42,19 @@ export default function DayModal({ date }: { date: string }) {
               <h3 className="section-title">{T.calendar.dayProjects}</h3>
               <div className="card">
                 {projectList.map((p) => (
-                  <button key={p.id} className="list-row clickable" onClick={() => open({ project: p.id })}>
+                  <div
+                    key={p.id}
+                    className="list-row clickable"
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => open({ project: p.id })}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        open({ project: p.id });
+                      }
+                    }}
+                  >
                     <span className="total-icon tone-violet">
                       <Flag />
                     </span>
@@ -59,7 +71,7 @@ export default function DayModal({ date }: { date: string }) {
                       <People users={p.members} />
                     </span>
                     <StageBadge stage={p.stage} />
-                  </button>
+                  </div>
                 ))}
               </div>
               <Pagination data={projects.pagination} page={projects.page} onPageChange={projects.onPageChange} />

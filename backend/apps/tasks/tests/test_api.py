@@ -313,7 +313,7 @@ class DashboardTests(TestCase):
         report = profile.pop("report")
         self.assertEqual(profile, row)
         self.assertEqual(report, {"total": 4, "done": 1, "late": 1})
-        self.assertEqual(client_for(self.dev).get(f"/api/people/{self.dev.pk}/").status_code, 403)
+        self.assertEqual(client_for(self.dev).get(f"/api/people/{self.dev.pk}/").status_code, 200)
         self.assertEqual(pm.get("/api/people/999999/").status_code, 404)
 
     def test_developer_dashboard_only_own(self):
