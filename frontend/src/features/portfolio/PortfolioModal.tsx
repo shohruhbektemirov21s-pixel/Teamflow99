@@ -123,21 +123,20 @@ function PortfolioHeader({
             <svg viewBox="0 0 800 240" fill="none" preserveAspectRatio="none" className="pmodal-cover-svg">
               <defs>
                 <linearGradient id="pmodal-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#1e1035" />
-                  <stop offset="50%" stopColor="#2e1065" />
-                  <stop offset="100%" stopColor="#0f172a" />
+                  <stop offset="0%" stopColor="var(--auth-panel)" />
+                  <stop offset="100%" stopColor="var(--primary-solid)" />
                 </linearGradient>
               </defs>
               <rect width="800" height="240" fill="url(#pmodal-grad)" />
-              <g opacity="0.4" transform="translate(620, 20)">
-                <polygon points="60,30 110,60 60,90 10,60" fill="#7c3aed" />
-                <polygon points="10,60 60,90 60,150 10,120" fill="#4c1d95" />
-                <polygon points="110,60 60,90 60,150 110,120" fill="#6d28d9" />
+              <g opacity="0.3" transform="translate(620, 20)">
+                <polygon points="60,30 110,60 60,90 10,60" fill="var(--primary)" />
+                <polygon points="10,60 60,90 60,150 10,120" fill="var(--primary-hover)" />
+                <polygon points="110,60 60,90 60,150 110,120" fill="var(--primary-solid)" />
               </g>
-              <g opacity="0.25" transform="translate(520, 90) scale(0.6)">
-                <polygon points="60,30 110,60 60,90 10,60" fill="#a855f7" />
-                <polygon points="10,60 60,90 60,150 10,120" fill="#6b21a8" />
-                <polygon points="110,60 60,90 60,150 110,120" fill="#7e22ce" />
+              <g opacity="0.2" transform="translate(520, 90) scale(0.6)">
+                <polygon points="60,30 110,60 60,90 10,60" fill="var(--primary)" />
+                <polygon points="10,60 60,90 60,150 10,120" fill="var(--primary-hover)" />
+                <polygon points="110,60 60,90 60,150 110,120" fill="var(--primary-solid)" />
               </g>
             </svg>
           </div>

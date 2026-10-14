@@ -129,6 +129,8 @@ Har bir app ichidagi qatlamlar (`models`, `workflow`, `services`, `permissions`,
 
 ## 13. Foydalanuvchi qo'shimchalari
 
+- **2026-10-14:** UX/UI tipografiyasi va rang palitrasi tartibga keltirildi: yozuvlar (sarlavhalar, raqamlar, kartochka nomlari) haddan tashqari katta bo'lmagan, ixcham SaaS o'lchamlariga keltirildi (--fs-2xl: 24px, --fs-xl: 20px, --fs-lg: 17px); oddiy foydalanuvchi (UserLayout, UserDashboard, Portfolio, UserProfile) ranglari, kartalari, cover gradientlari va tugmalari boshqa rollar (Boshliq, PM, Dasturchi, Boshqarma) bilan yagona design system tokenlariga (--primary, --warning, --info, --slate, --danger, --success, --auth-panel) birlashtirildi.
+
 - **2026-10-14:** Taqvim kuni modali (DayModal) va boshqa ro'yxatlardagi jamoa a'zolari avatarlari (People) bosilganda xodimning profili modali (PersonModal) ochiladi; avatar ustiga sichqoncha borganda chiquvchi hover-kartochka ham interaktiv va bosiladigan qilindi. Backend person_profile API'sidan require_manager cheklovi olib tashlanib, dasturchilarga ham o'zaro xodim profilini ko'rishga ruxsat berildi.
 
 - **2026-10-06:** PM loyihani yakunlashda izoh (1000 belgigacha) va fayllarni alohida modal orqali yuboradi. Loyiha oynasi orqada ko'rinib turadi va inert bo'ladi; umumiy Modal stacked uslubi ishlatiladi. Dasturchilar tasdig'idan keyin boshqarma buyurtma oynasida yakunlash hisoboti va fayllarini ko'radi. Fayllar faqat tegishli boshqarma uchun ochiladi.

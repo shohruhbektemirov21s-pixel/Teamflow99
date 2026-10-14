@@ -201,7 +201,7 @@ export function UserProfileView() {
       <div className="grid-2 uprofile-stats-row">
         <Link to="/baholarim" className="card uprofile-stat-card">
           <span className="ustat-icon tone-amber" aria-hidden>
-            <Star size={22} className="ustar" />
+            <Star size={20} className="ustar" />
           </span>
           <div className="ustat-text">
             <b className="ustat-value">{reviewsCount}</b>
@@ -213,8 +213,8 @@ export function UserProfileView() {
         </Link>
 
         <Link to="/" className="card uprofile-stat-card">
-          <span className="ustat-icon tone-violet" aria-hidden>
-            <Heart size={22} style={{ color: "#e11d48", fill: "currentColor" }} />
+          <span className="ustat-icon tone-danger" aria-hidden>
+            <Heart size={20} style={{ color: "var(--danger)", fill: "currentColor" }} />
           </span>
           <div className="ustat-text">
             <b className="ustat-value">{followingCount}</b>

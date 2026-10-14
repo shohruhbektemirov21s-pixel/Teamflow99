@@ -23,11 +23,11 @@ function StatCard({ value, label, icon, tone, badge, star, loading }: {
       <div className="ustat-text">
         <b className="ustat-value">
           {loading ? <span className="skeleton ustat-skel" /> : value}
-          {star && !loading && <Star size={18} className="ustar" aria-hidden />}
+          {star && !loading && <Star size={16} className="ustar" aria-hidden />}
         </b>
         <span className="muted">{label}</span>
       </div>
-      {badge && <span className="ustat-badge"><TrendingUp size={12} aria-hidden /> {badge}</span>}
+      {badge && <span className="ustat-badge"><TrendingUp size={11} aria-hidden /> {badge}</span>}
     </div>
   );
 }
@@ -189,12 +189,12 @@ export default function UserDashboard() {
       </div>
 
       <div className="ustats">
-        <StatCard tone="violet" icon={<Users size={22} />} loading={summary.isLoading} value={stats ? stats.developers : "–"} label={T.user.statDevelopers}
+        <StatCard tone="violet" icon={<Users size={20} />} loading={summary.isLoading} value={stats ? stats.developers : "–"} label={T.user.statDevelopers}
           badge={stats?.developers_growth ? `+${stats.developers_growth}%` : null} />
-        <StatCard tone="amber" icon={<Star size={22} />} loading={summary.isLoading} value={stats?.average_rating != null ? stats.average_rating.toFixed(1) : "–"}
+        <StatCard tone="amber" icon={<Star size={20} />} loading={summary.isLoading} value={stats?.average_rating != null ? stats.average_rating.toFixed(1) : "–"}
           label={T.user.statRating} star={stats?.average_rating != null} />
-        <StatCard tone="blue" icon={<FolderKanban size={22} />} loading={summary.isLoading} value={stats ? stats.rated_projects : "–"} label={T.user.statRated} />
-        <StatCard tone="indigo" icon={<TrendingUp size={22} />} loading={summary.isLoading} value={stats ? stats.active_projects : "–"} label={T.user.statActive} />
+        <StatCard tone="blue" icon={<FolderKanban size={20} />} loading={summary.isLoading} value={stats ? stats.rated_projects : "–"} label={T.user.statRated} />
+        <StatCard tone="indigo" icon={<TrendingUp size={20} />} loading={summary.isLoading} value={stats ? stats.active_projects : "–"} label={T.user.statActive} />
       </div>
 
       {list.error && <ErrorBox error={list.error} onRetry={() => list.refetch()} />}

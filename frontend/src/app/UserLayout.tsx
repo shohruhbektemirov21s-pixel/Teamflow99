@@ -18,24 +18,32 @@ export default function UserLayout() {
     <div className="ushell">
       <a className="skip-link" href="#main-content">{T.nav.skipContent}</a>
       <header className="ubar">
-        <Link to="/" className="ubar-brand"><Sparkles size={22} aria-hidden /> {T.app}</Link>
+        <Link to="/" className="ubar-brand">
+          <span className="brand-mark" style={{ width: 34, height: 34, borderRadius: 10 }}>
+            <Sparkles size={17} aria-hidden />
+          </span>
+          <span className="brand-copy" style={{ lineHeight: 1.15 }}>
+            <strong style={{ fontSize: "16px", fontWeight: 760, letterSpacing: "-.025em" }}>{T.app}</strong>
+            <span style={{ fontSize: "10px", color: "var(--muted)", fontWeight: 600 }}>{T.user.roleLabel}</span>
+          </span>
+        </Link>
         <span className="grow" />
-        <button type="button" className="btn btn-ghost" onClick={toggleTheme} aria-label={T.nav.theme} title={T.nav.theme}>
-          {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
+        <button type="button" className="icon-btn" onClick={toggleTheme} aria-label={T.nav.theme} title={T.nav.theme} aria-pressed={theme === "dark"}>
+          {theme === "dark" ? <Sun size={17} /> : <Moon size={17} />}
         </button>
         <Link to="/profil" className="ubar-me" aria-label={T.user.userMenu}>
-          <Avatar user={me} size="lg" card={false} />
+          <Avatar user={me} size="sm" card={false} />
           <span className="ubar-name ellipsis">{me.first_name || me.full_name}</span>
         </Link>
-        <button type="button" className="btn btn-ghost" onClick={logout}>
-          <LogOut size={16} /> <span className="ubar-logout">{T.nav.logout}</span>
+        <button type="button" className="icon-btn" onClick={logout} aria-label={T.nav.logout} title={T.nav.logout}>
+          <LogOut size={16} />
         </button>
       </header>
       <div className="ubody">
         <nav className="utabs" aria-label={T.user.menu}>
-          <NavLink to="/" end className="utab"><Users size={20} aria-hidden /><span>{T.user.navDevelopers}</span></NavLink>
-          <NavLink to="/baholarim" className="utab"><Star size={20} aria-hidden /><span>{T.user.navReviews}</span></NavLink>
-          <NavLink to="/profil" className="utab"><User size={20} aria-hidden /><span>{T.user.navProfile}</span></NavLink>
+          <NavLink to="/" end className="utab"><Users size={18} aria-hidden /><span>{T.user.navDevelopers}</span></NavLink>
+          <NavLink to="/baholarim" className="utab"><Star size={18} aria-hidden /><span>{T.user.navReviews}</span></NavLink>
+          <NavLink to="/profil" className="utab"><User size={18} aria-hidden /><span>{T.user.navProfile}</span></NavLink>
         </nav>
         <main id="main-content" className="umain" tabIndex={-1}>
           <Outlet />
