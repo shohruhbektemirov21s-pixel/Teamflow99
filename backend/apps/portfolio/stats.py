@@ -12,6 +12,7 @@ from django.db.models.functions import Coalesce, ExtractYear
 from django.utils import timezone
 
 from apps.projects.models import Project, ProjectMember
+from apps.tasks.filters import ACTIVE
 from apps.tasks.models import Task, TaskAssignment
 
 from .models import Follow, PortfolioItem, PortfolioReview
@@ -56,9 +57,42 @@ def following_count(viewer):
     return Follow.objects.filter(follower=viewer, developer__in=portfolio_owners()).count()
 
 
-def developer_highlights(users):
-    """Ro'yxat kartalari uchun: oxirgi 3 ta loyiha nomi, qolganlari soni va tajriba (bitta so'rov)."""
+def developer_statuses(users):
+    """Dasturchining hozirgi holati — BITTA qoida: xizmat safarida (`trip`), faol ishi bor (`busy`), aks holda `free`.
+
+    Faol ish — Xodimlar sahifasidagi bilan bir xil ta'rif (`tasks.filters.ACTIVE`, arxivlanmagan). Bitta so'rov.
+    """
     users = list(users)
+    counts = dict(TaskAssignment.objects.filter(developer__in=users, task__status__in=ACTIVE, task__archived_at__isnull=True)
+                  .order_by().values("developer_id").annotate(n=Count("pk")).values_list("developer_id", "n"))
+    result = {}
+    for user in users:
+        active = counts.get(user.pk, 0)
+        on_trip = user.is_on_business_trip
+        result[user.pk] = {
+            "state": "trip" if on_trip else "busy" if active else "free",
+            "active_tasks": active,
+            "trip_return_date": user.business_trip_return_date if on_trip else None,
+        }
+    return result
+
+
+def current_projects(owner, limit=20):
+    """Dasturchi hozir mas'ul bo'lgan (yakunlanmagan) TeamFlow loyihalari va ulardagi faol ishlari soni."""
+    memberships = (ProjectMember.objects.filter(developer=owner).exclude(project__stage=Project.Stage.DONE)
+                   .select_related("project").order_by("-added_at", "-id")[:limit])
+    memberships = list(memberships)
+    active = dict(TaskAssignment.objects.filter(developer=owner, task__status__in=ACTIVE, task__archived_at__isnull=True,
+                                                task__project_id__in=[m.project_id for m in memberships])
+                  .order_by().values("task__project_id").annotate(n=Count("pk")).values_list("task__project_id", "n"))
+    return [{"code": m.project.code, "name": m.project.name, "stage": m.project.stage,
+             "active_tasks": active.get(m.project_id, 0)} for m in memberships]
+
+
+def developer_highlights(users):
+    """Ro'yxat kartalari uchun: oxirgi 3 ta loyiha nomi, qolganlari soni, tajriba va hozirgi holat."""
+    users = list(users)
+    statuses = developer_statuses(users)
     items = {}
     for item in (PortfolioItem.objects.filter(owner__in=users).select_related("project")
                  .order_by("-created_at", "-id")):
@@ -79,6 +113,7 @@ def developer_highlights(users):
             "projects": [i.display_title for i in mine[:3]],
             "projects_extra": max(len(mine) - 3, 0),
             "experience_months": experience(user, mine)["months"],
+            "status": statuses[user.pk],
             "technologies": technologies,
             "cover": cover_url(covered) if covered else None,
         }

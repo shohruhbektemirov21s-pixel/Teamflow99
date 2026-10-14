@@ -23,8 +23,9 @@ import { api } from "@/shared/api";
 import { fmtDate } from "@/shared/format";
 import { T } from "@/shared/text";
 import type { PortfolioDetail, PortfolioDeveloperReview, PortfolioItem } from "@/shared/types";
-import { Avatar, Badge, Button, CodeTag, Empty, ErrorBox, Modal, Skeleton, Tabs, useToast } from "@/shared/ui";
+import { Avatar, Badge, Button, CodeTag, Empty, ErrorBox, Modal, Skeleton, StageBadge, Tabs, useToast } from "@/shared/ui";
 
+import { StatusBadge, StatusDot } from "./DeveloperStatus";
 import { periodText } from "./period";
 import { PortfolioItemForm, PortfolioItemView } from "./PortfolioItem";
 import { Stars } from "./Stars";
@@ -160,7 +161,7 @@ function PortfolioHeader({
       <div className="pmodal-id-row">
         <div className="pmodal-avatar-box">
           <Avatar user={data} size="xl" card={false} />
-          <span className="uonline-dot" aria-hidden />
+          <StatusDot status={data.status} />
         </div>
 
         <div className="pmodal-id-info">
@@ -173,6 +174,7 @@ function PortfolioHeader({
             )}
           </div>
           <p className="pmodal-specialty">{data.specialty || T.portfolio.developer}</p>
+          <div><StatusBadge status={data.status} /></div>
           <div className="pmodal-meta-row">
             <span className="pmodal-meta-item">
               <MapPin size={14} className="muted" aria-hidden />
@@ -206,6 +208,28 @@ function Overview({ data }: { data: PortfolioDetail }) {
   return (
     <div className="pmodal-overview-grid">
       <div className="stack" style={{ gap: 16 }}>
+        <section className="card card-pad stack-sm">
+          <h3 className="section-title">{T.portfolio.currentProjects}</h3>
+          {data.current_projects.length ? (
+            <div className="pmodal-projects-now">
+              {data.current_projects.map((project) => (
+                <div key={project.code} className="pmodal-project-now">
+                  <span className="grow stack-sm" style={{ gap: 2, minWidth: 0 }}>
+                    <span className="ellipsis" style={{ fontWeight: 600, fontSize: 13 }}>{project.name}</span>
+                    <span className="row-wrap small muted" style={{ gap: 8 }}>
+                      <CodeTag code={project.code} />
+                      {T.portfolio.currentProjectTasks(project.active_tasks)}
+                    </span>
+                  </span>
+                  <StageBadge stage={project.stage} />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="small muted">{T.portfolio.currentProjectsEmpty}</p>
+          )}
+        </section>
+
         <section className="card card-pad stack-sm">
           <h3 className="section-title">{T.portfolio.about}</h3>
           <p className={data.bio ? "portfolio-description" : "small muted"}>{data.bio || T.portfolio.aboutEmpty}</p>

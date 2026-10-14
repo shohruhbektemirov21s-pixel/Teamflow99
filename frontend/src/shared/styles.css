@@ -1068,7 +1068,12 @@ button.list-row:focus-visible { outline-offset: -2px; }
 .uheart:disabled { opacity: .6; cursor: progress; }
 .ucard-main { position: relative; flex: 1; padding: 0 10px 10px; display: flex; flex-direction: column; gap: 10px; }
 .ucard-avatar { position: relative; margin-top: -42px; margin-left: 8px; width: 82px; height: 82px; border-radius: 50%; background: var(--surface); padding: 3px; display: grid; place-items: center; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08); }
-.uonline-dot { position: absolute; bottom: 2px; right: 2px; width: 15px; height: 15px; border-radius: 50%; background: #10b981; border: 3px solid var(--surface); box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.06); }
+.uonline-dot { position: absolute; bottom: 2px; right: 2px; width: 15px; height: 15px; border-radius: 50%; background: var(--success); border: 3px solid var(--surface); box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.06); }
+.uonline-dot.is-busy { background: var(--warning); }
+.uonline-dot.is-trip { background: var(--info); }
+.ucard-status { display: flex; }
+.pmodal-projects-now { display: flex; flex-direction: column; gap: 8px; }
+.pmodal-project-now { display: flex; align-items: center; gap: 12px; padding: 8px 0; min-width: 0; }
 .ucard-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 4px; }
 .ucard-id { display: flex; flex-direction: column; min-width: 0; flex: 1 1 auto; }
 .ucard-name { font-size: 18px; line-height: 24px; font-weight: 700; letter-spacing: -0.015em; color: var(--text); }

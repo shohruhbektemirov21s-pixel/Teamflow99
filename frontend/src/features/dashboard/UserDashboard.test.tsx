@@ -13,6 +13,7 @@ const dev = (id: number, name: string, following: boolean): PortfolioDeveloper =
   rating: 4.5, reviews_count: 2, followers_count: 3, projects_count: 1, tasks_done: 4, is_following: following, rank: id,
   projects: ["Portal", "Sayt"], projects_extra: 2, experience_months: 30,
   technologies: ["Python"], cover: null,
+  status: { state: "free", active_tasks: 0, trip_return_date: null },
 });
 const page = (...rows: PortfolioDeveloper[]) => ({ count: rows.length, next: null, previous: null, results: rows });
 const SUMMARY = {
@@ -38,6 +39,19 @@ describe("UserDashboard", () => {
     expect(screen.getByText("Python")).toBeTruthy();
     expect(screen.queryByText("Portal")).toBeNull();
     expect(screen.getByText(T.user.experienceShort(30))).toBeTruthy();
+  });
+
+  it("kartada dasturchining hozirgi holati matn bilan ko'rinadi (bo'sh, band, xizmat safarida)", async () => {
+    testUser.current = { ...PM, id: 20, role: "user", role_label: "Oddiy foydalanuvchi" };
+    const busy = { ...dev(2, "Malika Karimova", false), status: { state: "busy" as const, active_tasks: 3, trip_return_date: null } };
+    const trip = { ...dev(3, "Bobur Rahimov", false), status: { state: "trip" as const, active_tasks: 1, trip_return_date: "2026-11-05" } };
+    mockGet({ "/portfolio/summary/": SUMMARY, "/portfolio/": page(dev(1, "Jasur Alimov", false), busy, trip) });
+    renderApp(<UserDashboard />);
+
+    await screen.findByText("Jasur Alimov");
+    expect(screen.getAllByText(T.portfolio.status.free).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(T.portfolio.status.busy(3)).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(T.portfolio.status.trip("05.11.2026")).length).toBeGreaterThan(0);
   });
 
   it("olib tashlangan subtitle, chiplar, qo'llanma va ko'rinish almashtirgichni ko'rsatmaydi", async () => {

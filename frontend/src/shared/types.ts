@@ -302,7 +302,24 @@ export interface SuggestionDetail extends Suggestion {
 }
 
 // ─── Portfolio ───────────────────────────────────────────────────────────────
+/** Dasturchining hozirgi holati (serverdagi yagona qoida: xizmat safari > faol ish bor > bo'sh). */
+export type DeveloperState = "free" | "busy" | "trip";
+
+export interface DeveloperStatus {
+  state: DeveloperState;
+  active_tasks: number;
+  trip_return_date: string | null;
+}
+
+export interface PortfolioCurrentProject {
+  code: string;
+  name: string;
+  stage: ProjectStage;
+  active_tasks: number;
+}
+
 export interface PortfolioDeveloper extends UserBrief {
+  status: DeveloperStatus;
   specialty: string;
   rating: number | null;
   reviews_count: number;
@@ -346,6 +363,8 @@ export interface PortfolioDetail extends PortfolioDeveloper {
   years: { year: number; projects: number; tasks: number }[];
   items: PortfolioItem[];
   recent_tasks: { id: number; code: string; title: string; project: string; completed_at: string | null }[];
+  /** Hozir mas'ul bo'lgan (yakunlanmagan) loyihalar. */
+  current_projects: PortfolioCurrentProject[];
   reviews?: PortfolioDeveloperReview[];
   actions: { follow: boolean; add: boolean };
 }

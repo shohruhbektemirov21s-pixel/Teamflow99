@@ -13,7 +13,7 @@ import PortfolioPage from "./PortfolioPage";
 
 const dev = (over: Partial<PortfolioDeveloper>): PortfolioDeveloper => ({
   ...JASUR, specialty: "Backend", rating: null, reviews_count: 0, followers_count: 0, projects_count: 0,
-  tasks_done: 0, is_following: false, rank: null, ...over,
+  tasks_done: 0, is_following: false, rank: null, status: { state: "free", active_tasks: 0, trip_return_date: null }, ...over,
 });
 
 const DETAIL: PortfolioDetail = {
@@ -23,6 +23,7 @@ const DETAIL: PortfolioDetail = {
   items: [{ id: 10, is_auto: true, title: "Portal", link: "", start_date: "2025-01-01", end_date: null,
     project: { code: "PRJ-1", stage: "started" }, tasks_done: 7, rating: 4.5, reviews_count: 2, videos_count: 1 }],
   recent_tasks: [{ id: 1, code: "100000001", title: "Kirish sahifasi", project: "Portal", completed_at: "2026-10-01T10:00:00Z" }],
+  current_projects: [],
   actions: { follow: true, add: false },
 };
 
@@ -71,6 +72,33 @@ describe("Portfolio sahifasi", () => {
 });
 
 describe("Portfolio oynasi", () => {
+  it("oddiy foydalanuvchi dasturchining holatini va hozir mas'ul loyihalarini ko'radi", async () => {
+    testUser.current = { ...PM, id: 20, role: "user", role_label: "Oddiy foydalanuvchi" };
+    mockGet({
+      [`/portfolio/${JASUR.id}/`]: {
+        ...DETAIL,
+        status: { state: "busy", active_tasks: 2, trip_return_date: null },
+        current_projects: [{ code: "PRJ-1", name: "Ichki portal", stage: "started", active_tasks: 2 }],
+      },
+    });
+    renderApp(<PortfolioModal id={JASUR.id} />);
+
+    const dialog = await screen.findByRole("dialog", { name: T.portfolio.title });
+    expect(await within(dialog).findByText(T.portfolio.currentProjects)).toBeTruthy();
+    expect(within(dialog).getByText("Ichki portal")).toBeTruthy();
+    expect(within(dialog).getByText("PRJ-1")).toBeTruthy();
+    expect(within(dialog).getByText(T.portfolio.currentProjectTasks(2))).toBeTruthy();
+    expect(within(dialog).getAllByText(T.portfolio.status.busy(2)).length).toBeGreaterThan(0);
+  });
+
+  it("faol loyihasi bo'lmasa, buni aytadi", async () => {
+    mockGet({ [`/portfolio/${JASUR.id}/`]: DETAIL });
+    renderApp(<PortfolioModal id={JASUR.id} />);
+    const dialog = await screen.findByRole("dialog", { name: T.portfolio.title });
+    expect(await within(dialog).findByText(T.portfolio.currentProjectsEmpty)).toBeTruthy();
+    expect(within(dialog).getAllByText(T.portfolio.status.free).length).toBeGreaterThan(0);
+  });
+
   it("profil ma'lumotlarini Umumiy, Loyihalar va Baholar tablariga ajratadi", async () => {
     const richDetail = {
       ...DETAIL,

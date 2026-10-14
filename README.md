@@ -294,6 +294,7 @@ Dasturchilar portfoliosi va reytingi. Menyuda barcha rollarda ("Muloqot" guruhid
 - **Baho va sharh:** boshqa foydalanuvchilar har bir loyihaga alohida **1–5 yulduz** va sharh (1000 belgigacha, ixtiyoriy) qo'yadi; bitta odam bitta loyihaga bitta baho — keyin yangilaydi yoki o'chiradi. O'z loyihasini baholab bo'lmaydi. Sharhlar sahifalanadi, eng yangisi tepada.
 - **Reyting:** dasturchining barcha loyihalaridagi baholar o'rtachasi (11-bo'lim).
 - **Kuzatish:** istalgan foydalanuvchi dasturchini kuzatadi; o'zini kuzata olmaydi. Kuzatuvchilar soni ro'yxatda va portfolioda ko'rinadi.
+- **Hozirgi holat va mas'ul loyihalar (2026-10-14):** oddiy foydalanuvchi ham (barcha rollar kabi) dasturchi kartasida va portfolio oynasida uning **hozirgi holatini** ko'radi: *Bo'sh*, *Band · N ta faol ish* yoki *Xizmat safarida · dd.mm.yyyy gacha* (rang + matn). Qoida bitta joyda — `portfolio/stats.py: developer_statuses`: xizmat safari > faol ish bor > bo'sh; "faol ish" Xodimlar sahifasidagi bilan bir xil (`tasks.filters.ACTIVE`, arxivlanmagan). Portfolio oynasining "Umumiy" tabida **"Hozir mas'ul loyihalari"** — dasturchi a'zo bo'lgan, yakunlanmagan loyihalar (nomi, raqami, holati, shu loyihadagi faol ishlari soni). Yangi flow/modal yo'q. API: ro'yxat va detalda `status`, detalda `current_projects`.
 - Ruxsatlar serverda: ko'rish — hamma tizimga kirganlar; o'zgartirish va video — faqat egasi; portfolio faqat faol dasturchilarda.
 
 ## 8. Telegram bildirishnomalari

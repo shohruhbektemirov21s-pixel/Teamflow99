@@ -19,7 +19,7 @@ from .serializers import (
     ItemInput, ReviewInput, developer_review_row, developer_row, my_review_row,
     item_detail, item_row, review_row, video_row,
 )
-from .stats import DEVELOPER_RANKING_CACHE_KEY, SUMMARY_CACHE_KEY, developer_highlights, developers_with_stats, following_count, experience, items_with_stats, recent_tasks, summary, tasks_done_by_project, years
+from .stats import DEVELOPER_RANKING_CACHE_KEY, SUMMARY_CACHE_KEY, developer_highlights, current_projects, developers_with_stats, following_count, experience, items_with_stats, recent_tasks, summary, tasks_done_by_project, years
 
 
 SORTS = {"followers": ("-followers_count",), "projects": ("-projects_count",), "reviews": ("-reviews_count",)}
@@ -101,6 +101,7 @@ def developer_detail(request, pk):
         "items": [item_row(i, done.get(i.project_id, 0)) for i in items],
         "reviews": [developer_review_row(review) for review in reviews],
         "recent_tasks": recent_tasks(owner),
+        "current_projects": current_projects(owner),
         "actions": {"follow": can_follow(request.user, owner), "add": owner.pk == request.user.pk},
     })
 

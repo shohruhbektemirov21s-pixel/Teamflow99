@@ -11,6 +11,8 @@ import type { PortfolioDeveloper, PortfolioSummary } from "@/shared/types";
 import { Avatar, Button, Empty, ErrorBox, SkeletonRows, useToast } from "@/shared/ui";
 import { Pagination } from "@/shared/ui/Pagination";
 
+import { StatusBadge, StatusDot } from "../portfolio/DeveloperStatus";
+
 type SortKey = keyof typeof T.user.sort;
 
 function StatCard({ value, label, icon, tone, badge, star, loading }: {
@@ -91,7 +93,7 @@ function DeveloperCard({ d }: { d: PortfolioDeveloper }) {
       <div className="ucard-main">
         <span className="ucard-avatar">
           <Avatar user={d} size="xl" card={false} />
-          <span className="uonline-dot" aria-hidden />
+          <StatusDot status={d.status} />
         </span>
         <div className="ucard-head">
           <div className="ucard-id">
@@ -103,6 +105,7 @@ function DeveloperCard({ d }: { d: PortfolioDeveloper }) {
           </button>
         </div>
         <RatingLine d={d} />
+        <div className="ucard-status"><StatusBadge status={d.status} /></div>
         {!!d.technologies?.length && (
           <div className="ucard-tags" aria-label={T.portfolio.technologies}>
             {d.technologies.slice(0, 3).map((technology) => <span key={technology} className="utag">{technology}</span>)}

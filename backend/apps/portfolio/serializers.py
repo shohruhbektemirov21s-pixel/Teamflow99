@@ -39,6 +39,7 @@ def developer_row(user, rank=None, highlights=None):
     return {
         "projects": highlights.get("projects", []), "projects_extra": highlights.get("projects_extra", 0),
         "experience_months": highlights.get("experience_months"),
+        "status": highlights.get("status") or {"state": "free", "active_tasks": 0, "trip_return_date": None},
         "technologies": highlights.get("technologies", []), "cover": highlights.get("cover"),
         "id": user.pk, "full_name": user.full_name, "role": user.role, "department_name": user.department_name,
         "avatar": avatar_url(user), "specialty": user.specialty.name if user.specialty else "",
