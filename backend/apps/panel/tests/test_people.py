@@ -133,3 +133,36 @@ class PeopleDueRangeTests(TestCase):
         rows = self.ids(due_from=day, due_to=day)
         self.assertEqual([t["id"] for t in rows[self.other.pk]["work"]], [task.pk])
         self.assertFalse(rows[self.other.pk]["work"][0]["is_overdue"])
+
+
+class PeopleStatsAndCreateTests(TestCase):
+    def setUp(self):
+        self.boss = make_user(Role.BOSS)
+        self.pm = make_user(Role.PM)
+        self.dev = make_user(Role.DEVELOPER)
+        self.project = make_project(self.pm, self.dev, name="SaaS")
+
+    def test_people_stats_returns_accurate_numbers(self):
+        make_task(self.project, self.pm, self.dev, status=Task.Status.IN_PROGRESS)
+        res = client_for(self.pm).get("/api/people/stats/")
+        self.assertEqual(res.status_code, 200)
+        self.assertIn("total_employees", res.data)
+        self.assertIn("in_progress_tasks", res.data)
+        self.assertIn("overdue_tasks", res.data)
+        self.assertIn("free_employees", res.data)
+        self.assertGreaterEqual(res.data["in_progress_tasks"], 1)
+
+    def test_people_create_adds_new_employee(self):
+        payload = {
+            "first_name": "Aziz",
+            "last_name": "Rahimov",
+            "username": "aziz_dev",
+            "password": "SecretPassword123!",
+            "role": "developer",
+            "department_name": "Frontend",
+        }
+        res = client_for(self.boss).post("/api/people/create/", payload, format="json")
+        self.assertEqual(res.status_code, 201)
+        self.assertEqual(res.data["username"], "aziz_dev")
+        self.assertTrue(User.objects.filter(username="aziz_dev", is_active=True).exists())
+

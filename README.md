@@ -239,13 +239,17 @@ Menyu guruhlarga bo'lingan: *Asosiy ish* | *Muloqot* | *Kuzatuv* (Kuzatuv faqat 
 - Qoidaga kirmaydi: filtrlar (o'tgan davrni ko'rish uchun), portfolio loyiha sanalari (o'tgan ishlar tarixi), ish jurnali sanasi.
 
 ### Xodimlar (`/xodimlar`, PM, Boshliq)
-- Barcha jamoa a'zolari (dasturchilar, menejerlar): bandligi, faol va kechikkan vazifalari, hozir nima qilayotgani. Vazifasi yo'qlar birinchi turadi.
+- **Statistik kartalar (2026-10-14):** Sahifa tepasida 4 ta ixcham real ko'rsatkich (Jami xodimlar, Jarayondagi vazifalar, Kechikkan vazifalar, Bo'sh xodimlar — backend `/api/people/stats/` API orqali).
+- **Gorizontal toolbar (2026-10-14):** Qidiruv (ism, lavozim, loyiha), lavozim/mutaxassislik bo'yicha filtr, vazifa holati bo'yicha filtr (barchasi, bo'sh, band, kechikkan), sana oralig'i ("Sanadan" — "Sanagacha") va "+ Yangi xodim" tugmasi (yangi xodim yaratish modali, `POST /api/people/create/`).
+- **Xodim kartalari va jadval (2026-10-14):**
+  - Chap taraf: dumaloq avatar, xodimning to'liq ismi, lavozimi, bo'limi, online/xizmat safari indikatori.
+  - O'rta qism: faol va kechikkan vazifalar soni, bandlik darajasi (kichik dumaloq progress indikatori).
+  - Pastki qism: 36–42px ixcham vazifalar ro'yxati (vazifa nomi, loyiha kodi va nomi, holat, muddat; **bajarilgan vazifalar bu sahifada ko'rsatilmaydi**; dastlab 3 tasi ko'rinadi, qolgani uchun "Yana N ta" havolasi).
+  - O'ng taraf: "Profil", "+ Vazifa berish" va uch nuqtali qo'shimcha menyu (profil, vazifa biriktirish, xabarlar/chat, portfolio).
 - Bo'sh (vazifasi yo'q yoki yuklamasi kam) xodimga to'g'ridan-to'g'ri vazifa berish tugmasi.
 - Vazifa topshiriqlarga ajratilib, ularga boshqa xodimlar biriktiriladi.
 - Xodim bosilsa, xodim oynasi ochiladi: profil sarlavhasi, statistika, joriy ishlari, vazifa berish.
-- **Filtrlar bitta qatorda (2026-10-09):** qidiruv (ism, loyiha, mas'uliyat), **Vazifa muddati** ("Sanadan" — "Sanagacha"), rol (faqat Boshliqda) va "Faqat bo'sh xodimlar". Muddat tanlansa, shu oraliqda muddati bo'lgan **har qanday holatdagi** (bajarilgan ham, arxivlanganidan tashqari) vazifasi bor xodimlar chiqadi, qatorda shu muddatdagi ishlar ko'rinadi. "Sanagacha" "Sanadan"dan oldin bo'lsa, maydon yonida xato chiqadi va so'rov yuborilmaydi; server ham rad etadi. Muddat qoidasi Vazifalar filtri bilan bitta joyda: `tasks/filters.py` → `due_range_condition`.
-- **Soddalashtirilgan qator (2026-10-09):** bitta asosiy belgi ("Bo'sh" / "N faol" / "Xizmat safarida" / rol) va kerak bo'lsa qizil "N kechikkan"; 1 ta eng yaqin ish (vazifasi bo'lmasa — 1 ta faol loyiha) va "Yana N ta — profilda"; mas'uliyat ism ostida 2 qatorgacha; amallar: "Profilni ko'rish" va "Vazifa berish". Jadval/kartochka almashtirgich olib tashlandi: kompyuterda jadval, telefonda kartochkalar avtomatik.
-- Boshliq o'z profilidagi **Xizmat safarlari** bo'limida faol PM yoki dasturchining qaytish sanasini belgilaydi yoki safarni muddatidan oldin tugatadi. Safar darhol boshlanadi; qaytish kuni yangi vazifa berish avtomatik qayta ochiladi. Safardagi dasturchiga yangi vazifa/topshiriq biriktirilmaydi; avvaldan biriktirilgan ishlar saqlanadi. Bu qoida serverda ham tekshiriladi.
+- Boshliq o'z profilidagi **Xizmat safarlari** bo'limida faol PM yoki dasturchining qaytish sanasini belgilaydi yoki safarni muddatidan oldin tugatadi. Safardagi xodimga yangi vazifa/topshiriq berish bloklanadi.
 
 ### Tekshiruv navbati (`/tekshiruv`, PM, Boshliq)
 - Tekshiruvga yuborilgan vazifalar ro'yxati, kim yuborgani bilan. "Ko'rib chiqish" vazifa oynasini ochadi, qabul qilish yoki qaytarish shu yerda. Menyuda kutayotganlar soni ko'rinadi.

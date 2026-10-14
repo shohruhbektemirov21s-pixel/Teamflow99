@@ -45,6 +45,8 @@ api = [
     path("dashboard/", panel.dashboard),
     path("calendar/", calendar_summary),
     path("people/", panel.people),
+    path("people/stats/", panel.people_stats),
+    path("people/create/", panel.people_create),
     path("people/<int:pk>/business-trip/", accounts.business_trip),
     path("people/<int:pk>/responsibilities/", accounts.responsibilities),
     path("search/", panel.search),

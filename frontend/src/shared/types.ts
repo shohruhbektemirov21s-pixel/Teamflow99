@@ -229,6 +229,13 @@ export interface Person {
   projects?: { id: number; name: string; code: string; stage: ProjectStage; end_date: string }[];
 }
 
+export interface PeopleStats {
+  total_employees: number;
+  in_progress_tasks: number;
+  overdue_tasks: number;
+  free_employees: number;
+}
+
 export interface Developer {
   id: number;
   full_name: string;

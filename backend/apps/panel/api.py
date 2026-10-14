@@ -153,6 +153,93 @@ def _people_rows(qs, due_condition=None):
 
 
 @api_view(["GET"])
+def people_stats(request):
+    """Xodimlar sahifasi uchun yuqori 4 ta statistika. Backenddan to'g'ri hisoblanadi."""
+    require_manager(request.user)
+    now = timezone.now()
+    qs = User.objects.filter(is_active=True).exclude(role="")
+    if not request.user.is_boss:
+        qs = qs.filter(role=Role.DEVELOPER)
+
+    total_employees = qs.count()
+
+    in_progress_tasks = Task.objects.filter(
+        status=Task.Status.IN_PROGRESS,
+        archived_at__isnull=True,
+    ).count()
+
+    overdue_tasks = Task.objects.filter(
+        status__in=ACTIVE,
+        due_at__lt=now,
+        archived_at__isnull=True,
+    ).count()
+
+    dev_qs = qs.filter(role=Role.DEVELOPER)
+    dev_with_active = TaskAssignment.objects.filter(
+        task__status__in=ACTIVE,
+        task__archived_at__isnull=True,
+    ).values("developer_id").distinct()
+    free_employees = dev_qs.exclude(pk__in=dev_with_active).filter(
+        Q(business_trip_return_date__isnull=True) | Q(business_trip_return_date__lt=timezone.localdate())
+    ).count()
+
+    return Response({
+        "total_employees": total_employees,
+        "in_progress_tasks": in_progress_tasks,
+        "overdue_tasks": overdue_tasks,
+        "free_employees": free_employees,
+    })
+
+
+class EmployeeCreateInput(serializers.Serializer):
+    first_name = serializers.CharField(max_length=150)
+    last_name = serializers.CharField(max_length=150)
+    username = serializers.CharField(max_length=150)
+    password = serializers.CharField(min_length=6, write_only=True)
+    role = serializers.ChoiceField(choices=Role.choices, default=Role.DEVELOPER)
+    specialty_id = serializers.IntegerField(required=False, allow_null=True)
+    department_name = serializers.CharField(max_length=200, required=False, allow_blank=True)
+    telegram_username = serializers.CharField(max_length=100, required=False, allow_blank=True)
+
+    def validate_username(self, value):
+        if User.objects.filter(username__iexact=value).exists():
+            raise serializers.ValidationError("Bu login allaqachon band.")
+        return value
+
+
+@api_view(["POST"])
+def people_create(request):
+    """Boshliq/PM yangi xodim yaratishi uchun API."""
+    require_manager(request.user)
+    serializer = EmployeeCreateInput(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    data = serializer.validated_data
+    role = data.get("role", Role.DEVELOPER)
+    if not request.user.is_boss and role != Role.DEVELOPER:
+        raise PermissionDenied("PM faqat dasturchi yarata oladi.")
+
+    user = User.objects.create_user(
+        username=data["username"],
+        password=data["password"],
+        first_name=data["first_name"],
+        last_name=data["last_name"],
+        role=role,
+        department_name=data.get("department_name", ""),
+        telegram_username=data.get("telegram_username", "").lstrip("@"),
+        specialty_id=data.get("specialty_id"),
+        is_active=True,
+    )
+    return Response({
+        "id": user.pk,
+        "full_name": user.full_name,
+        "username": user.username,
+        "role": user.role,
+        "role_label": user.get_role_display(),
+        "specialty": user.specialty.name if user.specialty else "",
+    }, status=status.HTTP_201_CREATED)
+
+
+@api_view(["GET"])
 def people(request):
     """Xodimlar va band-bo'shligi. PM — dasturchilar; Boshliq — hamma xodimlar. Vazifasi yo'qlar tepada."""
     require_manager(request.user)
@@ -162,6 +249,12 @@ def people(request):
             qs = qs.filter(role=request.query_params["role"])
     else:
         qs = qs.filter(role=Role.DEVELOPER)
+    specialty = request.query_params.get("specialty", "").strip()
+    if specialty:
+        if specialty.isdigit():
+            qs = qs.filter(specialty_id=int(specialty))
+        else:
+            qs = qs.filter(specialty__name__icontains=specialty)
     q = request.query_params.get("q", "").strip()[:200]
     if q:
         matches = qs.filter(Q(first_name__icontains=q) | Q(last_name__icontains=q) | Q(specialty__name__icontains=q)
@@ -180,9 +273,14 @@ def people(request):
         qs = qs.filter(pk__in=TaskAssignment.objects.filter(due_condition, task__archived_at__isnull=True)
                        .values("developer_id"))
     qs = _people_counts(qs)
-    if request.query_params.get("free") == "1":
+    task_status = request.query_params.get("task_status", "").strip()
+    if request.query_params.get("free") == "1" or task_status == "free":
         qs = qs.filter(role=Role.DEVELOPER, active_tasks=0).filter(
             Q(business_trip_return_date__isnull=True) | Q(business_trip_return_date__lt=timezone.localdate()))
+    elif task_status == "busy":
+        qs = qs.filter(active_tasks__gt=0)
+    elif task_status == "overdue":
+        qs = qs.filter(overdue_tasks__gt=0)
     qs = qs.order_by("active_tasks", "first_name", "last_name", "pk")
     if request.query_params.get("paginated") == "1":
         paginator = BoundedPagination()

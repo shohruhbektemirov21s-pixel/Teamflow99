@@ -16,7 +16,8 @@ export function usePagedList<T>(baseKey: readonly unknown[], path: string,
   const query = useQuery({
     queryKey,
     queryFn: async () => {
-      const result = await api.get<Paged<T> | T[]>(`${path}${qs({ ...params, page: page === 1 ? undefined : page })}`);
+      const url = `${path}${qs({ ...params, page: page === 1 ? undefined : page })}`;
+      const result = await api.get<Paged<T> | T[]>(url);
       return Array.isArray(result) ? { count: result.length, next: null, previous: null, results: result } : result;
     },
     enabled,

@@ -146,8 +146,9 @@ export default function Layout() {
               <ArrowLeft />
             </button>
           )}
-          <div className="topbar-title">
+          <div className="topbar-title topbar-breadcrumbs" aria-label="Breadcrumb">
             <span className="topbar-eyebrow">{T.nav.workspace}</span>
+            <span className="topbar-breadcrumb-sep" aria-hidden="true">/</span>
             <h1 className="ellipsis">{pageTitle(location.pathname, me.role)}</h1>
           </div>
           <div className="spacer" />
@@ -165,6 +166,10 @@ export default function Layout() {
             <Bell />
             {counters.notifications > 0 && <span className="bell-dot">{counters.notifications}</span>}
           </button>
+          <Link to="/profil" className="topbar-user-pill" title={me.full_name} aria-label={T.nav.profile}>
+            <Avatar user={me} size="sm" />
+            <span className="topbar-user-name hide-sm">{me.first_name || me.full_name}</span>
+          </Link>
         </header>
         <main id="main-content" className="page" tabIndex={-1}>
           <Outlet />
