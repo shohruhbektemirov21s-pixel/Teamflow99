@@ -48,12 +48,12 @@ function CircularProgress({ activeCount }: { activeCount: number }) {
 
   const color =
     percent === 0
-      ? "#10B981"
+      ? "var(--success)"
       : percent <= 40
-        ? "#2563EB"
+        ? "var(--info)"
         : percent <= 85
-          ? "#10B981"
-          : "#EF4444";
+          ? "var(--success)"
+          : "var(--danger)";
 
   return (
     <div className="employee-progress-wrap" title={`Bandlik: ${percent}%`}>
@@ -63,7 +63,7 @@ function CircularProgress({ activeCount }: { activeCount: number }) {
             cx={size / 2}
             cy={size / 2}
             r={radius}
-            stroke="#E2E8F0"
+            stroke="var(--border)"
             strokeWidth={stroke}
             fill="none"
           />

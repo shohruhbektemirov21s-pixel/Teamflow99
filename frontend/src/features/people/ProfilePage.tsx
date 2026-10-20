@@ -96,8 +96,8 @@ export default function ProfilePage() {
   });
 
   return (
-    <div className="stack" style={{ maxWidth: 800, width: "100%", margin: "0 auto" }}>
-
+    <div className="stack" style={{ maxWidth: 1180, width: "100%", margin: "0 auto" }}>
+      <div className="profile-grid">
       <div className="card card-pad stack">
         <ProfileHeader
           user={me}
@@ -124,7 +124,6 @@ export default function ProfilePage() {
                   {T.profile.photoRemove}
                 </Button>
               )}
-              <span className="small muted">{T.profile.photoHint}</span>
             </>
           }
         />
@@ -155,19 +154,7 @@ export default function ProfilePage() {
             </Field>
             <Field
               label={T.profile.telegram}
-              hint={
-                bot ? (
-                  <>
-                    {T.profile.telegramHintBefore}{" "}
-                    <a href={`https://t.me/${bot}`} target="_blank" rel="noopener noreferrer" style={{ fontWeight: 600 }}>
-                      @{bot}
-                    </a>{" "}
-                    {T.profile.telegramHintAfter}
-                  </>
-                ) : (
-                  T.profile.telegramHint
-                )
-              }
+              hint={bot ? <a href={`https://t.me/${bot}`} target="_blank" rel="noopener noreferrer" style={{ fontWeight: 600 }}>@{bot}</a> : undefined}
               error={fieldError(infoMut.error, "telegram_username")}>
               {(id, bad) => (
                 <input id={id} className="input" aria-invalid={bad} value={telegram} placeholder={T.profile.telegramPh} onChange={(e) => setTelegram(e.target.value)} />
@@ -186,27 +173,10 @@ export default function ProfilePage() {
         )}
       </div>
 
+      <div className="stack">
       {me.role === "boss" && <BusinessTripPanel />}
 
       {(developer || me.role === "pm") && <ResponsibleProjects employeeId={me.id} own />}
-
-      {developer && (
-        <section className="card" aria-label={T.profile.myTasks}>
-          <div className="card-head">
-            <h3 className="grow">
-              {T.profile.myTasks} {myTasks.data && <span className="count-pill soft">{myTasks.pagination?.count}</span>}
-            </h3>
-          </div>
-          {myTasks.error ? (
-            <div className="card-pad">
-              <ErrorBox error={myTasks.error} onRetry={() => myTasks.refetch()} />
-            </div>
-          ) : (
-            <TaskTable tasks={myTasks.data} loading={myTasks.isLoading} emptyHint={T.profile.myTasksEmpty} />
-          )}
-          <Pagination data={myTasks.pagination} page={myTasks.page} onPageChange={myTasks.onPageChange} />
-        </section>
-      )}
 
       <form
         className="card card-pad stack"
@@ -234,6 +204,26 @@ export default function ProfilePage() {
           </Button>
         </div>
       </form>
+      </div>
+      </div>
+
+      {developer && (
+        <section className="card" aria-label={T.profile.myTasks}>
+          <div className="card-head">
+            <h3 className="grow">
+              {T.profile.myTasks} {myTasks.data && <span className="count-pill soft">{myTasks.pagination?.count}</span>}
+            </h3>
+          </div>
+          {myTasks.error ? (
+            <div className="card-pad">
+              <ErrorBox error={myTasks.error} onRetry={() => myTasks.refetch()} />
+            </div>
+          ) : (
+            <TaskTable tasks={myTasks.data} loading={myTasks.isLoading} emptyHint={T.profile.myTasksEmpty} />
+          )}
+          <Pagination data={myTasks.pagination} page={myTasks.page} onPageChange={myTasks.onPageChange} />
+        </section>
+      )}
     </div>
   );
 }

@@ -40,7 +40,6 @@ export function BusinessTripPanel() {
   return (
     <section className="card card-pad stack" aria-label={T.profile.businessTrips}>
       <h3>{T.profile.businessTrips}</h3>
-      <p className="small muted">{T.profile.businessTripHint}</p>
       {people.isLoading ? <SkeletonRows rows={2} /> : people.error ? <ErrorBox error={people.error} onRetry={() => people.refetch()} /> : (
         <>
           <input className="input" type="search" aria-label={T.people.searchPh} placeholder={T.people.searchPh} value={search} onChange={(event) => { setSearch(event.target.value); setEmployeeId(""); }} />

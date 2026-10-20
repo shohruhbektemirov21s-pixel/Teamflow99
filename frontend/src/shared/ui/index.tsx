@@ -21,6 +21,8 @@ import { avatarColor, ORDER_TONE, PRIORITY_TONE, STAGE_TONE, TASK_TONE, type Ton
 import { T } from "../text";
 import type { FileInfo, OrderStatus, Priority, ProjectStage, TaskStatus, UserBrief } from "../types";
 
+import { Modal } from "./Modal";
+
 export { Modal, useDialogBehavior } from "./Modal";
 
 /** Vazifa kodi (tasodifiy 9 xonali raqam) yoki loyiha raqami (qo'lda kiritilgan) — hamma joyda bir xil
@@ -51,25 +53,61 @@ export function Button({
   );
 }
 
-/** Ikki bosqichli o'chirish tugmasi: brauzer dialogi o'rniga (modal ustida modal yo'q). */
-export function ConfirmButton({ onConfirm, children, loading, confirmText }: { onConfirm: () => void; children: ReactNode; loading?: boolean; confirmText?: string }) {
+/** Tasdiqlash oynasida "O'chirish" necha soniyadan keyin faollashadi (testlarda kutilmaydi). */
+export const CONFIRM_DELAY_SECONDS = import.meta.env.MODE === "test" ? 0 : 5;
+
+/**
+ * O'chirish tugmasi: bosilsa alohida (ustma-ust, qora fonli) tasdiqlash oynasi ochiladi. Tasodifan bosib yuborilmasligi uchun
+ * "Ha, o'chirish" tugmasi `delay` soniya orqaga sanaydi va shundan keyingina faollashadi (CLAUDE.md, 4-bo'lim istisnosi).
+ */
+export function ConfirmButton({ onConfirm, children, loading, confirmText, delay = CONFIRM_DELAY_SECONDS }: {
+  onConfirm: () => void; children: ReactNode; loading?: boolean; confirmText?: string; delay?: number;
+}) {
   const [asking, setAsking] = useState(false);
-  if (!asking)
-    return (
-      <Button variant="ghost" onClick={() => setAsking(true)}>
+  return (
+    <>
+      <Button variant="ghost" disabled={loading} onClick={() => setAsking(true)}>
         {children}
       </Button>
-    );
+      {asking && (
+        <ConfirmDeleteModal
+          text={confirmText ?? T.common.confirmDelete}
+          delay={delay}
+          onCancel={() => setAsking(false)}
+          onConfirm={() => { setAsking(false); onConfirm(); }}
+        />
+      )}
+    </>
+  );
+}
+
+function ConfirmDeleteModal({ text, delay, onCancel, onConfirm }: { text: string; delay: number; onCancel: () => void; onConfirm: () => void }) {
+  const [left, setLeft] = useState(delay);
+  useEffect(() => {
+    if (left <= 0) return;
+    const timer = window.setTimeout(() => setLeft((value) => value - 1), 1000);
+    return () => window.clearTimeout(timer);
+  }, [left]);
   return (
-    <span className="row">
-      <span className="small muted">{confirmText ?? T.common.confirmDelete}</span>
-      <Button variant="danger" size="sm" loading={loading} onClick={onConfirm}>
-        {T.common.yes}
-      </Button>
-      <Button size="sm" variant="ghost" onClick={() => setAsking(false)}>
-        {T.common.cancel}
-      </Button>
-    </span>
+    <Modal
+      stacked
+      size="sm"
+      title={<span className="confirm-title"><AlertTriangle size={20} aria-hidden /> {T.common.confirmDeleteTitle}</span>}
+      onClose={onCancel}
+      footer={
+        <>
+          <Button onClick={onCancel}>{T.common.cancel}</Button>
+          <Button variant="danger" disabled={left > 0} onClick={onConfirm}>
+            {left > 0 ? T.common.deleteWait(left) : T.common.yes}
+          </Button>
+        </>
+      }
+    >
+      <div className="stack-sm">
+        <p style={{ margin: 0 }}>{text}</p>
+        {delay > 0 && <div className="countdown-bar" aria-hidden><span key={delay} style={{ animationDuration: `${delay}s` }} /></div>}
+      </div>
+    </Modal>
   );
 }
 

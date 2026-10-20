@@ -130,12 +130,6 @@ export default function PeoplePage() {
 
   return (
     <div className="people-page-container">
-      {/* ─── 0. Sahifa Sarlavhasi va Tavsifi (Mockupdagi kabi) ─── */}
-      <div className="people-page-header">
-        <h1 className="people-page-title">Xodimlar</h1>
-        <p className="people-page-subtitle">Jamoa a'zolari, ularning vazifalari va faolligini boshqaring.</p>
-      </div>
-
       {/* ─── 1. Statistik Kartalar (4 ta ixcham karta va mini bar chartlar) ─── */}
       <section className="people-stats-grid" aria-label="Xodimlar statistikasi">
         {/* 1. Jami xodimlar */}
@@ -154,7 +148,7 @@ export default function PeoplePage() {
               </div>
             </div>
           </div>
-          <MiniBarChart color="#6545FF" heights={[35, 55, 45, 75, 95]} />
+          <MiniBarChart color="var(--primary)" heights={[35, 55, 45, 75, 95]} />
         </div>
 
         {/* 2. Jarayondagi vazifalar */}
@@ -172,7 +166,7 @@ export default function PeoplePage() {
               </div>
             </div>
           </div>
-          <MiniBarChart color="#3155FF" heights={[40, 65, 50, 70, 85]} />
+          <MiniBarChart color="var(--info)" heights={[40, 65, 50, 70, 85]} />
         </div>
 
         {/* 3. Kechikkan vazifalar */}
@@ -190,7 +184,7 @@ export default function PeoplePage() {
               </div>
             </div>
           </div>
-          <MiniBarChart color="#EF4444" heights={[45, 30, 65, 45, 85]} />
+          <MiniBarChart color="var(--danger)" heights={[45, 30, 65, 45, 85]} />
         </div>
 
         {/* 4. Bo'sh xodimlar */}
@@ -209,7 +203,7 @@ export default function PeoplePage() {
               </div>
             </div>
           </div>
-          <MiniBarChart color="#10B981" heights={[30, 50, 60, 75, 95]} />
+          <MiniBarChart color="var(--success)" heights={[30, 50, 60, 75, 95]} />
         </div>
       </section>
 
@@ -348,28 +342,23 @@ export default function PeoplePage() {
             </button>
           )}
 
-          {/* O'ng tomonda: + Yangi xodim qo'shish tugmasi */}
+          {/* O'ng tomonda: topilganlar soni va Yangi xodim tugmasi (bitta qatorda) */}
           <div className="people-toolbar-actions">
+            {peopleQuery.data && (
+              <span className="small muted nowrap" role="status">
+                {T.people.found(peopleQuery.pagination?.count ?? rows.length)}
+              </span>
+            )}
             <Button
               variant="primary"
               icon={<UserPlus size={16} />}
               onClick={() => setCreateModalOpen(true)}
               className="people-add-btn"
             >
-              + Yangi xodim
+              Yangi xodim
             </Button>
           </div>
         </div>
-
-        {/* Natijalar soni va oraliq ma'lumoti */}
-        {peopleQuery.data && (
-          <div className="people-results-meta" role="status">
-            <span className="small muted">
-              {T.people.found(peopleQuery.pagination?.count ?? rows.length)}
-              {hasRange && ` · ${T.people.rangeHint}`}
-            </span>
-          </div>
-        )}
       </section>
 
       {/* ─── 3. Xodimlar Kartalari Ro'yxati (Asosiy ko'rinish) ─── */}

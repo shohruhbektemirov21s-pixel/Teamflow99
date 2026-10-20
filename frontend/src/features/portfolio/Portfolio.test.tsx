@@ -207,7 +207,7 @@ describe("Portfolio oynasi", () => {
     expect(api.post).not.toHaveBeenCalledWith(`/portfolio/items/${ITEM.id}/reviews/`, expect.anything());
 
     fireEvent.click(within(dialog).getByRole("button", { name: T.portfolio.commentDelete }));
-    fireEvent.click(await within(dialog).findByRole("button", { name: T.common.yes }));
+    fireEvent.click(await screen.findByRole("button", { name: T.common.yes }));
     await waitFor(() => expect(api.del).toHaveBeenCalledWith(`/portfolio/items/${ITEM.id}/comments/${mine.id}/`));
   });
 
@@ -250,7 +250,7 @@ describe("Portfolio oynasi", () => {
     expect((body.get("file") as File).name).toBe("yangi.pdf");
 
     fireEvent.click(within(dialog).getAllByRole("button", { name: T.portfolio.attachmentDelete })[0]!);
-    fireEvent.click(await within(dialog).findByRole("button", { name: T.common.yes }));
+    fireEvent.click(await screen.findByRole("button", { name: T.common.yes }));
     await waitFor(() => expect(api.del).toHaveBeenCalledWith(`/portfolio/items/${ITEM.id}/attachments/1/`));
   });
 

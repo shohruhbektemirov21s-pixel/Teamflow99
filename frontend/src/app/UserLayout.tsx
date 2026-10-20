@@ -1,5 +1,5 @@
 import { LogOut, Moon, Sparkles, Star, Sun, User, Users } from "lucide-react";
-import { Link, NavLink, Outlet } from "react-router-dom";
+import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
 
 import { T } from "@/shared/text";
 import { Avatar } from "@/shared/ui";
@@ -11,6 +11,7 @@ import { ModalHost } from "./modals";
 /** Oddiy foydalanuvchi: tepada panel, kompyuterda chap menyu, telefonda pastki menyu (Dasturchilar · Mening baholarim · Profil). */
 export default function UserLayout() {
   const me = useMe();
+  const { pathname } = useLocation();
   const { logout } = useAuth();
   const [theme, toggleTheme] = useTheme();
 
@@ -45,7 +46,7 @@ export default function UserLayout() {
           <NavLink to="/baholarim" className="utab"><Star size={18} aria-hidden /><span>{T.user.navReviews}</span></NavLink>
           <NavLink to="/profil" className="utab"><User size={18} aria-hidden /><span>{T.user.navProfile}</span></NavLink>
         </nav>
-        <main id="main-content" className="umain" tabIndex={-1}>
+        <main key={pathname} id="main-content" className="umain" tabIndex={-1}>
           <Outlet />
         </main>
       </div>

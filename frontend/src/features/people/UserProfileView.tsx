@@ -263,7 +263,6 @@ export function UserProfileView() {
           <div className="card-head" style={{ padding: 0 }}>
             <div>
               <h2 className="section-title" style={{ margin: 0 }}>{T.profile.editInfoTitle}</h2>
-              <p className="muted small" style={{ margin: "4px 0 0" }}>{T.user.infoSubtitle}</p>
             </div>
           </div>
 
@@ -373,7 +372,6 @@ export function UserProfileView() {
           <div className="card-head" style={{ padding: 0 }}>
             <div>
               <h2 className="section-title" style={{ margin: 0 }}>{T.profile.passwordTitle}</h2>
-              <p className="muted small" style={{ margin: "4px 0 0" }}>{T.user.passwordSubtitle}</p>
             </div>
           </div>
 
@@ -435,7 +433,6 @@ export function UserProfileView() {
           <div className="card-head" style={{ padding: 0 }}>
             <div>
               <h2 className="section-title" style={{ margin: 0 }}>{T.user.appearanceTitle}</h2>
-              <p className="muted small" style={{ margin: "4px 0 0" }}>{T.user.appearanceSubtitle}</p>
             </div>
           </div>
 

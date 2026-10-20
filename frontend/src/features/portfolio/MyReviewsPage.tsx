@@ -9,7 +9,6 @@ export default function MyReviewsPage() {
       <div className="uhead">
         <div className="uhead-text">
           <h1 className="uhead-title">{T.user.myReviews}</h1>
-          <p className="muted uhead-sub">{T.user.myReviewsEmptyHint}</p>
         </div>
       </div>
       <MyReviews />

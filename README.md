@@ -531,6 +531,7 @@ docs/       ARCHITECTURE.md, FLOWS_MODALS.md
 - Har bir app ichidagi qatlamlar: `models`, `workflow`, `services`, `permissions`, `serializers`, `api`, `admin`, `tests` (batafsil: `docs/ARCHITECTURE.md` 3-bo'lim).
 - Holat o'tishlari faqat `apps/*/workflow.py` jadvallarida. Kim nimani ko'rishi — `apps/*/permissions.py`.
 - UI matnlari bitta joyda: `frontend/src/shared/text.ts`. Ranglar va o'lchamlar — `styles.css` tokenlari, sanalar — `formatDate`.
+- **Ranglar va harakat (2026-10-20):** komponent ichida qattiq yozilgan rang (`#hex`, `rgb()`) yo'q — hamma rang `styles.css` tokenlaridan (`--primary`, `--success`, `--info`, `--warning`, `--danger`, `--violet`, `--slate` va ularning `-soft` juftlari; kunduzgi va tungi rejimda). Istisno: tema oldindan ko'rinishi, hujjat oq foni, video qora foni, kirish sahifasi qorong'u paneli. Animatsiya uch davomiylik (`--dur-fast` 120ms, `--dur` 180ms, `--dur-slow` 320ms) va bitta easing (`--ease`) bilan: sahifa kirishi, oyna va bildirishnoma, tugma bosilishi, karta ko'tarilishi, kartalar ketma-ket paydo bo'lishi, progress, rejim almashishi. `prefers-reduced-motion` yoqilgan bo'lsa hammasi o'chadi.
 - Vaqtinchalik skriptlar: `backend/scratch/`, `frontend/scratch/`, `docs/scratch/` (ildizda faqat `backend`, `frontend`, `docs` va hujjatlar).
 
 ## 15. UX maqsadi

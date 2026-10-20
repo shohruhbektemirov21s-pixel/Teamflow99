@@ -94,7 +94,6 @@ export default function Layout() {
           </span>
           <span className="brand-copy">
             <strong>{T.app}</strong>
-            <span>{T.nav.workspace}</span>
           </span>
         </Link>
         <nav className="nav" aria-label={T.nav.menu}>
@@ -146,9 +145,7 @@ export default function Layout() {
               <ArrowLeft />
             </button>
           )}
-          <div className="topbar-title topbar-breadcrumbs" aria-label="Breadcrumb">
-            <span className="topbar-eyebrow">{T.nav.workspace}</span>
-            <span className="topbar-breadcrumb-sep" aria-hidden="true">/</span>
+          <div className="topbar-title">
             <h1 className="ellipsis">{pageTitle(location.pathname, me.role)}</h1>
           </div>
           <div className="spacer" />
@@ -171,7 +168,7 @@ export default function Layout() {
             <span className="topbar-user-name hide-sm">{me.first_name || me.full_name}</span>
           </Link>
         </header>
-        <main id="main-content" className="page" tabIndex={-1}>
+        <main key={location.pathname} id="main-content" className="page" tabIndex={-1}>
           <Outlet />
         </main>
       </div>

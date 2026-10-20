@@ -115,7 +115,7 @@ export default function OrderModal({ id }: { id: number }) {
     if (!panel) return null;
     const common = error && !Object.keys(error.fields).length && <Callout tone="danger">{error.message}</Callout>;
     const screen = (
-      opts: { icon: ReactNode; tone: "primary" | "success" | "danger"; title: string; subtitle: string; label: string; disabled: boolean },
+      opts: { icon: ReactNode; tone: "primary" | "success" | "danger"; title: string; subtitle?: string; label: string; disabled: boolean },
       body: ReactNode,
     ) => (
       <Modal
@@ -151,8 +151,8 @@ export default function OrderModal({ id }: { id: number }) {
     if (panel === "approve" || panel === "dates")
       return screen(
         panel === "approve"
-          ? { icon: <CheckCircle2 />, tone: "success", title: T.orders.approve, subtitle: T.orders.approveSubtitle, label: T.orders.approve, disabled: !form.start_date || !form.end_date }
-          : { icon: <CalendarDays />, tone: "primary", title: T.orders.editDates, subtitle: T.orders.datesSubtitle, label: T.common.save, disabled: !form.start_date || !form.end_date },
+          ? { icon: <CheckCircle2 />, tone: "success", title: T.orders.approve, label: T.orders.approve, disabled: !form.start_date || !form.end_date }
+          : { icon: <CalendarDays />, tone: "primary", title: T.orders.editDates, label: T.common.save, disabled: !form.start_date || !form.end_date },
         <>
           <div className="grid-2">
             <Field label={T.orders.startDate} required error={fe("start_date")}>
@@ -189,7 +189,6 @@ export default function OrderModal({ id }: { id: number }) {
           icon: <XCircle />,
           tone: "danger",
           title: isOrder ? T.orders.reject : T.orders.rejectCompletion,
-          subtitle: isOrder ? T.orders.rejectSubtitle : T.orders.rejectCompletionSubtitle,
           label: isOrder ? T.orders.reject : T.orders.rejectCompletion,
           disabled: !form.reason.trim(),
         },
@@ -210,7 +209,7 @@ export default function OrderModal({ id }: { id: number }) {
       );
     }
     return screen(
-      { icon: <Send />, tone: "primary", title: T.orders.newVersion, subtitle: T.orders.newVersionSubtitle, label: T.orders.send, disabled: files.length !== 1 || !form.note.trim() },
+      { icon: <Send />, tone: "primary", title: T.orders.newVersion, label: T.orders.send, disabled: files.length !== 1 || !form.note.trim() },
       <>
         <FilePicker files={files} onChange={setFiles} multiple={false} accept=".docx,.pdf" label={T.orders.tzFile} hint={T.orders.tzHint} invalid={Boolean(fe("file"))} />
         {fe("file") && <span className="field-error">{fe("file")}</span>}

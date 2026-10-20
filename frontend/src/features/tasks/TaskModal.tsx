@@ -657,7 +657,6 @@ function TaskActionScreen({
           <span>{isSubmit ? T.tasks.submit : T.tasks.return}</span>
         </span>
       }
-      subtitle={isSubmit ? T.tasks.submitSubtitle : T.tasks.returnSubtitle}
       onClose={onCancel}
       dirty={dirty}
       footer={

@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { Activity, BarChart, CheckCircle2, ListTodo, Plus, TrendingUp } from "lucide-react";
+import { BarChart, CheckCircle2, ListTodo, Plus, TrendingUp } from "lucide-react";
 import { useState } from "react";
 
 import { useMe } from "@/app/auth";
@@ -79,9 +79,6 @@ export default function PersonModal({ id }: { id: number }) {
                   <div style={{ fontWeight: 650, fontSize: 13.5 }}>
                     {person.is_on_business_trip ? T.people.onBusinessTrip : person.active_tasks === 0 ? T.people.freeNow : T.people.busyNow(person.active_tasks)}
                   </div>
-                  <div className="small muted">
-                    {person.is_on_business_trip ? T.people.tripBlocked : person.active_tasks === 0 ? T.people.freeHint : T.people.busyHint}
-                  </div>
                 </div>
                 <Button
                   size="sm"
@@ -149,13 +146,6 @@ export default function PersonModal({ id }: { id: number }) {
                   <span className="muted">{T.people.lateNow}</span>
                   <b style={{ color: currentlyOverdue > 0 ? "var(--danger)" : "inherit" }}>{currentlyOverdue}</b>
                 </div>
-              </div>
-              
-              <div className="card card-pad" style={{ background: "var(--surface-2)" }}>
-                <p className="small muted" style={{ margin: 0, lineHeight: 1.5 }}>
-                  <Activity size={14} style={{ display: "inline", verticalAlign: "middle", marginRight: 6 }} />
-                  {T.people.reportNote}
-                </p>
               </div>
             </div>
           )}

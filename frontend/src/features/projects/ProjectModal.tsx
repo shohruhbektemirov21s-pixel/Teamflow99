@@ -428,7 +428,6 @@ export default function ProjectModal({ id }: { id: number }) {
         stacked
         size="md"
         title={<span className="row" style={{ gap: 12 }}><span className="modal-icon-badge"><CheckCircle2 /></span>{T.projects.completionModalTitle}</span>}
-        subtitle={T.projects.completionModalSubtitle}
         onClose={() => { if (!setStage.isPending) setCompletionOpen(false); }}
         dirty={Boolean(completionNote.trim() || completionFiles.length)}
         footer={<>

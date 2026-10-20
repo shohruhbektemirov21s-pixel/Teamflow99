@@ -27,6 +27,7 @@
 | 16 | Mas'ul loyihalar va yangiliklar | people | Boshliq/PM xodim oynasida (dasturchi — o'z profilida o'zi ham) "Mas'ul loyihalar" → "Loyiha qo'shish" (nom, izoh; qo'lda) → tahrirlash/o'chirish. Loyihada "Yangiliklar (N)" ochiladi → mas'ul xodim (o'z profilida) yoki Boshliq/PM yangilik yozadi; yangisi tepada. Faqat mas'ul xodim va uni boshqaradigan Boshliq/PM ko'radi. Yangi modal yo'q (7-modal va `/profil` ichida, `features/people/ResponsibleProjects.tsx`) | Faol (2026-10-14) |
 
 Bo'limlar bo'yicha son: auth 1 · orders 3 · projects 2 · tasks 3 · profile 1 · history 1 · suggestions 1 · notifications 1 · portfolio 3 · people 1. Cheklovdan oshmagan.
+Eslatma (2026-10-20): **"O'chirishni tasdiqlash"** — alohida modal emas, hamma o'chirish tugmasi (`ConfirmButton`, `shared/ui`) ochadigan umumiy ustma-ust (`Modal stacked`) oyna: qora fon, "Ha, o'chirish" tugmasi 5 soniya orqaga sanaydi (`CONFIRM_DELAY_SECONDS`) va shundan keyingina faollashadi; Esc/Bekor qilish yopadi. Yangi flow yo'q, modallar reestri soni o'zgarmadi (foydalanuvchi istisnosi, 4-bo'lim).
 Eslatma (2026-10-14): 6-flow ("Vazifa yaratish va biriktirish") kengaydi — dasturchi loyihani tanlamasdan ("Loyihasiz") o'ziga vazifa qo'sha oladi; yangi flow emas.
 Eslatma: `orders` bo'limidagi 3 flow ham UI da bitta "buyurtma holati" oqimi sifatida (holatga qarab tugma almashadi) amalga oshiriladi, alohida sahifalar ko'paytirilmaydi.
 

@@ -53,7 +53,6 @@ export default function TaskBulkModal({ projectId }: { projectId?: number }) {
     <Modal
       size="lg"
       title={T.tasks.bulkTitle}
-      subtitle={T.tasks.bulkSubtitle}
       onClose={close}
       dirty={rows.some((row) => row.title || row.assignee_ids.length || row.due_at)}
       footer={<><span className="spacer" /><Button variant="ghost" onClick={close}>{T.common.cancel}</Button><Button variant="primary" loading={save.isPending} disabled={!canSave} onClick={() => save.mutate()}>Yaratish ({rows.length})</Button></>}

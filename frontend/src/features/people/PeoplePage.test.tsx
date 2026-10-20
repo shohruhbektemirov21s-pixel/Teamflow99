@@ -92,7 +92,7 @@ describe("PeoplePage", () => {
     fireEvent.change(screen.getByLabelText(T.filters.dateTo), { target: { value: "2026-10-07" } });
     expect(await screen.findByText(T.people.col.inRange)).toBeTruthy();
     expect(within(screen.getByRole("table")).getByRole("button", { name: T.people.moreWork(2) })).toBeTruthy();
-    expect(screen.getByRole("status").textContent).toContain(T.people.rangeHint);
+    expect(screen.getByRole("status").textContent).toContain(T.people.found(1));
 
     fireEvent.change(screen.getByLabelText(T.filters.dateTo), { target: { value: "2026-09-01" } });
     expect(await screen.findByText(T.people.rangeError)).toBeTruthy();

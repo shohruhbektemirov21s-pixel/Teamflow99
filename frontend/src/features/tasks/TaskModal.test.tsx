@@ -140,7 +140,7 @@ describe("TaskModal", () => {
       mockGet({ "/tasks/1/": canSubmit() });
       renderApp(<TaskModal id={1} submitMode />);
 
-      expect(await screen.findByText(T.tasks.submitSubtitle)).toBeTruthy();
+      expect(await screen.findByRole("dialog", { name: T.tasks.submit })).toBeTruthy();
       expect(screen.getByText(T.tasks.submitCounter(0, 1000))).toBeTruthy();
       expect(screen.getByText(T.common.attachedCount(0))).toBeTruthy();
       // Vazifa oynasi orqada qoladi, lekin faqat ustdagi modal faol
@@ -152,11 +152,11 @@ describe("TaskModal", () => {
     it("Esc faqat yuborish oynasini yopadi, vazifa oynasi qoladi", async () => {
       mockGet({ "/tasks/1/": canSubmit() });
       renderApp(<TaskModal id={1} submitMode />);
-      await screen.findByText(T.tasks.submitSubtitle);
+      await screen.findByRole("dialog", { name: T.tasks.submit });
 
       fireEvent.keyDown(document, { key: "Escape" });
 
-      await waitFor(() => expect(screen.queryByText(T.tasks.submitSubtitle)).toBeNull());
+      await waitFor(() => expect(screen.queryByRole("dialog", { name: T.tasks.submit })).toBeNull());
       expect(screen.getByRole("dialog")).toBeTruthy();
       expect(screen.getByText(T.tasks.info)).toBeTruthy();
     });
@@ -186,7 +186,7 @@ describe("TaskModal", () => {
     it("ruxsat etilmagan va 20 MB dan katta fayl qabul qilinmaydi", async () => {
       mockGet({ "/tasks/1/": canSubmit() });
       renderApp(<TaskModal id={1} submitMode />);
-      await screen.findByText(T.tasks.submitSubtitle);
+      await screen.findByRole("dialog", { name: T.tasks.submit });
 
       const big = new File(["x"], "katta.pdf");
       Object.defineProperty(big, "size", { value: 21 * 1024 * 1024 });
