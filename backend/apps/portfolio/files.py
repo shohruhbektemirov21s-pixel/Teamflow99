@@ -10,6 +10,8 @@ from django.http import FileResponse, HttpResponse, StreamingHttpResponse
 from django.utils.http import content_disposition_header
 from PIL import Image, ImageOps, UnidentifiedImageError
 
+from apps.core.serving import accel_enabled, protected_file
+
 _RANGE = re.compile(r"^bytes=(\d*)-(\d*)$")
 _CHUNK = 256 * 1024
 
@@ -82,15 +84,10 @@ def validate_document(file):
 def attachment_response(attachment):
     """Rasm — brauzerda ko'rsatiladi; hujjat — yuklab olinadi. Tarkib turi har doim biz belgilaymiz (nosniff)."""
     if attachment.kind == "image":
-        response = FileResponse(attachment.file.open("rb"), content_type="image/jpeg")
-        response["Content-Disposition"] = content_disposition_header(False, attachment.original_name)
-        response["Cache-Control"] = "private, max-age=86400"
-    else:
-        content_type = DOCUMENT_TYPES.get(extension(attachment.original_name), ("application/octet-stream",))[0]
-        response = FileResponse(attachment.file.open("rb"), content_type=content_type)
-        response["Content-Disposition"] = content_disposition_header(True, attachment.original_name)
-    response["X-Content-Type-Options"] = "nosniff"
-    return response
+        return protected_file(attachment.file, content_type="image/jpeg", filename=attachment.original_name,
+                              cache_control="private, max-age=86400")
+    content_type = DOCUMENT_TYPES.get(extension(attachment.original_name), ("application/octet-stream",))[0]
+    return protected_file(attachment.file, content_type=content_type, filename=attachment.original_name, as_attachment=True)
 
 
 def video_content_type(name):
@@ -127,8 +124,13 @@ def _read(handle, length):
 
 
 def video_response(request, video):
-    """Videoni brauzerda ko'rsatish: `Range` so'rovi bo'lsa 206 bilan faqat so'ralgan qism (oldinga o'tkazish ishlaydi)."""
+    """Videoni brauzerda ko'rsatish: `Range` so'rovi bo'lsa 206 bilan faqat so'ralgan qism (oldinga o'tkazish ishlaydi).
+    Production'da faylni (Range bilan) Nginx beradi — `apps.core.serving`."""
     content_type = video_content_type(video.original_name)
+    if accel_enabled():
+        # Video id o'zgarmaydi (yangi yuklash — yangi id), shuning uchun brauzer keshlashi xavfsiz.
+        return protected_file(video.file, content_type=content_type, filename=video.original_name,
+                              cache_control="private, max-age=86400")
     size = video.file.size
     match = _RANGE.match(request.META.get("HTTP_RANGE", "").strip())
     if match and (match.group(1) or match.group(2)):

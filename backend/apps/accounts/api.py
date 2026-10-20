@@ -1,7 +1,7 @@
 from django.contrib.auth import authenticate, login, logout
-from django.http import FileResponse, Http404
+from django.http import Http404
 from django.shortcuts import get_object_or_404
-from django.db.models import Case, IntegerField, Q, Value, When
+from django.db.models import Case, Count, IntegerField, Max, Q, Value, When
 from django.views.decorators.csrf import csrf_protect, ensure_csrf_cookie
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes, throttle_classes
@@ -12,12 +12,15 @@ from rest_framework.response import Response
 from rest_framework.throttling import AnonRateThrottle
 
 from apps.core.api_utils import ServiceError, avatar_url
+from apps.core.pagination import BoundedPagination, bounded_unpaged
+from apps.core.serving import protected_file
 
 from . import services
-from .models import Role, Specialty, User
+from .models import ResponsibleProject, Role, Specialty, User
 from .serializers import (
     LoginSerializer, MeSerializer, RegisterSerializer, SpecialtySerializer,
-    ProfileSerializer, ProfileUpdateSerializer, ChangePasswordSerializer, BusinessTripSerializer, ResponsibilitiesSerializer
+    ProfileSerializer, ProfileUpdateSerializer, ChangePasswordSerializer, BusinessTripSerializer,
+    ResponsibleNewsInputSerializer, ResponsibleNewsSerializer, ResponsibleProjectInputSerializer, ResponsibleProjectSerializer,
 )
 
 
@@ -122,19 +125,76 @@ def developers(request):
     )
 
 
-@api_view(["PATCH"])
+def _visible_employee(user, pk):
+    """Mas'ul loyihalari ko'rinadigan xodim. Ko'rish huquqi bo'lmasa — 404 (borligi oshkor qilinmaydi)."""
+    employee = get_object_or_404(services.responsible_employees(), pk=pk)
+    if not services.can_view_responsible(user, employee):
+        raise Http404
+    return employee
+
+
+def _visible_responsible_project(user, pk):
+    project = get_object_or_404(ResponsibleProject.objects.select_related("employee"), pk=pk)
+    if not services.can_view_responsible(user, project.employee):
+        raise Http404
+    return project
+
+
+def _with_news_stats(qs):
+    return qs.annotate(news_count=Count("news"), last_news_at=Max("news__created_at"))
+
+
+@api_view(["GET", "POST"])
 @permission_classes([IsAuthenticated])
-def responsibilities(request, pk):
-    if not services.can_edit_responsibilities(request.user, pk):
-        raise PermissionDenied("Mas'uliyatlarni faqat Boshliq, PM yoki dasturchining o'zi tahrirlaydi.")
-    employees = User.objects.filter(is_active=True).exclude(role="")
-    if not request.user.is_boss:
-        employees = employees.filter(role=Role.DEVELOPER)
-    employee = get_object_or_404(employees, pk=pk)
-    serializer = ResponsibilitiesSerializer(data=request.data)
+def responsible_projects(request, pk):
+    """Xodimning mas'ul loyihalari. GET — xodimning o'zi va uni boshqaradigan Boshliq/PM; POST — faqat Boshliq/PM."""
+    employee = _visible_employee(request.user, pk)
+    can_manage = services.can_manage_responsible(request.user, employee)
+    if request.method == "POST":
+        if not can_manage:
+            raise PermissionDenied("Mas'ul loyihani faqat Boshliq yoki PM kiritadi.")
+        serializer = ResponsibleProjectInputSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        project = services.create_responsible_project(request.user, employee, **serializer.validated_data)
+        project = _with_news_stats(ResponsibleProject.objects.filter(pk=project.pk)).get()
+        return Response(ResponsibleProjectSerializer(project).data, status=status.HTTP_201_CREATED)
+    projects = bounded_unpaged(_with_news_stats(employee.responsible_projects.all()))
+    return Response({
+        "can_manage": can_manage,
+        "can_post": True,  # ko'ra olgan har kim (xodimning o'zi, Boshliq/PM) yangilik yozadi
+        "projects": ResponsibleProjectSerializer(projects, many=True).data,
+    })
+
+
+@api_view(["PATCH", "DELETE"])
+@permission_classes([IsAuthenticated])
+def responsible_project(request, pk):
+    project = _visible_responsible_project(request.user, pk)
+    if not services.can_manage_responsible(request.user, project.employee):
+        raise PermissionDenied("Mas'ul loyihani faqat Boshliq yoki PM o'zgartiradi.")
+    if request.method == "DELETE":
+        services.delete_responsible_project(request.user, project)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+    serializer = ResponsibleProjectInputSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
-    employee = services.set_responsibilities(request.user, employee, serializer.validated_data["responsibilities"])
-    return Response({"id": employee.pk, "responsibilities": employee.responsibilities})
+    services.update_responsible_project(request.user, project, **serializer.validated_data)
+    project = _with_news_stats(ResponsibleProject.objects.filter(pk=project.pk)).get()
+    return Response(ResponsibleProjectSerializer(project).data)
+
+
+@api_view(["GET", "POST"])
+@permission_classes([IsAuthenticated])
+def responsible_project_news(request, pk):
+    """Mas'ul loyiha yangiliklari (yangisi tepada, sahifalab). Ko'ra olgan har kim yozadi."""
+    project = _visible_responsible_project(request.user, pk)
+    if request.method == "POST":
+        serializer = ResponsibleNewsInputSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        news = services.add_responsible_news(request.user, project, serializer.validated_data["text"])
+        return Response(ResponsibleNewsSerializer(news).data, status=status.HTTP_201_CREATED)
+    paginator = BoundedPagination()
+    page = paginator.paginate_queryset(project.news.select_related("author"), request)
+    return paginator.get_paginated_response(ResponsibleNewsSerializer(page, many=True).data)
 
 
 @api_view(["PUT", "DELETE"])
@@ -201,13 +261,10 @@ def avatar_image(request, pk):
     if user is None or not user.avatar:
         raise Http404
     try:
-        handle = user.avatar.open("rb")
+        # `?v=` almashadi — eski rasm keshda qolmaydi
+        return protected_file(user.avatar, content_type="image/jpeg", cache_control="private, max-age=86400")
     except (FileNotFoundError, ValueError):
         raise Http404
-    response = FileResponse(handle, content_type="image/jpeg")
-    response["X-Content-Type-Options"] = "nosniff"
-    response["Cache-Control"] = "private, max-age=86400"  # `?v=` almashadi — eski rasm keshda qolmaydi
-    return response
 
 
 @api_view(["POST"])

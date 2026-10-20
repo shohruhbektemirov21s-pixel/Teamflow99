@@ -110,8 +110,8 @@ class ViewTests(PortfolioTestCase):
         client = client_for(self.dept)
         with CaptureQueriesContext(connection) as ctx:
             self.assertEqual(client.get("/api/portfolio/").status_code, 200)
-        # sessiya, foydalanuvchi, reyting ro'yxati, kartalar uchun loyihalar — dasturchilar soniga bog'liq emas
-        self.assertLessEqual(len(ctx.captured_queries), 4)
+        # sessiya, foydalanuvchi, reyting ro'yxati, kartalar uchun loyihalar va hozirgi holat — dasturchilar soniga bog'liq emas
+        self.assertLessEqual(len(ctx.captured_queries), 5)
 
     def test_search_by_name(self):
         res = client_for(self.pm).get(f"/api/portfolio/?q={self.other.first_name}")
@@ -357,6 +357,18 @@ class VideoTests(PortfolioTestCase):
         self.assertEqual(client_for(self.dev).delete(f"/api/portfolio/items/{item.pk}/videos/{video.pk}/").status_code, 204)
         self.assertFalse(PortfolioVideo.objects.exists())
 
+    @override_settings(PROTECTED_MEDIA_ACCEL_PREFIX="/protected-media/")
+    def test_production_hands_video_and_range_to_nginx(self):
+        item = self.manual_item()
+        url = client_for(self.dev).post(f"/api/portfolio/items/{item.pk}/videos/", {"video": mp4()}).data["url"]
+        video = PortfolioVideo.objects.get()
+        part = client_for(self.dept).get(url, HTTP_RANGE="bytes=4-11")
+        self.assertEqual(part.status_code, 200)  # Range'ni Nginx bajaradi (206)
+        self.assertEqual(part["X-Accel-Redirect"], f"/protected-media/{video.file.name}")
+        self.assertEqual(part["Content-Type"], "video/mp4")
+        self.assertEqual(part.content, b"")
+        self.assertIn(self.client.get(url).status_code, (401, 403))
+
     def test_rejects_non_video(self):
         item = self.manual_item()
         client = client_for(self.dev)
@@ -439,6 +451,16 @@ class AttachmentTests(PortfolioTestCase):
         self.assertIn("attachment", downloaded["Content-Disposition"])
         self.assertEqual(downloaded["X-Content-Type-Options"], "nosniff")
         self.assertEqual(b"".join(downloaded.streaming_content), PDF)
+
+    @override_settings(PROTECTED_MEDIA_ACCEL_PREFIX="/protected-media/")
+    def test_production_hands_file_over_to_nginx(self):
+        created = self.upload(doc("hisobot.pdf", PDF))
+        res = client_for(self.dept).get(created.data["url"])
+        self.assertEqual(res.status_code, 200)
+        self.assertTrue(res["X-Accel-Redirect"].startswith("/protected-media/portfolio/attachments/"))
+        self.assertEqual(res["Content-Type"], "application/pdf")
+        self.assertIn("attachment", res["Content-Disposition"])
+        self.assertNotIn("hisobot", res["X-Accel-Redirect"])  # asl nom emas, tasodifiy nom
 
     def test_files_require_login(self):
         created = self.upload(doc("hisobot.pdf", PDF))

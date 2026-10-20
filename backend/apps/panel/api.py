@@ -5,7 +5,7 @@ from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Count, F, Q, Window
 from django.db.models.functions import RowNumber
-from django.http import FileResponse, Http404
+from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from rest_framework import serializers, status
@@ -14,13 +14,14 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
-from apps.accounts.models import Role, User
+from apps.accounts.models import ResponsibleProject, Role, User
 from apps.accounts.serializers import SELF_REGISTER_ROLES
 from apps.core.choices import Priority
 from apps.core.api_utils import avatar_url, require_manager, user_brief
 from apps.core.codes import resolve_code
 from apps.core.pagination import BoundedPagination, bounded_unpaged
 from apps.core.models import ActivityLog, Comment
+from apps.core.serving import protected_file
 from apps.core.services import log
 from apps.notifications.models import Notification
 from apps.notifications.services import notify
@@ -120,11 +121,15 @@ def _people_rows(qs, due_condition=None):
         work.setdefault(assignment.developer_id, []).append({
                 "id": task.pk, "title": task.title, "status": task.status,
                 "due_at": task.due_at, "is_overdue": bool(task.status in ACTIVE and task.due_at and task.due_at < now),
-                "project": {"id": task.project_id, "name": task.project.name, "code": task.project.code},
+                "project": {"id": task.project_id, "name": task.project.name, "code": task.project.code} if task.project_id else None,
             })
     for assignment in previews(assignments.filter(task__status=Task.Status.IN_PROGRESS)):
         doing.setdefault(assignment.developer_id, []).append({"id": assignment.task_id, "title": assignment.task.title})
     user_ids = {u.pk for u in users}
+    responsible = {}
+    for employee_id, name in (ResponsibleProject.objects.filter(employee__in=users)
+                              .order_by("employee_id", "-created_at", "-id").values_list("employee_id", "name")):
+        responsible.setdefault(employee_id, []).append(name)
     for project in Project.objects.filter(
         Q(members__in=users) | Q(created_by__in=users) | Q(order__approved_by__in=users)
     ).distinct().select_related("order").prefetch_related("members"):
@@ -140,7 +145,7 @@ def _people_rows(qs, due_condition=None):
         {
             "id": u.pk, "full_name": u.full_name, "role": u.role, "role_label": u.get_role_display(),
             "specialty": u.specialty.name if u.specialty else "", "department_name": u.department_name,
-            "responsibilities": u.responsibilities,
+            "responsible_projects": responsible.get(u.pk, []),
             "avatar": avatar_url(u), "active_tasks": u.active_tasks, "overdue_tasks": u.overdue_tasks,
             "business_trip_return_date": u.business_trip_return_date, "is_on_business_trip": u.is_on_business_trip,
             "review_tasks": u.review_tasks, "done_tasks": u.done_tasks,
@@ -258,7 +263,7 @@ def people(request):
     q = request.query_params.get("q", "").strip()[:200]
     if q:
         matches = qs.filter(Q(first_name__icontains=q) | Q(last_name__icontains=q) | Q(specialty__name__icontains=q)
-                       | Q(department_name__icontains=q) | Q(responsibilities__icontains=q)
+                       | Q(department_name__icontains=q) | Q(responsible_projects__name__icontains=q)
                        | Q(project_memberships__project__name__icontains=q)
                        | Q(project_memberships__project__code__icontains=q)
                        | Q(assigned_tasks__title__icontains=q) | Q(assigned_tasks__project__name__icontains=q)
@@ -326,7 +331,7 @@ def search(request):
 
 
 def _search_tasks(tasks):
-    return [{"id": t.pk, "code": t.code, "title": t.title, "status": t.status, "project": t.project.name}
+    return [{"id": t.pk, "code": t.code, "title": t.title, "status": t.status, "project": t.project.name if t.project_id else ""}
             for t in tasks]
 
 
@@ -441,15 +446,13 @@ def file_download(request, kind, pk):
     obj = _file_owner_check(request.user, kind, pk)
     if obj is None:
         raise Http404
+    content_type = mimetypes.guess_type(obj.original_name)[0] or "application/octet-stream"
+    as_attachment = request.query_params.get("download") == "1"
     try:
-        handle = obj.file.open("rb")
+        return protected_file(obj.file, content_type=content_type, filename=obj.original_name,
+                              as_attachment=as_attachment)
     except (FileNotFoundError, ValueError):
         raise Http404
-    content_type = mimetypes.guess_type(obj.original_name)[0] or "application/octet-stream"
-    inline = request.query_params.get("download") != "1"
-    response = FileResponse(handle, as_attachment=not inline, filename=obj.original_name, content_type=content_type)
-    response["X-Content-Type-Options"] = "nosniff"
-    return response
 
 
 @api_view(["GET"])

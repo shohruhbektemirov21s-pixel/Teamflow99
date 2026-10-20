@@ -121,7 +121,13 @@ MEDIA_URL = "media/"
 MEDIA_ROOT = BASE_DIR / "media"
 if os.environ.get("DJANGO_MEDIA_ROOT"):
     MEDIA_ROOT = Path(os.environ["DJANGO_MEDIA_ROOT"])
+# Production: ruxsatli fayllarni Nginx beradi (`apps.core.serving`, `deploy/nginx.conf` → `/protected-media/`).
+# Bo'sh bo'lsa (mahalliy) fayllar Django orqali beriladi.
+PROTECTED_MEDIA_ACCEL_PREFIX = os.environ.get("PROTECTED_MEDIA_ACCEL_PREFIX", "")
+if PROTECTED_MEDIA_ACCEL_PREFIX and not (PROTECTED_MEDIA_ACCEL_PREFIX.startswith("/") and PROTECTED_MEDIA_ACCEL_PREFIX.endswith("/")):
+    raise RuntimeError("PROTECTED_MEDIA_ACCEL_PREFIX '/' bilan boshlanib, '/' bilan tugashi kerak")
 if "test" in sys.argv:  # testlar haqiqiy media papkaga yozmasin
+    PROTECTED_MEDIA_ACCEL_PREFIX = ""
     MEDIA_ROOT = Path(tempfile.mkdtemp(prefix="teamflow-test-media-"))
     PASSWORD_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]  # faqat testni tezlatish uchun
 

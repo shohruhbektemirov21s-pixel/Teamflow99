@@ -9,8 +9,33 @@ from .models import Role, Specialty, User
 SELF_REGISTER_ROLES = [Role.PM, Role.DEVELOPER, Role.DEPARTMENT]  # Boshliq faqat Django adminda
 
 
-class ResponsibilitiesSerializer(serializers.Serializer):
-    responsibilities = serializers.CharField(max_length=2000, allow_blank=True)
+class ResponsibleProjectInputSerializer(serializers.Serializer):
+    name = serializers.CharField(max_length=255)
+    description = serializers.CharField(max_length=1000, required=False, allow_blank=True, default="")
+
+
+class ResponsibleNewsInputSerializer(serializers.Serializer):
+    text = serializers.CharField(max_length=2000)
+
+
+class ResponsibleProjectSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    name = serializers.CharField()
+    description = serializers.CharField()
+    created_at = serializers.DateTimeField()
+    updated_at = serializers.DateTimeField()
+    news_count = serializers.IntegerField()
+    last_news_at = serializers.DateTimeField(allow_null=True)
+
+
+class ResponsibleNewsSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    text = serializers.CharField()
+    created_at = serializers.DateTimeField()
+    author = serializers.SerializerMethodField()
+
+    def get_author(self, news):
+        return {"id": news.author_id, "full_name": news.author.full_name, "avatar": avatar_url(news.author)}
 
 
 def normalize_telegram(value):
@@ -114,7 +139,7 @@ class ProfileSerializer(serializers.ModelSerializer):
         fields = [
             "id", "username", "first_name", "last_name", "full_name",
             "role", "role_label", "specialty", "department_name",
-            "telegram_username", "date_joined", "stats", "activity", "avatar", "email", "bio", "responsibilities",
+            "telegram_username", "date_joined", "stats", "activity", "avatar", "email", "bio",
         ]
 
     def get_activity(self, user):

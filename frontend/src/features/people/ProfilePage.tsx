@@ -13,9 +13,9 @@ import type { Profile, Task } from "@/shared/types";
 import { Badge, Button, ErrorBox, Field, SkeletonRows, useToast } from "@/shared/ui";
 import { Pagination } from "@/shared/ui/Pagination";
 
-import { PersonResponsibilities } from "./PersonResponsibilities";
 import { ProfileHeader } from "./ProfileHeader";
 import { BusinessTripPanel } from "./BusinessTripPanel";
+import { ResponsibleProjects } from "./ResponsibleProjects";
 import { UserProfileView } from "./UserProfileView";
 
 const fieldError = (err: unknown, name: string) => (err instanceof ApiError ? err.field(name) : undefined);
@@ -188,7 +188,7 @@ export default function ProfilePage() {
 
       {me.role === "boss" && <BusinessTripPanel />}
 
-      {developer && p && <PersonResponsibilities person={{ id: me.id, responsibilities: p.responsibilities }} editable onDirtyChange={() => {}} />}
+      {(developer || me.role === "pm") && <ResponsibleProjects employeeId={me.id} own />}
 
       {developer && (
         <section className="card" aria-label={T.profile.myTasks}>

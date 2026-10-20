@@ -143,7 +143,8 @@ export function EmployeeCard({ person: p, hasRange = false }: EmployeeCardProps)
       ? `${p.department_name} jamoasi`
       : "Backend jamoasi";
 
-  const expInfo = p.responsibilities || "2 yil tajriba";
+  // Mas'ul loyihalar (Boshliq/PM kiritadi) — karta tepasida qisqa qator; yo'q bo'lsa pill ko'rsatilmaydi
+  const expInfo = p.responsible_projects?.length ? T.people.responsible.line(p.responsible_projects) : "";
 
   return (
     <article className="card employee-card" key={p.id}>
@@ -181,7 +182,7 @@ export function EmployeeCard({ person: p, hasRange = false }: EmployeeCardProps)
           </div>
           <div className="employee-pills-group">
             <span className="employee-team-pill">{teamName}</span>
-            <span className="employee-exp-pill">{expInfo}</span>
+            {expInfo && <span className="employee-exp-pill" title={expInfo}>{expInfo}</span>}
           </div>
         </div>
 
@@ -330,13 +331,17 @@ export function EmployeeCard({ person: p, hasRange = false }: EmployeeCardProps)
 
                 {/* 2. Loyiha */}
                 <div className="col-project">
-                  <button
-                    type="button"
-                    className="employee-project-pill-btn"
-                    onClick={() => open({ project: t.project.id })}
-                  >
-                    <span className="employee-project-badge">{t.project.code} · {t.project.name}</span>
-                  </button>
+                  {t.project ? (
+                    <button
+                      type="button"
+                      className="employee-project-pill-btn"
+                      onClick={() => open({ project: t.project!.id })}
+                    >
+                      <span className="employee-project-badge">{t.project.code} · {t.project.name}</span>
+                    </button>
+                  ) : (
+                    <span className="employee-project-badge">{T.tasks.noProject}</span>
+                  )}
                 </div>
 
                 {/* 3. Holat */}

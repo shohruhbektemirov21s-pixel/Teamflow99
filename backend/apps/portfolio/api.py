@@ -3,7 +3,7 @@ from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.core.cache import cache
 from django.db.models import Q
-from django.http import FileResponse, Http404
+from django.http import Http404
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.decorators import api_view, parser_classes
@@ -12,6 +12,7 @@ from rest_framework.response import Response
 
 from apps.core.models import ActivityLog
 from apps.core.pagination import BoundedPagination
+from apps.core.serving import protected_file
 
 from . import services
 from .files import attachment_response, video_response
@@ -21,7 +22,7 @@ from .serializers import (
     CommentInput, ItemInput, ReviewInput, attachment_row, comment_row, developer_review_row, history_row, developer_row, my_review_row,
     item_detail, item_row, review_row, video_row,
 )
-from .stats import DEVELOPER_RANKING_CACHE_KEY, SUMMARY_CACHE_KEY, developer_highlights, developers_with_stats, following_count, experience, items_with_stats, recent_tasks, summary, tasks_done_by_project, years
+from .stats import DEVELOPER_RANKING_CACHE_KEY, SUMMARY_CACHE_KEY, developer_highlights, current_projects, developers_with_stats, following_count, experience, items_with_stats, recent_tasks, summary, tasks_done_by_project, years
 
 
 SORTS = {"followers": ("-followers_count",), "projects": ("-projects_count",), "reviews": ("-reviews_count",)}
@@ -103,6 +104,7 @@ def developer_detail(request, pk):
         "items": [item_row(i, done.get(i.project_id, 0)) for i in items],
         "reviews": [developer_review_row(review) for review in reviews],
         "recent_tasks": recent_tasks(owner),
+        "current_projects": current_projects(owner),
         "actions": {"follow": can_follow(request.user, owner), "add": owner.pk == request.user.pk},
     })
 
@@ -292,10 +294,6 @@ def cover_file(request, pk):
     if not obj.cover:
         raise Http404
     try:
-        handle = obj.cover.open("rb")
+        return protected_file(obj.cover, content_type="image/jpeg", cache_control="private, max-age=86400")
     except (FileNotFoundError, ValueError):
         raise Http404
-    response = FileResponse(handle, content_type="image/jpeg")
-    response["X-Content-Type-Options"] = "nosniff"
-    response["Cache-Control"] = "private, max-age=86400"
-    return response

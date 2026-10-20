@@ -101,3 +101,41 @@ class User(AbstractUser):
     def __str__(self):
         return self.full_name
 
+
+class ResponsibleProject(models.Model):
+    """Xodim javobgar bo'lgan loyiha. Boshliq/PM qo'lda kiritadi (TeamFlow `Project`iga bog'lanmaydi)."""
+
+    employee = models.ForeignKey(User, on_delete=models.CASCADE, related_name="responsible_projects",
+                                 verbose_name="Mas'ul xodim")
+    name = models.CharField("Loyiha nomi", max_length=255)
+    description = models.TextField("Izoh", max_length=1000, blank=True)
+    created_by = models.ForeignKey(User, on_delete=models.PROTECT, related_name="+")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-created_at", "-id"]
+        verbose_name = "Mas'ul loyiha"
+        verbose_name_plural = "Mas'ul loyihalar"
+
+    def __str__(self):
+        return f"{self.name} — {self.employee}"
+
+
+class ResponsibleProjectNews(models.Model):
+    """Mas'ul loyiha bo'yicha yangilik. Mas'ul xodimning o'zi yoki Boshliq/PM yozadi."""
+
+    project = models.ForeignKey(ResponsibleProject, on_delete=models.CASCADE, related_name="news")
+    author = models.ForeignKey(User, on_delete=models.PROTECT, related_name="+")
+    text = models.TextField("Yangilik", max_length=2000)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at", "-id"]
+        indexes = [models.Index(fields=["project", "-created_at"], name="resp_news_project_created_idx")]
+        verbose_name = "Mas'ul loyiha yangiligi"
+        verbose_name_plural = "Mas'ul loyiha yangiliklari"
+
+    def __str__(self):
+        return self.text[:40]
+

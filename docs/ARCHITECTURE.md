@@ -41,7 +41,7 @@ backend/
   config/            settings.py, urls.py, wsgi.py, asgi.py
   apps/
     core/            umumiy: choices, fayl validatsiyasi, kod yordamchilari (codes.py: tasodifiy 9 xonali kod — `apps.get_model` orqali, Task/Project statik import qilinmaydi), davrlar (periods.py), Comment, ActivityLog
-    accounts/        User, Specialty, ro'yxatdan o'tish, login, ruxsat yordamchilari
+    accounts/        User, Specialty, ResponsibleProject(+News), ro'yxatdan o'tish, login, ruxsat yordamchilari
     orders/          Order, OrderVersion, buyurtma holat mashinasi, servislar
     projects/        Project, ProjectMember, ProjectFile
     tasks/           Task, TaskAssignment, SubTask, Submission, WorkLog, holat mashinasi
@@ -89,6 +89,8 @@ core  ←  accounts  ←  orders  ←  projects  ←  tasks
 
 Production oqimi bitta Django jarayoniga bog'lanmaydi: Nginx → Gunicorn (measured profile: 12 worker × 2 thread) → PostgreSQL/Redis. Bildirishnoma unread soni Redis'da 60 soniya keshlanadi va xabar yaratish/o'qish tranzaksiyasi commit bo'lgach invalidatsiya qilinadi. Portfolio reytingi standart birinchi sahifada 60 soniya keshlanadi; viewerga bog'liq follow holati alohida olinadi. Chat xabarlari yangi xabar bo'lmasa 5 → 10 → 20 → 40 → 60 soniyagacha adaptive polling qiladi, suhbatlar ro'yxati 30 soniyada yangilanadi, yashirin tabda polling to'xtaydi. Sessiyalar `cached_db` orqali PostgreSQL'da saqlanadi; `clearsessions` har kuni bajariladi.
 
+Ruxsatli fayllar (avatar, portfolio muqovasi/videosi, buyurtma/loyiha/vazifa hujjatlari) production'da Gunicorn oqimini band qilmaydi: Django ruxsat va egalikni tekshiradi va `X-Accel-Redirect: /protected-media/<nom>` qaytaradi, faylni Nginx o'zi beradi (sendfile, Range, sekin mijoz). `/protected-media/` — `internal`, tashqaridan ochilmaydi. Qoida bitta joyda: `apps/core/serving.py: protected_file` (`PROTECTED_MEDIA_ACCEL_PREFIX` bo'sh bo'lsa — mahalliy — Django beradi). Nginx `Cache-Control: no-store`ni faqat Django kesh sarlavhasi bermagan javobga qo'yadi, shuning uchun versiyalangan avatar/muqova (`?v=`) brauzerda 1 kun keshlanadi. **Nima uchun:** 12×2 oqimda bitta 100 MB video yoki sahifadagi o'nlab rasm API so'rovlarini navbatga qo'yardi.
+
 2026-10-06 dagi 10k hisobot oldingi schema va synthetic workload uchun o'lchangan: u portfolio, login burst, fayl uploadi, browser polling va uzoq soakni to'liq qamramaydi. Shuning uchun bu arxitektura resurslarni kamaytiradi, lekin joriy mahsulot uchun yakuniy sig'im raqami faqat aynan tanlangan serverda yangilangan capacity harness bilan tasdiqlanadi.
 
 ## 4. Ma'lumotlar modeli
@@ -97,7 +99,9 @@ Production oqimi bitta Django jarayoniga bog'lanmaydi: Nginx → Gunicorn (measu
 | Model | Maydonlar | Izoh |
 |---|---|---|
 | `Specialty` | name (unique), is_active | Mutaxassisliklar ro'yxati **Django adminda** boshqariladi (ochiq savol yopildi). |
-| `User` | username (login), first_name, last_name, password, role, specialty FK?, department_name, telegram_username, telegram_chat_id, avatar (rasm, 1024px JPEG), is_active | `role`: boss / pm / developer / department. Ro'yxatdan o'tganlar `is_active=False` bilan yaratiladi, admin faollashtiradi. Boshliq admin orqali. |
+| `User` | username (login), first_name, last_name, password, role, specialty FK?, department_name, telegram_username, telegram_chat_id, avatar (rasm, 1024px JPEG), is_active | `role`: boss / pm / developer / department. Ro'yxatdan o'tganlar `is_active=False` bilan yaratiladi, admin faollashtiradi. Boshliq admin orqali. `responsibilities` (eski erkin matn) ustuni bazada qoldi, lekin 2026-10-14 dan ekranda va API'da ishlatilmaydi. |
+| `ResponsibleProject` | employee FK (PM/dasturchi), name (255), description (1000), created_by, created_at, updated_at | Xodim javobgar bo'lgan loyiha — Boshliq/PM qo'lda kiritadi, TeamFlow `Project`iga bog'lanmaydi (2026-10-14). |
+| `ResponsibleProjectNews` | project FK (CASCADE), author FK, text (2000), created_at. Indeks `(project, -created_at)` | Mas'ul loyiha yangiligi. Mas'ul xodim va uni boshqaradigan Boshliq/PM yozadi. Ruxsat qoidasi bitta joyda: `accounts/services.py` (`managed_employees`, `can_view_responsible`). |
 
 ### orders
 | Model | Maydonlar |
@@ -121,7 +125,7 @@ Yakunlash (`stage=done` so'ralganda): loyihada faol dasturchi bo'lsa, avval hamm
 ### tasks
 | Model | Maydonlar |
 |---|---|
-| `Task` | code (tasodifiy 9 xonali, unique), project FK (PROTECT), title, description, priority, status (control/in_progress/in_review/done), starts_at?, due_at?, completed_at?, archived_at?, created_by, created_at |
+| `Task` | code (tasodifiy 9 xonali, unique), project FK? (PROTECT; bo'sh — dasturchining loyihasiz vazifasi, 2026-10-14; PM/Boshliq uchun servis majburiy qiladi), title, description, priority, status (control/in_progress/in_review/done), starts_at?, due_at?, completed_at?, archived_at?, created_by, created_at |
 | `TaskAssignment` | task FK, developer FK, `unique(task, developer)` — bitta vazifa bir nechta dasturchiga |
 | `SubTask` | task FK, title, assignees M2M (bir nechta dasturchi), is_done, position |
 | `TaskFile` | task FK, file, uploaded_by |
@@ -210,7 +214,7 @@ POST       /api/projects/setup/     loyiha + jamoa + har bir xodimga vazifa (mul
                                     bitta tranzaksiya, tasks.services.create_project_with_tasks (tasks yuqori qatlam)
 POST       /api/projects/{id}/completion-ack/   {confirmed, reason?}  (loyiha a'zosi dasturchi — yakunlashga tasdiq/rad)
 
-GET/POST   /api/tasks/
+GET/POST   /api/tasks/          POST: `project` ixtiyoriy faqat dasturchi uchun (bo'sh — loyihasiz vazifa); PM/Boshliqqa majburiy
 GET/PATCH/DELETE /api/tasks/{id}/     DELETE: arxivlash, tarixni saqlash
 POST       /api/tasks/{id}/status/        {status}   (dasturchi: control→in_progress)
 POST       /api/tasks/{id}/submit/        {note, files}
@@ -233,6 +237,12 @@ GET        /api/orders/?period=week&bucket=sent|rejected|approved   bosh panel k
 GET        /api/people/         xodimlar va bandligi (vazifasi yo'qlar tepada)
 PUT        /api/people/{id}/business-trip/    {return_date: YYYY-MM-DD} (faqat boshliq; safar darhol boshlanadi)
 DELETE     /api/people/{id}/business-trip/    safarni muddatidan oldin tugatish (faqat boshliq)
+GET        /api/people/{id}/responsible-projects/    mas'ul loyihalar {can_manage, can_post, projects[]} (xodimning o'zi yoki Boshliq/PM; boshqalarga 404)
+POST       /api/people/{id}/responsible-projects/    {name, description} (Boshliq/PM; dasturchi — faqat o'ziga)
+PATCH      /api/responsible-projects/{id}/           {name, description} (Boshliq/PM; dasturchi — faqat o'ziniki)
+DELETE     /api/responsible-projects/{id}/           yangiliklari bilan o'chiriladi (Boshliq/PM; dasturchi — faqat o'ziniki)
+GET        /api/responsible-projects/{id}/news/      yangiliklar, yangisi tepada (sahifalangan)
+POST       /api/responsible-projects/{id}/news/      {text} (mas'ul xodim yoki Boshliq/PM)
 GET        /api/developers/     dasturchilar ro'yxati (menejer va dasturchi)
 GET        /api/search/?q=...   global qidiruv (Ctrl K)
 GET        /api/history/        umumiy tarix
@@ -251,7 +261,6 @@ POST       /api/portfolio/items/{id}/attachments/     multipart `file` — rasm 
 DELETE     /api/portfolio/items/{id}/attachments/{aid}/   faqat egasi
 GET        /api/portfolio/attachments/{aid}/          rasm (ko'rsatiladi) / hujjat (yuklanadi), faqat tizimga kirganlarga
 GET        /api/portfolio/items/{id}/history/         sahifalangan tarix: rasm/video/fayl/muqova qo'shildi-o'chirildi (`ActivityLog`, verb `portfolio_*`)
-PATCH      /api/people/{id}/responsibilities/         Boshliq/PM (o'z doirasida) yoki dasturchi — faqat o'ziniki
 POST       /api/portfolio/items/{id}/videos/          multipart `video` (faqat egasi)
 DELETE     /api/portfolio/items/{id}/videos/{vid}/
 GET        /api/portfolio/videos/{vid}/   video (Range 206), faqat tizimga kirganlarga

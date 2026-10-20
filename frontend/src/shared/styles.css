@@ -772,6 +772,38 @@ kbd { font-family: var(--mono); font-size: 11px; padding: 2px 6px; border-radius
   .people-add-btn { width: 100%; justify-content: center; }
   .employee-header-center { flex-wrap: wrap; gap: 10px; }
 }
+/* Mas'ul loyihalar va ularning yangiliklari (xodim oynasi va o'z profilim) */
+.responsible-list { display: grid; gap: 12px; margin: 0; padding: 0; list-style: none; }
+.responsible-item, .responsible-form { padding: 16px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); }
+.responsible-head { display: flex; align-items: flex-start; gap: 12px; }
+.responsible-icon { display: inline-flex; align-items: center; justify-content: center; flex: none; width: 36px; height: 36px; border-radius: var(--radius-sm); background: var(--primary-soft); color: var(--primary); }
+.responsible-name { font-size: var(--fs-md); overflow-wrap: anywhere; }
+.responsible-description { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.6; }
+.responsible-actions { justify-content: flex-end; }
+.responsible-news { padding-top: 16px; border-top: 1px solid var(--border); }
+.responsible-news-list { display: grid; gap: 16px; margin: 0; padding: 0; list-style: none; }
+.responsible-news-item { display: flex; align-items: flex-start; gap: 12px; }
+.responsible-news-text { margin: 4px 0 0; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.6; }
+@media (max-width: 760px) {
+  .responsible-actions { justify-content: stretch; }
+  .responsible-actions > .btn { flex: 1 1 auto; }
+}
+.person-work-item { display: flex; flex-direction: column; align-items: stretch; gap: 6px; width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface-2); color: var(--text); text-align: left; font: inherit; cursor: pointer; }
+.person-work-item:hover { border-color: var(--primary); background: var(--primary-soft); }
+.person-work-item span { overflow-wrap: anywhere; }
+.person-work-title { font-size: 13px; font-weight: 600; }
+.person-section-title { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0 0 6px; font-size: 14px; }
+.person-work-empty { padding: 12px 0; }
+@container (max-width: 560px) {
+  .people-card { grid-template-columns: minmax(0, 1fr); padding: 16px; }
+  .people-card-who { padding-right: 0; }
+  .people-card-work { grid-row: auto; }
+  .people-card-actions { grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 8px; padding-top: 16px; border-top: 1px solid var(--border); }
+  .person-task { grid-template-columns: auto minmax(0, 1fr) auto; row-gap: 6px; padding: 12px; }
+  .person-task-project { grid-column: 2; grid-row: 2; justify-self: start; }
+  .person-task-status { grid-column: 3; grid-row: 1; }
+  .person-task-date { grid-column: 3; grid-row: 2; }
+}
 .person { padding: 16px; display: flex; flex-direction: column; gap: 12px; text-align: left; font: inherit; color: inherit; }
 .person-nums { display: flex; gap: 6px; flex-wrap: wrap; }
 .weekly-hero { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 22px; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 18px; }
@@ -1295,6 +1327,11 @@ button.list-row:focus-visible { outline-offset: -2px; }
 .ucard-main { position: relative; flex: 1; padding: 0 8px 8px; display: flex; flex-direction: column; gap: 8px; }
 .ucard-avatar { position: relative; margin-top: -38px; margin-left: 6px; width: 72px; height: 72px; border-radius: 50%; background: var(--surface); padding: 3px; display: grid; place-items: center; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08); }
 .uonline-dot { position: absolute; bottom: 2px; right: 2px; width: 14px; height: 14px; border-radius: 50%; background: var(--success); border: 2.5px solid var(--surface); box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.06); }
+.uonline-dot.is-busy { background: var(--warning); }
+.uonline-dot.is-trip { background: var(--info); }
+.ucard-status { display: flex; }
+.pmodal-projects-now { display: flex; flex-direction: column; gap: 8px; }
+.pmodal-project-now { display: flex; align-items: center; gap: 12px; padding: 8px 0; min-width: 0; }
 .ucard-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 4px; }
 .ucard-id { display: flex; flex-direction: column; min-width: 0; flex: 1 1 auto; }
 .ucard-name { font-size: var(--fs-md); line-height: 20px; font-weight: 680; letter-spacing: -0.015em; color: var(--text); }

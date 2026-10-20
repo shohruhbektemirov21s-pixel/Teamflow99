@@ -49,6 +49,8 @@ services:
       WEB_THREADS: ${WEB_THREADS:-2}
       WEB_MAX_REQUESTS: ${WEB_MAX_REQUESTS:-0}
       SCALE_TEST_MODE: ${SCALE_TEST_MODE:-0}
+      # Ruxsatli fayllarni Nginx beradi (nginx.conf: location /protected-media/).
+      PROTECTED_MEDIA_ACCEL_PREFIX: /protected-media/
       DJANGO_SECURE_SSL_REDIRECT: ${DJANGO_SECURE_SSL_REDIRECT:-1}
       DJANGO_SECURE_COOKIES: ${DJANGO_SECURE_COOKIES:-1}
     depends_on:
@@ -86,6 +88,7 @@ services:
     volumes:
       - ./nginx.conf:/etc/nginx/templates/default.conf.template:ro
       - static:/srv/static:ro
+      - uploads:/srv/media:ro
     depends_on: {app: {condition: service_healthy}}
     mem_limit: 128m
     restart: unless-stopped

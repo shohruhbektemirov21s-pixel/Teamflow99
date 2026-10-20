@@ -17,7 +17,8 @@ class Task(models.Model):
         IN_REVIEW = "in_review", "Tekshiruvda"
         DONE = "done", "Bajarildi"
 
-    project = models.ForeignKey("projects.Project", on_delete=models.PROTECT, related_name="tasks")
+    # Bo'sh bo'lishi mumkin: dasturchi o'ziga loyihasiz vazifa yarata oladi. PM/Boshliq loyihani tanlaydi.
+    project = models.ForeignKey("projects.Project", on_delete=models.PROTECT, related_name="tasks", null=True, blank=True)
     code = models.CharField("Kod", max_length=9, unique=True, editable=False)
     title = models.CharField("Nomi", max_length=255)
     description = models.TextField("Izoh", blank=True)

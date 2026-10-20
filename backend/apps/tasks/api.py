@@ -82,7 +82,8 @@ class TaskViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.Gen
         s = TaskCreateSerializer(data=request.data)
         s.is_valid(raise_exception=True)
         data = dict(s.validated_data)
-        project = get_object_or_404(visible_projects(request.user), pk=data.pop("project"))
+        project_id = data.pop("project")
+        project = get_object_or_404(visible_projects(request.user), pk=project_id) if project_id is not None else None
         data["files"] = request.FILES.getlist("files") or data.get("files")
         task = services.create_task(request.user, project, **data)
         return Response(self._detail(task), status=status.HTTP_201_CREATED)
