@@ -6,7 +6,7 @@ import { useMeta } from "@/shared/meta";
 import type { Tone } from "@/shared/status";
 import { T } from "@/shared/text";
 import type { DepartmentDashboard, Order, OrderStatus } from "@/shared/types";
-import { OrderStatusBadge, PriorityBadge, StageBadge } from "@/shared/ui";
+import { AnimatedNumber, OrderStatusBadge, PriorityBadge, StageBadge } from "@/shared/ui";
 
 /**
  * Boshqarma holat kartalari (bosh panel va "Buyurtmalarim" — bir xil). Bosilsa ro'yxat `/orders/?status=` bo'yicha filtrlanadi.
@@ -30,7 +30,7 @@ export function OrderStatusCards({ counts, value, onChange }: { counts: Departme
             <span className="stat-label" style={{ display: "block" }}>
               {meta.label("order_statuses", key)}
             </span>
-            <span className="stat-num">{n}</span>
+            <span className="stat-num"><AnimatedNumber value={n} /></span>
           </span>
         </button>
       ))}

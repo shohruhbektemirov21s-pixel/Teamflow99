@@ -68,10 +68,10 @@
   --control-lg: 48px;
 
   --radius-xs: 6px;
-  --radius-sm: 9px;
-  --radius: 14px;
-  --radius-md: 14px;
-  --radius-lg: 18px;
+  --radius-sm: 10px;
+  --radius: 16px;
+  --radius-md: 16px;
+  --radius-lg: 22px;
   --radius-full: 9999px;
 
   --shadow: 0 1px 3px rgba(17, 24, 39, 0.04), 0 8px 24px -20px rgba(38, 54, 108, 0.22);
@@ -1148,60 +1148,6 @@ button.list-row:focus-visible { outline-offset: -2px; }
   .toast { max-width: none; }
 }
 
-/* ───────── Harakat tizimi (animatsiya) ─────────
-   Davomiylik va easing faqat tokenlardan (--dur-fast / --dur / --dur-slow, --ease). Mavjud qoidalar tegilmaydi —
-   bu yerda faqat yagona kirish animatsiyalari va tugma/karta bosilish javobi qo'shiladi. */
-@keyframes page-in { from { opacity: 0; transform: translateY(8px); } }
-@keyframes pop-in { from { opacity: 0; transform: scale(.96) translateY(8px); } }
-@keyframes slide-in-right { from { opacity: 0; transform: translateX(20px); } }
-@keyframes list-in { from { opacity: 0; transform: translateY(10px); } }
-@keyframes bar-grow { from { transform: scaleX(0); } }
-
-/* Rejim (kunduzgi/tungi) almashganda ranglar sakramasdan o'zgaradi */
-body, .sidebar, .topbar, .card, .input, .textarea, .select { transition: background-color var(--dur) var(--ease), border-color var(--dur) var(--ease), color var(--dur) var(--ease); }
-
-/* Sahifa almashganda yumshoq kirish */
-.page, .umain { animation: page-in var(--dur-slow) var(--ease) backwards; }
-/* Oynalar va bildirishnoma */
-.modal { animation: pop-in var(--dur) var(--ease); }
-.toast { animation: slide-in-right var(--dur) var(--ease); }
-
-/* Tugma va kartalar: bosilganda javob, ustiga kelganda yengil ko'tarilish */
-.btn { transition-property: background-color, border-color, color, box-shadow, transform; transition-duration: var(--dur); transition-timing-function: var(--ease); }
-.btn:active:not(:disabled) { transform: scale(.97); }
-.btn-primary:hover:not(:disabled), .btn-gradient:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 12px 24px -12px color-mix(in srgb, var(--primary-solid) 75%, transparent); }
-.btn-primary:active:not(:disabled), .btn-gradient:active:not(:disabled) { transform: scale(.97); }
-.clickable, .employee-card, .people-stat-card, .responsible-item, .stat, .total { transition-property: background-color, border-color, box-shadow, transform; transition-duration: var(--dur); transition-timing-function: var(--ease); }
-.card.clickable:hover, .employee-card:hover, .total:hover { transform: translateY(-2px); }
-.card.clickable:active, .total:active { transform: scale(.99); }
-.icon-btn { transition: background-color var(--dur) var(--ease), color var(--dur) var(--ease), transform var(--dur) var(--ease); }
-.icon-btn:active { transform: scale(.92); }
-.table tbody tr { transition: background-color var(--dur-fast) var(--ease); }
-
-/* Ro'yxat va kartalar ketma-ket paydo bo'ladi (birinchi 8 tasi) */
-.people-stats-grid > *, .period-grid > *, .total-grid > *, .employee-card, .portfolio-gallery-item { animation: list-in var(--dur-slow) var(--ease) backwards; }
-.people-stats-grid > :nth-child(2), .period-grid > :nth-child(2), .total-grid > :nth-child(2), .employee-card:nth-child(2), .portfolio-gallery-item:nth-child(2) { animation-delay: 40ms; }
-.people-stats-grid > :nth-child(3), .period-grid > :nth-child(3), .total-grid > :nth-child(3), .employee-card:nth-child(3), .portfolio-gallery-item:nth-child(3) { animation-delay: 80ms; }
-.people-stats-grid > :nth-child(4), .period-grid > :nth-child(4), .total-grid > :nth-child(4), .employee-card:nth-child(4), .portfolio-gallery-item:nth-child(4) { animation-delay: 120ms; }
-.employee-card:nth-child(5), .portfolio-gallery-item:nth-child(5) { animation-delay: 160ms; }
-.employee-card:nth-child(6), .portfolio-gallery-item:nth-child(6) { animation-delay: 200ms; }
-.employee-card:nth-child(n + 7), .portfolio-gallery-item:nth-child(n + 7) { animation-delay: 240ms; }
-
-/* Progress: to'lib borishi va aylana indikator silliq */
-.progress > span { transform-origin: left; animation: bar-grow var(--dur-slow) var(--ease) backwards; transition: width var(--dur-slow) var(--ease); }
-.employee-progress-ring circle:last-of-type { transition: stroke-dashoffset var(--dur-slow) var(--ease), stroke var(--dur) var(--ease); }
-
-/* O'chirishni tasdiqlash oynasi: orqaga sanash chizig'i */
-.confirm-title { display: inline-flex; align-items: center; gap: 8px; color: var(--danger); }
-.countdown-bar { height: 4px; border-radius: var(--radius-full); background: var(--danger-soft); overflow: hidden; }
-.countdown-bar > span { display: block; height: 100%; background: var(--danger); transform-origin: left; animation: countdown-run linear forwards; }
-@keyframes countdown-run { from { transform: scaleX(1); } to { transform: scaleX(0); } }
-
-/* Harakatni kamaytirish sozlamasi yoqilgan bo'lsa — animatsiyasiz */
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; animation-delay: 0ms !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
-  .btn:active:not(:disabled), .card.clickable:hover, .employee-card:hover, .total:hover, .btn-primary:hover:not(:disabled), .btn-gradient:hover:not(:disabled) { transform: none; }
-}
 
 /* Sahifadagi bo'lim sarlavhasi o'z kartalariga yaqinroq turadi (guruhlash) */
 .page > .section-title { margin: 8px 0 -12px; }
@@ -1241,15 +1187,15 @@ body, .sidebar, .topbar, .card, .input, .textarea, .select { transition: backgro
 .pmodal-cover-art { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
 .pmodal-cover-svg { width: 100%; height: 100%; }
 .pmodal-heart { position: absolute; top: 10px; right: 10px; z-index: 5; }
-.pmodal-id-row { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; padding: 0 12px; margin-top: -38px; flex-wrap: wrap; position: relative; z-index: 2; }
+.pmodal-id-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding: 0 12px; margin-top: -38px; flex-wrap: wrap; position: relative; z-index: 2; }
 .pmodal-avatar-box { position: relative; flex: 0 0 auto; width: 80px; height: 80px; border-radius: 50%; padding: 3px; background: var(--surface); box-shadow: var(--shadow); display: grid; place-items: center; }
-.pmodal-id-info { flex: 1 1 240px; min-width: 0; padding-bottom: 4px; }
+.pmodal-id-info { flex: 1 1 240px; min-width: 0; padding-top: 44px; padding-bottom: 4px; }
 .pmodal-id-top { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .pmodal-name { margin: 0; font-size: var(--fs-xl); font-weight: 700; line-height: 1.25; color: var(--text); }
 .pmodal-specialty { margin: 2px 0 6px; font-size: var(--fs-sm); color: var(--text-2); font-weight: 500; }
 .pmodal-meta-row { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; font-size: var(--fs-xs); color: var(--muted); }
 .pmodal-meta-item { display: inline-flex; align-items: center; gap: 5px; }
-.pmodal-id-rating { margin-left: auto; display: flex; align-items: center; padding-bottom: 6px; }
+.pmodal-id-rating { margin-left: auto; display: flex; align-items: center; padding-top: 44px; padding-bottom: 6px; }
 .pmodal-rating-badge { display: flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: var(--radius-sm); background: var(--surface-2); border: 1px solid var(--border); }
 .pmodal-rating-num { font-size: var(--fs-base); font-weight: 700; color: var(--text); }
 .pmodal-rating-count { font-size: 11px; color: var(--muted); }
@@ -1499,3 +1445,124 @@ body, .sidebar, .topbar, .card, .input, .textarea, .select { transition: backgro
 .uprofile-theme-label { display: flex; align-items: center; gap: 8px; font-size: var(--fs-base); }
 .uprofile-theme-check { margin-left: auto; width: 20px; height: 20px; border-radius: 50%; background: var(--primary); color: var(--primary-text); display: grid; place-items: center; }
 
+/* Quyidagi qatlam doim eng oxirida turadi: komponent qoidalarini bosib o'tadi. */
+/* ───────── Harakat tizimi (animatsiya) ─────────
+   Davomiylik va easing faqat tokenlardan (--dur-fast / --dur / --dur-slow, --ease). Mavjud qoidalar tegilmaydi —
+   bu yerda faqat yagona kirish animatsiyalari va tugma/karta bosilish javobi qo'shiladi. */
+@keyframes page-in { from { opacity: 0; transform: translateY(8px); } }
+@keyframes pop-in { from { opacity: 0; transform: scale(.96) translateY(8px); } }
+@keyframes slide-in-right { from { opacity: 0; transform: translateX(20px); } }
+@keyframes list-in { from { opacity: 0; transform: translateY(10px); } }
+@keyframes bar-grow { from { transform: scaleX(0); } }
+
+/* Rejim (kunduzgi/tungi) almashganda ranglar sakramasdan o'zgaradi */
+body, .sidebar, .topbar, .card, .input, .textarea, .select { transition: background-color var(--dur) var(--ease), border-color var(--dur) var(--ease), color var(--dur) var(--ease); }
+
+/* Sahifa almashganda yumshoq kirish */
+.page, .umain { animation: page-in var(--dur-slow) var(--ease) backwards; }
+/* Oynalar va bildirishnoma */
+.modal { animation: pop-in var(--dur) var(--ease); }
+.toast { animation: slide-in-right var(--dur) var(--ease); }
+
+/* Tugma va kartalar: bosilganda javob, ustiga kelganda yengil ko'tarilish */
+.btn { transition-property: background-color, border-color, color, box-shadow, transform; transition-duration: var(--dur); transition-timing-function: var(--ease); }
+.btn:active:not(:disabled) { transform: scale(.97); }
+.btn-primary:hover:not(:disabled), .btn-gradient:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 12px 24px -12px color-mix(in srgb, var(--primary-solid) 75%, transparent); }
+.btn-primary:active:not(:disabled), .btn-gradient:active:not(:disabled) { transform: scale(.97); }
+.clickable, .employee-card, .people-stat-card, .responsible-item, .stat, .total { transition-property: background-color, border-color, box-shadow, transform; transition-duration: var(--dur); transition-timing-function: var(--ease); }
+.card.clickable:hover, .employee-card:hover, .total:hover { transform: translateY(-2px); }
+.card.clickable:active, .total:active { transform: scale(.99); }
+.icon-btn { transition: background-color var(--dur) var(--ease), color var(--dur) var(--ease), transform var(--dur) var(--ease); }
+.icon-btn:active { transform: scale(.92); }
+.table tbody tr { transition: background-color var(--dur-fast) var(--ease); }
+
+/* Ro'yxat va kartalar ketma-ket paydo bo'ladi (birinchi 8 tasi) */
+.people-stats-grid > *, .period-grid > *, .total-grid > *, .employee-card, .portfolio-gallery-item { animation: list-in var(--dur-slow) var(--ease) backwards; }
+.people-stats-grid > :nth-child(2), .period-grid > :nth-child(2), .total-grid > :nth-child(2), .employee-card:nth-child(2), .portfolio-gallery-item:nth-child(2) { animation-delay: 40ms; }
+.people-stats-grid > :nth-child(3), .period-grid > :nth-child(3), .total-grid > :nth-child(3), .employee-card:nth-child(3), .portfolio-gallery-item:nth-child(3) { animation-delay: 80ms; }
+.people-stats-grid > :nth-child(4), .period-grid > :nth-child(4), .total-grid > :nth-child(4), .employee-card:nth-child(4), .portfolio-gallery-item:nth-child(4) { animation-delay: 120ms; }
+.employee-card:nth-child(5), .portfolio-gallery-item:nth-child(5) { animation-delay: 160ms; }
+.employee-card:nth-child(6), .portfolio-gallery-item:nth-child(6) { animation-delay: 200ms; }
+.employee-card:nth-child(n + 7), .portfolio-gallery-item:nth-child(n + 7) { animation-delay: 240ms; }
+
+/* Progress: to'lib borishi va aylana indikator silliq */
+.progress > span { transform-origin: left; animation: bar-grow var(--dur-slow) var(--ease) backwards; transition: width var(--dur-slow) var(--ease); }
+.employee-progress-ring circle:last-of-type { transition: stroke-dashoffset var(--dur-slow) var(--ease), stroke var(--dur) var(--ease); }
+
+/* O'chirishni tasdiqlash oynasi: orqaga sanash chizig'i */
+.confirm-title { display: inline-flex; align-items: center; gap: 8px; color: var(--danger); }
+.countdown-bar { height: 4px; border-radius: var(--radius-full); background: var(--danger-soft); overflow: hidden; }
+.countdown-bar > span { display: block; height: 100%; background: var(--danger); transform-origin: left; animation: countdown-run linear forwards; }
+@keyframes countdown-run { from { transform: scaleX(1); } to { transform: scaleX(0); } }
+
+/* ───────── Vizual qatlam (2026-10-20): hamma sahifada ko'rinadigan yagona ko'rinish ─────────
+   Ranglar faqat tokenlardan; bu qatlam tuzilmani emas, faqat ko'rinishni boyitadi. */
+* { scrollbar-width: thin; scrollbar-color: var(--border-strong) transparent; }
+/* Fon: yuqori o'ng burchakda yumshoq asosiy rang yorug'ligi, chapda salqin tus */
+.main {
+  background:
+    radial-gradient(880px 360px at 90% -140px, color-mix(in srgb, var(--primary) 12%, transparent), transparent 70%),
+    radial-gradient(640px 280px at 0% 0%, color-mix(in srgb, var(--info) 7%, transparent), transparent 70%),
+    var(--bg);
+}
+.ushell {
+  background:
+    radial-gradient(880px 360px at 90% -140px, color-mix(in srgb, var(--primary) 12%, transparent), transparent 70%),
+    radial-gradient(640px 280px at 0% 0%, color-mix(in srgb, var(--info) 7%, transparent), transparent 70%),
+    var(--bg);
+}
+.utab.active { background: var(--primary-gradient); color: var(--primary-text); box-shadow: 0 10px 20px -12px color-mix(in srgb, var(--primary-solid) 85%, transparent); }
+.utab.active svg { color: var(--primary-text); }
+.utab svg { transition: color var(--dur) var(--ease), transform var(--dur) var(--ease); }
+.utab:hover svg { transform: scale(1.12); }
+/* Yon panel: yumshoq gradient, faol band — to'ldirilgan asosiy rang */
+.sidebar { background: linear-gradient(180deg, var(--sidebar-bg) 0%, color-mix(in srgb, var(--sidebar-bg) 90%, var(--primary)) 100%); }
+.nav-link svg { transition: color var(--dur) var(--ease), transform var(--dur) var(--ease); }
+.nav-link:hover svg { transform: scale(1.12); }
+.nav-link.active { background: var(--primary-gradient); color: var(--primary-text); box-shadow: 0 10px 20px -12px color-mix(in srgb, var(--primary-solid) 85%, transparent); }
+.nav-link.active svg { color: var(--primary-text); }
+.nav-link.active::before { display: none; }
+.nav-link.active .count-pill { background: color-mix(in srgb, #fff 26%, transparent); color: var(--primary-text); }
+.brand-mark { box-shadow: 0 10px 24px -10px color-mix(in srgb, var(--primary-solid) 90%, transparent), inset 0 1px 0 color-mix(in srgb, #fff 35%, transparent); }
+/* Tepa panel va sarlavhalar */
+.topbar-title h1 { font-weight: 740; letter-spacing: -.02em; }
+.card-head h3 { font-size: var(--fs-md); font-weight: 700; letter-spacing: -.01em; }
+.card { border-color: color-mix(in srgb, var(--border) 88%, transparent); }
+/* Jadval: qator ustiga kelganda chap tomonda rang chizig'i */
+.table tbody tr:hover td { background: color-mix(in srgb, var(--primary-soft) 60%, var(--surface)); }
+.table tbody tr:hover td:first-child { box-shadow: inset 3px 0 0 var(--primary); }
+/* Asosiy tugmalar: ustiga kelganda yaltiroq chiziq o'tadi */
+.btn-primary, .btn-gradient { position: relative; overflow: hidden; isolation: isolate; }
+.btn-primary::after, .btn-gradient::after { content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none; background: linear-gradient(110deg, transparent 32%, color-mix(in srgb, #fff 30%, transparent) 50%, transparent 68%); transform: translateX(-130%); }
+.btn-primary:hover:not(:disabled)::after, .btn-gradient:hover:not(:disabled)::after { transform: translateX(130%); transition: transform .8s var(--ease); }
+/* Tablar: tagidagi chiziq chapdan o'ngga ochiladi */
+.tab { position: relative; border-bottom-color: transparent !important; }
+.tab::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; background: var(--primary); transform: scaleX(0); transform-origin: left; transition: transform var(--dur) var(--ease); }
+.tab[aria-selected="true"]::after { transform: scaleX(1); }
+.tab:hover:not([aria-selected="true"])::after { transform: scaleX(.35); background: var(--border-strong); }
+/* Bo'sh holat: ikonka atrofida sekin to'lqin */
+.empty-icon { position: relative; }
+.empty-icon::after { content: ""; position: absolute; inset: -6px; border-radius: calc(var(--radius) + 6px); border: 1px solid color-mix(in srgb, var(--primary) 32%, transparent); animation: empty-pulse 2.6s var(--ease) infinite; pointer-events: none; }
+@keyframes empty-pulse { from { opacity: .9; transform: scale(.9); } to { opacity: 0; transform: scale(1.3); } }
+/* Kiritish maydonlari: fokusda yumshoq yorug'lik */
+.input, .select, .textarea { transition: border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease), background-color var(--dur) var(--ease); }
+
+/* Harakatni kamaytirish sozlamasi yoqilgan bo'lsa — animatsiyasiz */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; animation-delay: 0ms !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
+  .btn:active:not(:disabled), .card.clickable:hover, .employee-card:hover, .total:hover, .btn-primary:hover:not(:disabled), .btn-gradient:hover:not(:disabled) { transform: none; }
+}
+
+/* ───────── Moslashuvchanlik: oyna emas, mavjud kenglikka qarab (yon panel ochiq bo'lsa ham to'g'ri) ───────── */
+.people-page-container { container-type: inline-size; }
+.employee-card { container-type: inline-size; }
+@container (max-width: 880px) {
+  .employee-card-header { flex-direction: column; align-items: stretch; gap: 12px; }
+  .employee-header-center { justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+  .employee-header-actions { justify-content: flex-end; }
+  .employee-tasks-header-row { display: none; }
+  .employee-task-row { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; padding: 10px 14px; }
+  .employee-task-row .col-title, .employee-task-row .col-project, .employee-task-row .col-status, .employee-task-row .col-due { width: 100%; }
+}
+@container (max-width: 860px) { .people-stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@container (max-width: 520px) { .people-stats-grid { grid-template-columns: minmax(0, 1fr); } }

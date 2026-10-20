@@ -20,7 +20,7 @@ import { useDebounced } from "@/shared/hooks";
 import { useMeta } from "@/shared/meta";
 import { T } from "@/shared/text";
 import type { PeopleStats, Person } from "@/shared/types";
-import { Button, Empty, ErrorBox, Skeleton } from "@/shared/ui";
+import { AnimatedNumber, Button, Empty, ErrorBox, Skeleton } from "@/shared/ui";
 import { Pagination } from "@/shared/ui/Pagination";
 
 import { EmployeeCard } from "./EmployeeCard";
@@ -142,7 +142,7 @@ export default function PeoplePage() {
               <span className="people-stat-label">Jami xodimlar</span>
               <div className="people-stat-value-row">
                 <span className="people-stat-value">
-                  {statsQuery.isLoading ? <Skeleton w={36} h={28} /> : totalEmployees}
+                  {statsQuery.isLoading ? <Skeleton w={36} h={28} /> : <AnimatedNumber value={totalEmployees} />}
                 </span>
                 <span className="people-stat-pill-badge positive">↑ +2</span>
               </div>
@@ -161,7 +161,7 @@ export default function PeoplePage() {
               <span className="people-stat-label">Jarayondagi vazifalar</span>
               <div className="people-stat-value-row">
                 <span className="people-stat-value">
-                  {statsQuery.isLoading ? <Skeleton w={36} h={28} /> : stats?.in_progress_tasks ?? 0}
+                  {statsQuery.isLoading ? <Skeleton w={36} h={28} /> : <AnimatedNumber value={stats?.in_progress_tasks ?? 0} />}
                 </span>
               </div>
             </div>
@@ -179,7 +179,7 @@ export default function PeoplePage() {
               <span className="people-stat-label">Kechikkan vazifalar</span>
               <div className="people-stat-value-row">
                 <span className="people-stat-value text-danger">
-                  {statsQuery.isLoading ? <Skeleton w={36} h={28} /> : stats?.overdue_tasks ?? 0}
+                  {statsQuery.isLoading ? <Skeleton w={36} h={28} /> : <AnimatedNumber value={stats?.overdue_tasks ?? 0} />}
                 </span>
               </div>
             </div>
@@ -197,7 +197,7 @@ export default function PeoplePage() {
               <span className="people-stat-label">Bo‘sh xodimlar</span>
               <div className="people-stat-value-row">
                 <span className="people-stat-value text-success">
-                  {statsQuery.isLoading ? <Skeleton w={36} h={28} /> : freeEmployees}
+                  {statsQuery.isLoading ? <Skeleton w={36} h={28} /> : <AnimatedNumber value={freeEmployees} />}
                 </span>
                 <span className="people-stat-pct-badge">{freePercent}%</span>
               </div>

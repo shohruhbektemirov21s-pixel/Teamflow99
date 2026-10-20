@@ -111,6 +111,33 @@ function ConfirmDeleteModal({ text, delay, onCancel, onConfirm }: { text: string
   );
 }
 
+/**
+ * Raqamni 0 dan qiymatigacha silliq sanab chiqadi (ko'rinadigan, lekin tez: ~0,7 s). Harakatni kamaytirish yoqilgan
+ * bo'lsa, testlarda va raqam bo'lmasa — qiymat darrov ko'rsatiladi.
+ */
+export function AnimatedNumber({ value }: { value: number | string }) {
+  const target = typeof value === "number" ? value : Number.NaN;
+  const reduced = typeof window === "undefined" || import.meta.env.MODE === "test" || typeof window.matchMedia !== "function" || window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const [shown, setShown] = useState<number>(reduced ? target : 0);
+  useEffect(() => {
+    if (reduced || Number.isNaN(target)) {
+      setShown(target);
+      return;
+    }
+    const started = performance.now();
+    let frame = 0;
+    const tick = (now: number) => {
+      const progress = Math.min(1, (now - started) / 700);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setShown(Math.round(target * eased));
+      if (progress < 1) frame = requestAnimationFrame(tick);
+    };
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+  }, [target, reduced]);
+  return <>{Number.isNaN(target) ? value : shown}</>;
+}
+
 // ─── Belgilar ────────────────────────────────────────────────────────────────
 export function Badge({ tone = "slate", dot = true, children, title }: { tone?: Tone; dot?: boolean; children: ReactNode; title?: string }) {
   return (
