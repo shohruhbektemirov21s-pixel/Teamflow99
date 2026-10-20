@@ -88,13 +88,37 @@ class PortfolioVideo(models.Model):
         return self.original_name
 
 
+class PortfolioAttachment(models.Model):
+    """Loyihaga biriktirilgan rasm yoki hujjat (Word/PDF). Videolar alohida — `PortfolioVideo`."""
+
+    IMAGE = "image"
+    DOCUMENT = "file"
+    KINDS = [(IMAGE, "Rasm"), (DOCUMENT, "Fayl")]
+
+    item = models.ForeignKey(PortfolioItem, on_delete=models.CASCADE, related_name="attachments")
+    file = models.FileField(upload_to=UploadTo("portfolio/attachments"))
+    original_name = models.CharField("Asl fayl nomi", max_length=255)
+    kind = models.CharField("Turi", max_length=8, choices=KINDS)
+    size = models.PositiveBigIntegerField("Hajm (bayt)", default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["created_at", "id"]
+        verbose_name = "Portfolio fayli"
+        verbose_name_plural = "Portfolio fayllari"
+
+    def __str__(self):
+        return self.original_name
+
+
 class PortfolioReview(models.Model):
-    """Loyihaga baho (1–5 yulduz) va sharh. Bitta foydalanuvchi bitta loyihaga bitta baho (yangilash mumkin)."""
+    """Loyihaga baho (1–5 yulduz). Bitta foydalanuvchi bitta loyihaga bitta baho (yangilash mumkin).
+
+    Sharhlar alohida — `PortfolioComment` (bir foydalanuvchi bir nechta sharh yoza oladi)."""
 
     item = models.ForeignKey(PortfolioItem, on_delete=models.CASCADE, related_name="reviews")
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="portfolio_reviews")
     stars = models.PositiveSmallIntegerField("Yulduz", validators=[MinValueValidator(1), MaxValueValidator(5)])
-    text = models.TextField("Sharh", max_length=1000, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -110,6 +134,24 @@ class PortfolioReview(models.Model):
 
     def __str__(self):
         return f"{self.author}: {self.stars}★"
+
+
+class PortfolioComment(models.Model):
+    """Loyihaga sharh. Bir foydalanuvchi bitta loyihaga istalgancha sharh yozadi; o'z sharhini o'chira oladi."""
+
+    item = models.ForeignKey(PortfolioItem, on_delete=models.CASCADE, related_name="comments")
+    author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="portfolio_comments")
+    text = models.TextField("Sharh", max_length=1000)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at", "-id"]
+        indexes = [models.Index(fields=["item", "-created_at", "-id"], name="portfolio_comment_feed_idx")]
+        verbose_name = "Sharh"
+        verbose_name_plural = "Sharhlar"
+
+    def __str__(self):
+        return f"{self.author}: {self.text[:40]}"
 
 
 class Follow(models.Model):

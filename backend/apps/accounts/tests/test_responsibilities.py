@@ -24,12 +24,28 @@ class ResponsibilitiesTests(TestCase):
             self.assertEqual(next(p for p in rows if p["id"] == self.dev.pk)["responsibilities"], text.strip())
         self.assertEqual(ActivityLog.objects.filter(verb="responsibilities_updated").count(), 3)
 
-    def test_non_managers_cannot_edit(self):
-        for actor in (self.dev, make_user(Role.DEPARTMENT)):
+    def test_non_managers_cannot_edit_someone_else(self):
+        for actor in (make_user(Role.DEVELOPER), make_user(Role.DEPARTMENT), make_user(Role.USER)):
             self.assertEqual(client_for(actor).patch(self.url, {"responsibilities": "Changed"}, format="json").status_code, 403)
         self.assertIn(APIClient().patch(self.url, {"responsibilities": "Changed"}, format="json").status_code, [401, 403])
         self.dev.refresh_from_db()
         self.assertEqual(self.dev.responsibilities, "")
+
+    def test_developer_edits_and_clears_own_responsibilities(self):
+        c = client_for(self.dev)
+        self.assertEqual(c.patch(self.url, {"responsibilities": "  Backend API  "}, format="json").status_code, 200)
+        self.dev.refresh_from_db()
+        self.assertEqual(self.dev.responsibilities, "Backend API")
+        self.assertEqual(c.patch(self.url, {"responsibilities": ""}, format="json").status_code, 200)
+        self.dev.refresh_from_db()
+        self.assertEqual(self.dev.responsibilities, "")
+        entry = ActivityLog.objects.filter(verb="responsibilities_updated").first()
+        self.assertIn("o'z mas'uliyatlarini", entry.message)
+
+    def test_own_edit_is_only_for_developers(self):
+        for actor in (make_user(Role.DEPARTMENT), make_user(Role.USER)):
+            url = f"/api/people/{actor.pk}/responsibilities/"
+            self.assertEqual(client_for(actor).patch(url, {"responsibilities": "Changed"}, format="json").status_code, 403)
 
     def test_target_permissions_match_profile_access(self):
         pm_url = f"/api/people/{self.pm.pk}/responsibilities/"

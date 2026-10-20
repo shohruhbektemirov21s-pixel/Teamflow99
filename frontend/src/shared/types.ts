@@ -22,6 +22,7 @@ export interface Profile extends Me {
   date_joined: string;
   email: string;
   bio: string;
+  responsibilities?: string;
   stats?: { active: number; in_review: number; done: number; overdue: number };
   /** Faqat oddiy foydalanuvchida: nechta baho qo'ygan va nechta dasturchini kuzatadi. */
   activity?: { reviews: number; following: number } | null;
@@ -45,7 +46,6 @@ export interface MyReview {
   item_title: string;
   developer: { id: number; full_name: string };
   stars: number;
-  text: string;
   updated_at: string;
 }
 
@@ -361,9 +361,32 @@ export interface PortfolioReview {
   id: number;
   author: UserBrief;
   stars: number;
-  text: string;
   created_at: string;
   updated_at: string;
+}
+
+export interface PortfolioComment {
+  id: number;
+  author: UserBrief;
+  text: string;
+  created_at: string;
+  can_delete: boolean;
+}
+
+export interface PortfolioAttachment {
+  id: number;
+  name: string;
+  kind: "image" | "file";
+  size: number;
+  url: string;
+  created_at: string;
+}
+
+export interface PortfolioHistoryEntry {
+  id: number;
+  verb: string;
+  message: string;
+  created_at: string;
 }
 
 export interface PortfolioDeveloperReview extends PortfolioReview {
@@ -375,6 +398,7 @@ export interface PortfolioItemDetail extends PortfolioItem {
   manual: { title: string; start_date: string | null; end_date: string | null };
   owner: UserBrief;
   videos: FileInfo[];
+  attachments: PortfolioAttachment[];
   my_review: PortfolioReview | null;
   actions: { edit: boolean; delete: boolean; upload: boolean; review: boolean };
 }

@@ -28,7 +28,7 @@ const DETAIL: PortfolioDetail = {
 
 const ITEM: PortfolioItemDetail = {
   ...DETAIL.items[0]!, description: "Ichki portal", manual: { title: "", start_date: null, end_date: null },
-  owner: JASUR, videos: [{ id: 5, name: "demo.mp4", size: 2048, url: "/api/portfolio/videos/5/" }], my_review: null,
+  owner: JASUR, videos: [{ id: 5, name: "demo.mp4", size: 2048, url: "/api/portfolio/videos/5/" }], attachments: [], my_review: null,
   actions: { edit: false, delete: false, upload: false, review: true },
 };
 
@@ -84,7 +84,6 @@ describe("Portfolio oynasi", () => {
         id: 31,
         author: MALIKA,
         stars: 5,
-        text: "Juda sifatli loyiha.",
         created_at: "2026-10-10T08:00:00Z",
         updated_at: "2026-10-10T08:00:00Z",
         item: { id: 10, title: "Portal" },
@@ -96,7 +95,6 @@ describe("Portfolio oynasi", () => {
     const dialog = await screen.findByRole("dialog", { name: T.portfolio.title });
     expect((await within(dialog).findByRole("tab", { name: T.portfolio.tabs.overview })).getAttribute("aria-selected")).toBe("true");
     expect(await within(dialog).findByText("Murakkab backend tizimlarini yarataman.")).toBeTruthy();
-    expect(within(dialog).queryByText("Juda sifatli loyiha.")).toBeNull();
     expect(within(dialog).queryByText("Xabar yuborish")).toBeNull();
 
     fireEvent.click(within(dialog).getByRole("tab", { name: T.portfolio.tabs.projects }));
@@ -105,8 +103,7 @@ describe("Portfolio oynasi", () => {
     expect(within(dialog).getByText("Django")).toBeTruthy();
 
     fireEvent.click(within(dialog).getByRole("tab", { name: T.portfolio.tabs.reviews }));
-    expect(await within(dialog).findByText("Juda sifatli loyiha.")).toBeTruthy();
-    expect(within(dialog).getByText(MALIKA.full_name)).toBeTruthy();
+    expect(await within(dialog).findByText(MALIKA.full_name)).toBeTruthy();
     expect(within(dialog).getByText("Portal")).toBeTruthy();
   });
 
@@ -140,7 +137,8 @@ describe("Portfolio oynasi", () => {
   it("loyihada video ko'rinadi va yulduz tanlanib baho saqlanadi", async () => {
     mockGet({
       [`/portfolio/items/${ITEM.id}/`]: ITEM,
-      [`/portfolio/items/${ITEM.id}/reviews/`]: { count: 0, next: null, previous: null, results: [] },
+      [`/portfolio/items/${ITEM.id}/comments/`]: { count: 0, next: null, previous: null, results: [] },
+      [`/portfolio/items/${ITEM.id}/history/`]: { count: 0, next: null, previous: null, results: [] },
     });
     vi.mocked(api.post).mockResolvedValue(ITEM);
     renderApp(<PortfolioModal id={JASUR.id} item={ITEM.id} />);
@@ -150,20 +148,89 @@ describe("Portfolio oynasi", () => {
     // Yulduzsiz saqlab bo'lmaydi
     const save = within(dialog).getByRole("button", { name: T.portfolio.reviewSave });
     expect((save as HTMLButtonElement).disabled).toBe(true);
-    fireEvent.change(within(dialog).getByLabelText(T.portfolio.reviewText), { target: { value: "Zo'r ish" } });
-    fireEvent.click(save);
-    expect(await within(dialog).findByText(T.portfolio.starsRequired)).toBeTruthy();
-    expect(api.post).not.toHaveBeenCalled();
 
     fireEvent.click(within(dialog).getByRole("radio", { name: T.portfolio.starN(4) }));
     fireEvent.click(save);
-    await waitFor(() => expect(api.post).toHaveBeenCalledWith(`/portfolio/items/${ITEM.id}/reviews/`, { stars: 4, text: "Zo'r ish" }));
+    await waitFor(() => expect(api.post).toHaveBeenCalledWith(`/portfolio/items/${ITEM.id}/reviews/`, { stars: 4 }));
+  });
+
+  it("sharh yuboriladi (bahodan alohida) va o'z sharhini o'chirish mumkin, boshqasiniki yo'q", async () => {
+    const mine = { id: 1, author: PM, text: "Birinchi sharh", created_at: "2026-10-10T08:00:00Z", can_delete: true };
+    const others = { id: 2, author: MALIKA, text: "Boshqaning sharhi", created_at: "2026-10-10T09:00:00Z", can_delete: false };
+    mockGet({
+      [`/portfolio/items/${ITEM.id}/`]: ITEM,
+      [`/portfolio/items/${ITEM.id}/comments/`]: { count: 2, next: null, previous: null, results: [others, mine] },
+      [`/portfolio/items/${ITEM.id}/history/`]: { count: 0, next: null, previous: null, results: [] },
+    });
+    vi.mocked(api.post).mockResolvedValue({});
+    vi.mocked(api.del).mockResolvedValue(undefined);
+    renderApp(<PortfolioModal id={JASUR.id} item={ITEM.id} />);
+    const dialog = await screen.findByRole("dialog", { name: "Portal" });
+    expect(await within(dialog).findByText("Boshqaning sharhi")).toBeTruthy();
+    expect(within(dialog).getByText("Birinchi sharh")).toBeTruthy();
+    // faqat o'z sharhida o'chirish tugmasi bor
+    expect(within(dialog).getAllByRole("button", { name: T.portfolio.commentDelete })).toHaveLength(1);
+
+    const send = within(dialog).getByRole("button", { name: T.portfolio.commentSend });
+    expect((send as HTMLButtonElement).disabled).toBe(true);
+    fireEvent.change(within(dialog).getByLabelText(T.portfolio.commentLabel), { target: { value: "  Ikkinchi sharh " } });
+    fireEvent.click(send);
+    await waitFor(() => expect(api.post).toHaveBeenCalledWith(`/portfolio/items/${ITEM.id}/comments/`, { text: "Ikkinchi sharh" }));
+    expect(api.post).not.toHaveBeenCalledWith(`/portfolio/items/${ITEM.id}/reviews/`, expect.anything());
+
+    fireEvent.click(within(dialog).getByRole("button", { name: T.portfolio.commentDelete }));
+    fireEvent.click(await within(dialog).findByRole("button", { name: T.common.yes }));
+    await waitFor(() => expect(api.del).toHaveBeenCalledWith(`/portfolio/items/${ITEM.id}/comments/${mine.id}/`));
+  });
+
+  const attachments = [
+    { id: 1, name: "ekran.png", kind: "image" as const, size: 1000, url: "/api/portfolio/attachments/1/", created_at: "2026-10-10T08:00:00Z" },
+    { id: 2, name: "hisobot.pdf", kind: "file" as const, size: 2048, url: "/api/portfolio/attachments/2/", created_at: "2026-10-11T08:00:00Z" },
+  ];
+  const history = [
+    { id: 9, verb: "portfolio_file_added", message: "Jasur Alimov fayl qo'shdi: hisobot.pdf", created_at: "2026-10-11T08:00:00Z" },
+  ];
+  const attachmentRoutes = (actions: PortfolioItemDetail["actions"]) => ({
+    [`/portfolio/items/${ITEM.id}/`]: { ...ITEM, attachments, actions },
+    [`/portfolio/items/${ITEM.id}/comments/`]: { count: 0, next: null, previous: null, results: [] },
+    [`/portfolio/items/${ITEM.id}/history/`]: { count: 1, next: null, previous: null, results: history },
+  });
+
+  it("boshqa foydalanuvchi rasm, fayl va tarixni ko'radi, yuklash va o'chirish yo'q", async () => {
+    mockGet(attachmentRoutes({ edit: false, delete: false, upload: false, review: true }));
+    renderApp(<PortfolioModal id={JASUR.id} item={ITEM.id} />);
+    const dialog = await screen.findByRole("dialog", { name: "Portal" });
+    expect(within(dialog).getByRole("img", { name: "ekran.png" }).getAttribute("src")).toBe("/api/portfolio/attachments/1/");
+    expect(within(dialog).getByText("hisobot.pdf")).toBeTruthy();
+    expect(within(dialog).getByRole("link", { name: new RegExp(T.portfolio.attachmentDownload) }).getAttribute("href")).toBe("/api/portfolio/attachments/2/");
+    expect(await within(dialog).findByText("Jasur Alimov fayl qo'shdi: hisobot.pdf")).toBeTruthy();
+    expect(within(dialog).queryByText(T.portfolio.attachmentPick)).toBeNull();
+    expect(within(dialog).queryByRole("button", { name: T.portfolio.attachmentDelete })).toBeNull();
+  });
+
+  it("egasi fayl yuklaydi va o'chiradi", async () => {
+    mockGet(attachmentRoutes({ edit: true, delete: false, upload: true, review: false }));
+    vi.mocked(api.post).mockResolvedValue({});
+    vi.mocked(api.del).mockResolvedValue(undefined);
+    renderApp(<PortfolioModal id={JASUR.id} item={ITEM.id} />);
+    const dialog = await screen.findByRole("dialog", { name: "Portal" });
+    const input = dialog.querySelector('input[type="file"][accept*=".docx"]') as HTMLInputElement;
+    fireEvent.change(input, { target: { files: [new File(["pdf"], "yangi.pdf", { type: "application/pdf" })] } });
+    fireEvent.click(await within(dialog).findByRole("button", { name: T.portfolio.attachmentUpload }));
+    await waitFor(() => expect(api.post).toHaveBeenCalledWith(`/portfolio/items/${ITEM.id}/attachments/`, expect.any(FormData)));
+    const body = vi.mocked(api.post).mock.calls[0]![1] as FormData;
+    expect((body.get("file") as File).name).toBe("yangi.pdf");
+
+    fireEvent.click(within(dialog).getAllByRole("button", { name: T.portfolio.attachmentDelete })[0]!);
+    fireEvent.click(await within(dialog).findByRole("button", { name: T.common.yes }));
+    await waitFor(() => expect(api.del).toHaveBeenCalledWith(`/portfolio/items/${ITEM.id}/attachments/1/`));
   });
 
   it("o'z loyihasida baholash yo'q, tahrirlash bor", async () => {
     mockGet({
       [`/portfolio/items/${ITEM.id}/`]: { ...ITEM, actions: { edit: true, delete: false, upload: true, review: false } },
-      [`/portfolio/items/${ITEM.id}/reviews/`]: { count: 0, next: null, previous: null, results: [] },
+      [`/portfolio/items/${ITEM.id}/comments/`]: { count: 0, next: null, previous: null, results: [] },
+      [`/portfolio/items/${ITEM.id}/history/`]: { count: 0, next: null, previous: null, results: [] },
     });
     renderApp(<PortfolioModal id={JASUR.id} item={ITEM.id} />);
     expect(await screen.findByText(T.portfolio.ownHint)).toBeTruthy();

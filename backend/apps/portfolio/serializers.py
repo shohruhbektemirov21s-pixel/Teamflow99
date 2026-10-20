@@ -31,7 +31,10 @@ class ItemInput(serializers.Serializer):
 
 class ReviewInput(serializers.Serializer):
     stars = serializers.IntegerField(min_value=1, max_value=5)
-    text = serializers.CharField(max_length=1000, required=False, allow_blank=True, default="")
+
+
+class CommentInput(serializers.Serializer):
+    text = serializers.CharField(max_length=1000)
 
 
 def developer_row(user, rank=None, highlights=None):
@@ -70,9 +73,23 @@ def video_row(video):
     return {"id": video.pk, "name": video.original_name, "size": size, "url": f"/api/portfolio/videos/{video.pk}/"}
 
 
+def attachment_row(attachment):
+    return {"id": attachment.pk, "name": attachment.original_name, "kind": attachment.kind, "size": attachment.size,
+            "url": f"/api/portfolio/attachments/{attachment.pk}/", "created_at": attachment.created_at}
+
+
+def history_row(entry):
+    return {"id": entry.pk, "verb": entry.verb, "message": entry.message, "created_at": entry.created_at}
+
+
 def review_row(review):
-    return {"id": review.pk, "author": user_brief(review.author), "stars": review.stars, "text": review.text,
+    return {"id": review.pk, "author": user_brief(review.author), "stars": review.stars,
             "created_at": review.created_at, "updated_at": review.updated_at}
+
+
+def comment_row(comment, user):
+    return {"id": comment.pk, "author": user_brief(comment.author), "text": comment.text,
+            "created_at": comment.created_at, "can_delete": comment.author_id == user.pk}
 
 
 def developer_review_row(review):
@@ -86,7 +103,7 @@ def my_review_row(review):
     owner = review.item.owner
     return {"id": review.pk, "item_id": review.item_id, "item_title": review.item.display_title,
             "developer": {"id": owner.pk, "full_name": owner.full_name}, "stars": review.stars,
-            "text": review.text, "updated_at": review.updated_at}
+            "updated_at": review.updated_at}
 
 
 def item_detail(item, user, tasks_done, my_review):
@@ -97,6 +114,7 @@ def item_detail(item, user, tasks_done, my_review):
         "manual": {"title": item.title, "start_date": item.start_date, "end_date": item.end_date},
         "owner": user_brief(item.owner),
         "videos": [video_row(v) for v in item.videos.all()],
+        "attachments": [attachment_row(a) for a in item.attachments.all()],
         "my_review": review_row(my_review) if my_review else None,
         "actions": {"edit": editable, "delete": editable and not item.is_auto, "upload": editable,
                     "review": can_review_item(user, item)},

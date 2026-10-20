@@ -1,5 +1,5 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { ArrowLeft, ExternalLink, Image, MessageSquare, Pencil, Save, Trash2, Upload, Video } from "lucide-react";
+import { ArrowLeft, ExternalLink, Image, MessageSquare, Pencil, Save, Send, Trash2, Upload, Video } from "lucide-react";
 import { type ReactNode, useEffect, useState } from "react";
 
 import { useModal } from "@/app/modals";
@@ -7,10 +7,11 @@ import { usePagedList, useRefresh } from "@/app/queries";
 import { api, ApiError, formData } from "@/shared/api";
 import { fileSize, fmtDate, timeAgo } from "@/shared/format";
 import { T } from "@/shared/text";
-import type { PortfolioItemDetail, PortfolioReview } from "@/shared/types";
+import type { PortfolioComment, PortfolioItemDetail } from "@/shared/types";
 import { Avatar, Badge, Button, Callout, CodeTag, ConfirmButton, Empty, ErrorBox, Field, FilePicker, Modal, Skeleton, SkeletonRows, useToast } from "@/shared/ui";
 import { Pagination } from "@/shared/ui/Pagination";
 
+import { AttachmentsSection, HistorySection } from "./ItemAttachments";
 import { periodText } from "./period";
 import { StarInput, Stars } from "./Stars";
 
@@ -271,16 +272,17 @@ function ItemDetails({ item, subtitle, dirty, onDirty, onEdit }: {
   const toast = useToast();
   const refresh = useRefresh(["portfolio", "profile"]);
   const [stars, setStars] = useState(item.my_review?.stars ?? 0);
-  const [text, setText] = useState(item.my_review?.text ?? "");
+  const [comment, setComment] = useState("");
   const [starsError, setStarsError] = useState(false);
-  const reviews = usePagedList<PortfolioReview>(["portfolio", "reviews", item.id], `/portfolio/items/${item.id}/reviews/`, {});
+  const comments = usePagedList<PortfolioComment>(["portfolio", "comments", item.id], `/portfolio/items/${item.id}/comments/`, {});
 
-  const changed = stars !== (item.my_review?.stars ?? 0) || text !== (item.my_review?.text ?? "");
+  const changed = stars !== (item.my_review?.stars ?? 0);
+  useEffect(() => onDirty(changed || comment.trim() !== ""), [changed, comment, onDirty]);
+
   const saveReview = useMutation({
-    mutationFn: () => api.post<PortfolioItemDetail>(`/portfolio/items/${item.id}/reviews/`, { stars, text: text.trim() }),
+    mutationFn: () => api.post<PortfolioItemDetail>(`/portfolio/items/${item.id}/reviews/`, { stars }),
     onSuccess: () => {
       toast(T.portfolio.reviewSavedToast);
-      onDirty(false);
       void refresh();
     },
   });
@@ -289,10 +291,24 @@ function ItemDetails({ item, subtitle, dirty, onDirty, onEdit }: {
     onSuccess: () => {
       toast(T.portfolio.reviewDeletedToast);
       setStars(0);
-      setText("");
-      onDirty(false);
       void refresh();
     },
+  });
+  const sendComment = useMutation({
+    mutationFn: () => api.post<PortfolioComment>(`/portfolio/items/${item.id}/comments/`, { text: comment.trim() }),
+    onSuccess: () => {
+      toast(T.portfolio.commentSentToast);
+      setComment("");
+      void refresh();
+    },
+  });
+  const deleteComment = useMutation({
+    mutationFn: (commentId: number) => api.del(`/portfolio/items/${item.id}/comments/${commentId}/`),
+    onSuccess: () => {
+      toast(T.portfolio.commentDeletedToast);
+      void refresh();
+    },
+    onError: (e) => toast(e.message, "error"),
   });
   const deleteItem = useMutation({
     mutationFn: () => api.del(`/portfolio/items/${item.id}/`),
@@ -311,12 +327,10 @@ function ItemDetails({ item, subtitle, dirty, onDirty, onEdit }: {
     }
     saveReview.mutate();
   };
-  const updateReview = (s: number, t: string) => {
+  const updateStars = (s: number) => {
     setStars(s);
-    setText(t);
     setStarsError(false);
     saveReview.reset();
-    onDirty(s !== (item.my_review?.stars ?? 0) || t !== (item.my_review?.text ?? ""));
   };
 
   const footer = (
@@ -387,16 +401,23 @@ function ItemDetails({ item, subtitle, dirty, onDirty, onEdit }: {
           <VideoSection item={item} />
         </section>
 
+        <section>
+          <h3 className="section-title">{T.portfolio.attachments}</h3>
+          <AttachmentsSection item={item} />
+        </section>
+
+        <section>
+          <h3 className="section-title">{T.portfolio.history}</h3>
+          <HistorySection itemId={item.id} />
+        </section>
+
         <section className="stack">
           <h3 className="section-title" style={{ marginBottom: 0 }}>{T.portfolio.reviews}</h3>
           {item.actions.review ? (
             <div className="card card-pad stack-sm">
               <b>{item.my_review ? T.portfolio.myReview : T.portfolio.yourStars}</b>
-              <StarInput value={stars} onChange={(s) => updateReview(s, text)} invalid={starsError} />
+              <StarInput value={stars} onChange={updateStars} invalid={starsError} />
               {starsError && <span className="field-error" role="alert">{T.portfolio.starsRequired}</span>}
-              <Field label={T.portfolio.reviewText} hint={T.portfolio.chars(text.length, REVIEW_MAX)}>
-                {(id) => <textarea id={id} className="textarea" rows={3} maxLength={REVIEW_MAX} placeholder={T.portfolio.reviewPh} value={text} onChange={(e) => updateReview(stars, e.target.value)} />}
-              </Field>
               {saveReview.error && <ErrorBox error={saveReview.error} />}
               {item.my_review && (
                 <div>
@@ -409,29 +430,49 @@ function ItemDetails({ item, subtitle, dirty, onDirty, onEdit }: {
           ) : (
             item.actions.edit && <Callout>{T.portfolio.ownHint}</Callout>
           )}
-          {reviews.error && <ErrorBox error={reviews.error} onRetry={() => reviews.refetch()} />}
-          {reviews.isLoading && <div className="card"><SkeletonRows rows={2} /></div>}
-          {reviews.data && !reviews.data.length && (
-            <div className="card"><Empty icon={<MessageSquare />} title={T.portfolio.reviewsEmpty} hint={item.actions.review ? T.portfolio.reviewsEmptyHint : undefined} /></div>
+
+          <h3 className="section-title" style={{ marginBottom: 0, marginTop: 8 }}>{T.portfolio.commentsTitle(comments.pagination?.count ?? 0)}</h3>
+          {item.actions.review && (
+            <form className="card card-pad stack-sm" onSubmit={(e) => { e.preventDefault(); if (comment.trim()) sendComment.mutate(); }}>
+              <Field label={T.portfolio.commentLabel} hint={T.portfolio.chars(comment.length, REVIEW_MAX)}>
+                {(id) => <textarea id={id} className="textarea" rows={3} maxLength={REVIEW_MAX} placeholder={T.portfolio.commentPh} value={comment}
+                  onChange={(e) => { setComment(e.target.value); sendComment.reset(); }} />}
+              </Field>
+              {sendComment.error && <ErrorBox error={sendComment.error} />}
+              <div className="row" style={{ justifyContent: "flex-end" }}>
+                <Button type="submit" variant="primary" icon={<Send size={16} />} loading={sendComment.isPending} disabled={!comment.trim()}>
+                  {T.portfolio.commentSend}
+                </Button>
+              </div>
+            </form>
           )}
-          {reviews.data && reviews.data.length > 0 && (
+          {comments.error && <ErrorBox error={comments.error} onRetry={() => comments.refetch()} />}
+          {comments.isLoading && <div className="card"><SkeletonRows rows={2} /></div>}
+          {comments.data && !comments.data.length && (
+            <div className="card"><Empty icon={<MessageSquare />} title={T.portfolio.commentsEmpty} hint={item.actions.review ? T.portfolio.commentsEmptyHint : T.portfolio.commentsEmptyViewer} /></div>
+          )}
+          {comments.data && comments.data.length > 0 && (
             <div className="card">
-              {reviews.data.map((r) => (
-                <div key={r.id} className="list-row portfolio-review">
-                  <Avatar user={r.author} />
+              {comments.data.map((c) => (
+                <div key={c.id} className="list-row portfolio-review">
+                  <Avatar user={c.author} />
                   <div className="grow stack-sm" style={{ gap: 4, minWidth: 0 }}>
                     <div className="row-wrap" style={{ gap: 8 }}>
-                      <b>{r.author.full_name}</b>
-                      <Stars value={r.stars} size={14} />
-                      <span className="small muted" title={fmtDate(r.updated_at)}>{timeAgo(r.updated_at)}</span>
+                      <b>{c.author.full_name}</b>
+                      <span className="small muted" title={fmtDate(c.created_at)}>{timeAgo(c.created_at)}</span>
                     </div>
-                    {r.text && <p className="portfolio-description">{r.text}</p>}
+                    <p className="portfolio-description">{c.text}</p>
                   </div>
+                  {c.can_delete && (
+                    <ConfirmButton onConfirm={() => deleteComment.mutate(c.id)} loading={deleteComment.isPending && deleteComment.variables === c.id}>
+                      <Trash2 size={15} /> {T.portfolio.commentDelete}
+                    </ConfirmButton>
+                  )}
                 </div>
               ))}
             </div>
           )}
-          <Pagination data={reviews.pagination} page={reviews.page} onPageChange={reviews.onPageChange} />
+          <Pagination data={comments.pagination} page={comments.page} onPageChange={comments.onPageChange} />
         </section>
       </div>
     </Modal>

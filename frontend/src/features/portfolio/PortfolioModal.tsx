@@ -342,7 +342,6 @@ function Reviews({ reviews }: { reviews: PortfolioDeveloperReview[] }) {
               <span className="small muted nowrap">{fmtDate(review.created_at)}</span>
             </div>
             <Stars value={review.stars} />
-            {review.text && <p className="portfolio-description">{review.text}</p>}
           </div>
         </article>
       ))}

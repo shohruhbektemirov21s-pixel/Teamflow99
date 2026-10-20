@@ -27,9 +27,14 @@ def cover_url(item):
 
 
 def normalized_cover(upload):
-    """Rasm tarkibini tekshiradi, EXIFni olib tashlaydi va xavfsiz JPEG qaytaradi."""
-    if upload.size > settings.PORTFOLIO_COVER_MAX_MB * 1024 * 1024:
-        raise ValidationError(f"Rasm hajmi {settings.PORTFOLIO_COVER_MAX_MB} MB dan oshmasligi kerak.")
+    """Muqova rasmi: tarkibini tekshiradi, EXIFni olib tashlaydi va xavfsiz JPEG qaytaradi."""
+    return normalized_image(upload, max_mb=settings.PORTFOLIO_COVER_MAX_MB, name="cover.jpg")
+
+
+def normalized_image(upload, *, max_mb, name):
+    """Rasm tarkibini tekshiradi (kengaytmaga ishonilmaydi), EXIFni olib tashlaydi va xavfsiz JPEG qaytaradi."""
+    if upload.size > max_mb * 1024 * 1024:
+        raise ValidationError(f"Rasm hajmi {max_mb} MB dan oshmasligi kerak.")
     try:
         image = Image.open(upload)
         if image.format not in ("JPEG", "PNG", "WEBP"):
@@ -44,7 +49,48 @@ def normalized_cover(upload):
         image.save(buffer, "JPEG", quality=85)
     except (UnidentifiedImageError, OSError, Image.DecompressionBombError) as exc:
         raise ValidationError("Bu fayl rasm emas yoki buzilgan. Boshqa rasm tanlang.") from exc
-    return ContentFile(buffer.getvalue(), name="cover.jpg")
+    return ContentFile(buffer.getvalue(), name=name)
+
+
+IMAGE_EXTENSIONS = {"png", "jpg", "jpeg", "webp"}
+# Hujjat: kengaytma ruxsat ro'yxatida (docx, pdf) va fayl boshidagi belgi mos bo'lishi kerak.
+DOCUMENT_TYPES = {
+    "pdf": ("application/pdf", b"%PDF"),
+    "docx": ("application/vnd.openxmlformats-officedocument.wordprocessingml.document", b"PK\x03\x04"),
+}
+
+
+def extension(name):
+    return os.path.splitext(name)[1].lstrip(".").lower()
+
+
+def validate_document(file):
+    ext = extension(file.name)
+    if ext not in DOCUMENT_TYPES:
+        raise ValidationError("Faqat rasm, Word (.docx) yoki PDF fayl yuklang.")
+    max_bytes = settings.UPLOAD_MAX_MB * 1024 * 1024
+    if file.size > max_bytes:
+        raise ValidationError(f"Fayl hajmi {settings.UPLOAD_MAX_MB} MB dan oshmasligi kerak.")
+    position = file.tell() if hasattr(file, "tell") else 0
+    file.seek(0)
+    head = file.read(4)
+    file.seek(position)
+    if not head.startswith(DOCUMENT_TYPES[ext][1]):
+        raise ValidationError("Fayl buzilgan yoki kengaytmasiga mos emas.")
+
+
+def attachment_response(attachment):
+    """Rasm — brauzerda ko'rsatiladi; hujjat — yuklab olinadi. Tarkib turi har doim biz belgilaymiz (nosniff)."""
+    if attachment.kind == "image":
+        response = FileResponse(attachment.file.open("rb"), content_type="image/jpeg")
+        response["Content-Disposition"] = content_disposition_header(False, attachment.original_name)
+        response["Cache-Control"] = "private, max-age=86400"
+    else:
+        content_type = DOCUMENT_TYPES.get(extension(attachment.original_name), ("application/octet-stream",))[0]
+        response = FileResponse(attachment.file.open("rb"), content_type=content_type)
+        response["Content-Disposition"] = content_disposition_header(True, attachment.original_name)
+    response["X-Content-Type-Options"] = "nosniff"
+    return response
 
 
 def video_content_type(name):

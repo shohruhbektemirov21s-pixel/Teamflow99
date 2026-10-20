@@ -1,6 +1,8 @@
 ﻿"""Portfolio: ko'rish, to'ldirish, video, baho/sharh, kuzatish va reyting tartibi."""
 from datetime import timedelta
 import io
+import shutil
+import tempfile
 
 from django.core.cache import cache
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -145,7 +147,7 @@ class ViewTests(PortfolioTestCase):
         self.dev.save(update_fields=["bio"])
         first = self.manual_item(title="Birinchi")
         second = self.manual_item(title="Ikkinchi")
-        review = PortfolioReview.objects.create(item=second, author=self.pm, stars=5, text="Ajoyib")
+        review = PortfolioReview.objects.create(item=second, author=self.pm, stars=5)
 
         response = client_for(self.dept).get(f"/api/portfolio/{self.dev.pk}/")
 
@@ -390,14 +392,163 @@ class VideoTests(PortfolioTestCase):
         self.assertEqual(client.post(f"/api/portfolio/items/{item.pk}/videos/", {"video": mp4()}).status_code, 400)
 
 
+PDF = b"%PDF-1.4\n" + b"0" * 100
+DOCX = b"PK\x03\x04" + b"0" * 100
+
+
+def doc(name, data):
+    return SimpleUploadedFile(name, data, content_type="application/octet-stream")
+
+
+class AttachmentTests(PortfolioTestCase):
+    def setUp(self):
+        super().setUp()
+        media = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, media, ignore_errors=True)
+        override = override_settings(MEDIA_ROOT=media)
+        override.enable()
+        self.addCleanup(override.disable)
+        self.item = self.manual_item()
+        self.url = f"/api/portfolio/items/{self.item.pk}/attachments/"
+
+    def upload(self, file, user=None):
+        return client_for(user or self.dev).post(self.url, {"file": file})
+
+    def test_owner_attaches_image_and_documents_and_everybody_can_see_them(self):
+        image = self.upload(image_file("rasm.png", size=(3000, 2000)))
+        pdf = self.upload(doc("hisobot.pdf", PDF))
+        word = self.upload(doc("tz.docx", DOCX))
+        self.assertEqual([r.status_code for r in (image, pdf, word)], [201, 201, 201])
+        self.assertEqual((image.data["kind"], pdf.data["kind"], word.data["kind"]), ("image", "file", "file"))
+        self.assertEqual(image.data["name"], "rasm.png")
+
+        detail = client_for(self.dept).get(f"/api/portfolio/items/{self.item.pk}/").data
+        self.assertEqual([a["name"] for a in detail["attachments"]], ["rasm.png", "hisobot.pdf", "tz.docx"])
+        self.assertFalse(detail["actions"]["upload"])
+        self.assertTrue(client_for(self.dev).get(f"/api/portfolio/items/{self.item.pk}/").data["actions"]["upload"])
+
+        shown = client_for(self.dept).get(image.data["url"])
+        self.assertEqual((shown.status_code, shown["Content-Type"]), (200, "image/jpeg"))
+        self.assertNotIn("attachment", shown["Content-Disposition"])
+        saved = Image.open(io.BytesIO(b"".join(shown.streaming_content)))
+        self.assertEqual(saved.format, "JPEG")
+        self.assertLessEqual(max(saved.size), 1600)  # kattalashtirilgan rasm kichraytirildi
+
+        downloaded = client_for(self.other).get(pdf.data["url"])
+        self.assertEqual(downloaded["Content-Type"], "application/pdf")
+        self.assertIn("attachment", downloaded["Content-Disposition"])
+        self.assertEqual(downloaded["X-Content-Type-Options"], "nosniff")
+        self.assertEqual(b"".join(downloaded.streaming_content), PDF)
+
+    def test_files_require_login(self):
+        created = self.upload(doc("hisobot.pdf", PDF))
+        from rest_framework.test import APIClient
+        self.assertIn(APIClient().get(created.data["url"]).status_code, (401, 403))
+
+    def test_only_owner_uploads_and_deletes(self):
+        created = self.upload(doc("hisobot.pdf", PDF))
+        for user in (self.other, self.pm, self.dept):
+            self.assertEqual(self.upload(doc("x.pdf", PDF), user).status_code, 403)
+            self.assertEqual(client_for(user).delete(f"{self.url}{created.data['id']}/").status_code, 403)
+        self.assertEqual(self.item.attachments.count(), 1)
+        self.assertEqual(client_for(self.dev).delete(f"{self.url}{created.data['id']}/").status_code, 204)
+        self.assertEqual(self.item.attachments.count(), 0)
+
+    def test_rejects_wrong_types_fake_content_and_empty_request(self):
+        bad = [doc("virus.exe", b"MZ" + b"0" * 50), doc("soxta.docx", b"not a zip"), doc("soxta.pdf", b"hello"),
+               SimpleUploadedFile("soxta.png", b"not an image", content_type="image/png")]
+        for file in bad:
+            self.assertEqual(self.upload(file).status_code, 400, file.name)
+        self.assertEqual(client_for(self.dev).post(self.url, {}).status_code, 400)
+        self.assertEqual(self.item.attachments.count(), 0)
+
+    @override_settings(UPLOAD_MAX_MB=0)
+    def test_document_size_limit(self):
+        self.assertEqual(self.upload(doc("hisobot.pdf", PDF)).status_code, 400)
+
+    @override_settings(PORTFOLIO_ATTACHMENTS_PER_ITEM=1)
+    def test_attachment_limit_per_item(self):
+        self.assertEqual(self.upload(doc("a.pdf", PDF)).status_code, 201)
+        self.assertEqual(self.upload(doc("b.pdf", PDF)).status_code, 400)
+
+    def test_history_shows_who_added_and_removed_what_newest_first(self):
+        created = self.upload(image_file("rasm.png"))
+        self.upload(doc("hisobot.pdf", PDF))
+        client_for(self.dev).post(f"/api/portfolio/items/{self.item.pk}/videos/", {"video": mp4()})
+        client_for(self.dev).delete(f"{self.url}{created.data['id']}/")
+        rows = client_for(self.dept).get(f"/api/portfolio/items/{self.item.pk}/history/").data["results"]
+        self.assertEqual([r["verb"] for r in rows],
+                         ["portfolio_file_removed", "portfolio_video_added", "portfolio_file_added", "portfolio_file_added"])
+        self.assertIn(self.dev.full_name, rows[0]["message"])
+        self.assertIn("rasm.png", rows[0]["message"])
+        self.assertIn("hisobot.pdf", rows[2]["message"])
+
+    def test_history_is_per_item_and_dropped_with_deleted_item(self):
+        self.upload(doc("a.pdf", PDF))
+        other_item = self.manual_item(title="Boshqa")
+        client_for(self.dev).post(f"/api/portfolio/items/{other_item.pk}/attachments/", {"file": doc("b.pdf", PDF)})
+        mine = client_for(self.dev).get(f"/api/portfolio/items/{self.item.pk}/history/").data["results"]
+        self.assertEqual(len(mine), 1)
+        self.assertEqual(client_for(self.dev).delete(f"/api/portfolio/items/{other_item.pk}/").status_code, 204)
+        from apps.core.models import ActivityLog
+        self.assertEqual(ActivityLog.objects.filter(verb__startswith="portfolio_").count(), 1)
+
+
+class CommentTests(PortfolioTestCase):
+    def url(self, item, comment=None):
+        base = f"/api/portfolio/items/{item.pk}/comments/"
+        return f"{base}{comment}/" if comment else base
+
+    def test_same_user_can_write_several_comments_and_others_see_them(self):
+        item = self.manual_item()
+        client = client_for(self.dept)
+        first = client.post(self.url(item), {"text": "Birinchi"}, format="json")
+        second = client.post(self.url(item), {"text": "Ikkinchi"}, format="json")
+        self.assertEqual((first.status_code, second.status_code), (201, 201))
+        self.assertNotEqual(first.data["id"], second.data["id"])
+        listing = client_for(self.other).get(self.url(item))
+        self.assertEqual([c["text"] for c in listing.data["results"]], ["Ikkinchi", "Birinchi"])
+        self.assertFalse(any(c["can_delete"] for c in listing.data["results"]))
+        self.assertTrue(all(c["can_delete"] for c in client.get(self.url(item)).data["results"]))
+
+    def test_comment_does_not_touch_rating_or_other_comments(self):
+        item = self.manual_item()
+        client = client_for(self.dept)
+        client.post(f"/api/portfolio/items/{item.pk}/reviews/", {"stars": 4}, format="json")
+        client.post(self.url(item), {"text": "Birinchi"}, format="json")
+        client.post(self.url(item), {"text": "Ikkinchi"}, format="json")
+        res = client.get(f"/api/portfolio/items/{item.pk}/")
+        self.assertEqual((res.data["rating"], res.data["reviews_count"]), (4.0, 1))
+        self.assertEqual(item.comments.count(), 2)
+
+    def test_delete_only_own_comment(self):
+        item = self.manual_item()
+        comment = client_for(self.dept).post(self.url(item), {"text": "Mening"}, format="json").data["id"]
+        self.assertEqual(client_for(self.pm).delete(self.url(item, comment)).status_code, 403)
+        self.assertEqual(item.comments.count(), 1)
+        self.assertEqual(client_for(self.dept).delete(self.url(item, comment)).status_code, 204)
+        self.assertEqual(item.comments.count(), 0)
+
+    def test_empty_comment_rejected(self):
+        item = self.manual_item()
+        for text in ("", "   "):
+            res = client_for(self.dept).post(self.url(item), {"text": text}, format="json")
+            self.assertEqual(res.status_code, 400)
+        self.assertFalse(item.comments.exists())
+
+    def test_owner_cannot_comment_on_own_project(self):
+        item = self.manual_item()
+        self.assertEqual(client_for(self.dev).post(self.url(item), {"text": "Men"}, format="json").status_code, 403)
+
+
 class ReviewTests(PortfolioTestCase):
     def test_review_create_update_and_delete(self):
         item = self.manual_item()
         client = client_for(self.dept)
-        res = client.post(f"/api/portfolio/items/{item.pk}/reviews/", {"stars": 4, "text": "Zo'r"}, format="json")
+        res = client.post(f"/api/portfolio/items/{item.pk}/reviews/", {"stars": 4}, format="json")
         self.assertEqual(res.status_code, 200)
         self.assertEqual(res.data["rating"], 4.0)
-        self.assertEqual(res.data["my_review"]["text"], "Zo'r")
+        self.assertEqual(res.data["my_review"]["stars"], 4)
         res = client.post(f"/api/portfolio/items/{item.pk}/reviews/", {"stars": 2}, format="json")
         self.assertEqual(res.data["reviews_count"], 1)
         self.assertEqual(res.data["rating"], 2.0)
@@ -410,7 +561,7 @@ class ReviewTests(PortfolioTestCase):
     def test_my_reviews_lists_only_own_reviews_and_profile_counts_them(self):
         user = make_user(Role.USER)
         mine, theirs = self.manual_item(), self.manual_item(owner=self.other, title="Boshqa")
-        client_for(user).post(f"/api/portfolio/items/{mine.pk}/reviews/", {"stars": 5, "text": "Ajoyib"}, format="json")
+        client_for(user).post(f"/api/portfolio/items/{mine.pk}/reviews/", {"stars": 5}, format="json")
         client_for(self.dept).post(f"/api/portfolio/items/{theirs.pk}/reviews/", {"stars": 1}, format="json")
         client_for(user).post(f"/api/portfolio/{self.dev.pk}/follow/")
         res = client_for(user).get("/api/portfolio/my-reviews/")

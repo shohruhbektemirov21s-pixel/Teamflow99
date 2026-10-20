@@ -13,6 +13,7 @@ import type { Profile, Task } from "@/shared/types";
 import { Badge, Button, ErrorBox, Field, SkeletonRows, useToast } from "@/shared/ui";
 import { Pagination } from "@/shared/ui/Pagination";
 
+import { PersonResponsibilities } from "./PersonResponsibilities";
 import { ProfileHeader } from "./ProfileHeader";
 import { BusinessTripPanel } from "./BusinessTripPanel";
 import { UserProfileView } from "./UserProfileView";
@@ -186,6 +187,8 @@ export default function ProfilePage() {
       </div>
 
       {me.role === "boss" && <BusinessTripPanel />}
+
+      {developer && p && <PersonResponsibilities person={{ id: me.id, responsibilities: p.responsibilities }} editable onDirtyChange={() => {}} />}
 
       {developer && (
         <section className="card" aria-label={T.profile.myTasks}>

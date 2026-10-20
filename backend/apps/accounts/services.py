@@ -16,9 +16,14 @@ AVATAR_SIZE = 1024  # px, eng uzun tomoni — katta ko'rinishda (rasm oynasi) ha
 
 
 @transaction.atomic
+def can_edit_responsibilities(actor, employee_id):
+    """Boshliq/PM (o'z doirasida) yoki dasturchi — faqat o'ziniki."""
+    return actor.is_manager or (actor.is_developer and actor.pk == employee_id)
+
+
 def set_responsibilities(actor, employee, text):
-    if not actor.is_manager:
-        raise ServiceError("Mas'uliyatlarni faqat Boshliq yoki PM tahrirlaydi.")
+    if not can_edit_responsibilities(actor, employee.pk):
+        raise ServiceError("Mas'uliyatlarni faqat Boshliq, PM yoki dasturchining o'zi tahrirlaydi.")
     employee = type(employee).objects.select_for_update().get(pk=employee.pk)
     if not employee.is_active or not employee.role or (not actor.is_boss and not employee.is_developer):
         raise ServiceError("Bu xodimni tahrirlashga ruxsat yo'q.")
@@ -28,7 +33,8 @@ def set_responsibilities(actor, employee, text):
     if employee.responsibilities != text:
         employee.responsibilities = text
         employee.save(update_fields=["responsibilities"])
-        log(actor, "responsibilities_updated", f"{actor.full_name} {employee.full_name}ning mas'uliyatlarini yangiladi", employee)
+        whose = "o'z" if actor.pk == employee.pk else f"{employee.full_name}ning"
+        log(actor, "responsibilities_updated", f"{actor.full_name} {whose} mas'uliyatlarini yangiladi", employee)
     return employee
 
 

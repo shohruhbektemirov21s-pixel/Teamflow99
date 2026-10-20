@@ -125,8 +125,8 @@ def developers(request):
 @api_view(["PATCH"])
 @permission_classes([IsAuthenticated])
 def responsibilities(request, pk):
-    if not request.user.is_manager:
-        raise PermissionDenied("Mas'uliyatlarni faqat Boshliq yoki PM tahrirlaydi.")
+    if not services.can_edit_responsibilities(request.user, pk):
+        raise PermissionDenied("Mas'uliyatlarni faqat Boshliq, PM yoki dasturchining o'zi tahrirlaydi.")
     employees = User.objects.filter(is_active=True).exclude(role="")
     if not request.user.is_boss:
         employees = employees.filter(role=Role.DEVELOPER)

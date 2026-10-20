@@ -114,7 +114,7 @@ class ProfileSerializer(serializers.ModelSerializer):
         fields = [
             "id", "username", "first_name", "last_name", "full_name",
             "role", "role_label", "specialty", "department_name",
-            "telegram_username", "date_joined", "stats", "activity", "avatar", "email", "bio",
+            "telegram_username", "date_joined", "stats", "activity", "avatar", "email", "bio", "responsibilities",
         ]
 
     def get_activity(self, user):

@@ -64,7 +64,7 @@ export default function PersonModal({ id }: { id: number }) {
             }
           />
           {person.is_on_business_trip && <div className="card card-pad small">{T.people.onBusinessTrip}. {T.people.tripUntil(fmtDate(person.business_trip_return_date!))}. {T.people.tripBlocked}.</div>}
-          <PersonResponsibilities key={person.id} person={person} editable={isMgr} onDirtyChange={setDirty} />
+          <PersonResponsibilities key={person.id} person={person} editable={isMgr || (me.role === "developer" && me.id === person.id)} onDirtyChange={setDirty} />
           <div className="card card-pad"><PersonWork person={person} full /></div>
           {isMgr && person.role === "developer" && (
             <div

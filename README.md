@@ -284,7 +284,7 @@ Menyu guruhlarga bo'lingan: *Asosiy ish* | *Muloqot* | *Kuzatuv* (Kuzatuv faqat 
 ### Izohlar
 - Buyurtma, loyiha va vazifa oynalarida izohlar bo'limi bor. Izoh yozilsa, ishtirokchilarga bildirishnoma boradi va tarixga yoziladi.
 
-**Mas'uliyatlarni kiritish:** Boshliq va PM xodim profilidagi 'Mas?uliyatlar' bo'limida xodim qaysi ishlar/yo'nalishlarga mas'ul ekanini yozadi, tahrirlaydi va saqlaydi (2000 belgigacha; matnni tozalash ham mumkin). Saqlangan ma'lumot Xodimlar ro'yxatida ko'rinadi va qidiruvda ishlaydi. PM faqat faol dasturchilarni, Boshliq barcha faol xodimlarni tahrirlaydi.
+**Mas'uliyatlarni kiritish:** Boshliq va PM xodim profilidagi 'Mas?uliyatlar' bo'limida xodim qaysi ishlar/yo'nalishlarga mas'ul ekanini yozadi, tahrirlaydi va saqlaydi (2000 belgigacha; matnni tozalash ham mumkin). Saqlangan ma'lumot Xodimlar ro'yxatida ko'rinadi va qidiruvda ishlaydi. PM faqat faol dasturchilarni, Boshliq barcha faol xodimlarni tahrirlaydi. **Dasturchi o'z mas'uliyatini o'zi ham kiritadi, tahrirlaydi va tozalaydi** (o'z Profil sahifasida va Xodim profili oynasida); boshqa xodimnikini tahrirlay olmaydi.
 
 **Xodimlar (Boshliq va PM):** har bir xodimning faol ishlari, loyiha nomi/raqami, holati va muddati ro'yxatda ko'rinadi. 'Profilni ko'rish' yoki ism orqali xodim profili ochiladi: barcha vazifalar, dasturchi hisoboti va biriktirilgan loyihalar. Ro'yxatda 1 ta eng yaqin ish (vazifasi bo'lmasa 1 ta faol loyiha) qisqa ko'rsatiladi, qolganlari profilda (2026-10-09 da soddalashtirildi; avval 3 ta ish va 2 ta loyiha edi). Ish yoki loyihani bosish mavjud tafsilot oynasini ochadi. Telefonda kartalar, kompyuterda jadval; kunduzgi va tungi rejim.
 
@@ -294,8 +294,9 @@ Dasturchilar portfoliosi va reytingi. Menyuda barcha rollarda ("Muloqot" guruhid
 - **Portfolio oynasi** (qator bosilsa): avatar, ism, mutaxassislik; ko'rsatkichlar — Reyting, Kuzatuvchilar, Loyihalar, Bajarilgan vazifalar, **Tajriba** ("3 yil 7 oy", qachondan beri); **Loyihalar** kartalari; **Yillar bo'yicha** (har yili nechta loyiha va bajarilgan vazifa); **So'nggi bajarilgan vazifalar**. Pastda bitta asosiy amal: boshqalarga "Kuzatish" / "Kuzatishni to'xtatish", egasiga "Loyiha qo'shish".
 - **Avtomatik:** dasturchi a'zo bo'lgan TeamFlow loyihalari portfolioda o'zi paydo bo'ladi ("TeamFlow loyihasi" belgisi, loyiha raqami, sanalari, shu loyihada bajargan vazifalari soni). Nomi va sanalari loyihadan olinadi, o'chirilmaydi; dasturchi tavsif, havola va video qo'sha oladi. Jamoadan chiqarilsa ham portfoliodagi yozuv (baho va videolari bilan) qoladi. Tajriba — TeamFlow'ga qo'shilgan kun yoki eng erta loyiha boshlanishidan bugungacha.
 - **O'zi qo'shadi:** "Loyiha qo'shish" — nomi (majburiy), boshlanish/tugash sanasi, "Nima qildingiz?" (2000 belgigacha), loyiha havolasi (faqat `http/https`). Tahrirlash va o'chirish mumkin.
+- **Rasm va fayllar:** loyiha egasi (dasturchi) loyihasiga **rasm** (JPG, PNG, WEBP — server tarkibini tekshirib, EXIFsiz JPEG qilib saqlaydi), **Word (.docx)** va **PDF** biriktiradi va o'chiradi (20 MB gacha, 30 tagacha; fayl boshidagi belgi tekshiriladi). Hamma foydalanuvchi rasmlarni galereyada ko'radi, fayllarni yuklab oladi; baho va sharh shu loyihada. Fayllar faqat tizimga kirganlarga `/api/portfolio/attachments/<id>/` orqali beriladi. **Tarix:** loyiha oynasidagi "Tarix" bo'limida rasm, video, fayl va muqova qachon va kim tomonidan qo'shilgani/o'chirilgani ko'rinadi (hamma ko'radi).
 - **Video:** har bir loyihaga video yuklash va brauzerning o'zida ko'rish (oldinga o'tkazish ishlaydi). MP4, WebM yoki MOV, 100 MB gacha, bitta loyihaga 5 tagacha. Server turini, hajmini va fayl boshidagi belgini tekshiradi. Video faqat tizimga kirganlarga `/api/portfolio/videos/<id>/` orqali beriladi.
-- **Baho va sharh:** boshqa foydalanuvchilar har bir loyihaga alohida **1–5 yulduz** va sharh (1000 belgigacha, ixtiyoriy) qo'yadi; bitta odam bitta loyihaga bitta baho — keyin yangilaydi yoki o'chiradi. O'z loyihasini baholab bo'lmaydi. Sharhlar sahifalanadi, eng yangisi tepada.
+- **Baho va sharh:** boshqa foydalanuvchilar har bir loyihaga alohida **1–5 yulduz** qo'yadi; bitta odam bitta loyihaga bitta baho — keyin yangilaydi yoki o'chiradi. **Sharh** bahodan alohida: bitta odam bitta loyihaga **istalgancha sharh** (har biri 1000 belgigacha) yozadi va "Yuborish" bosadi, o'z sharhini o'chira oladi; hamma sharhlarni ko'radi (sahifalanadi, eng yangisi tepada). O'z loyihasini baholab ham, sharh yozib ham bo'lmaydi.
 - **Reyting:** dasturchining barcha loyihalaridagi baholar o'rtachasi (11-bo'lim).
 - **Kuzatish:** istalgan foydalanuvchi dasturchini kuzatadi; o'zini kuzata olmaydi. Kuzatuvchilar soni ro'yxatda va portfolioda ko'rinadi.
 - Ruxsatlar serverda: ko'rish — hamma tizimga kirganlar; o'zgartirish va video — faqat egasi; portfolio faqat faol dasturchilarda.
@@ -378,6 +379,11 @@ Batafsil bosqichlar: `docs/FLOWS_MODALS.md`.
 - Baholash va kuzatish **barcha rollarga** (Boshliq, PM, dasturchi, boshqarma) ochiq; faqat o'zini baholay/kuzata olmaydi.
 - Video chegarasi: MP4/WebM/MOV, bitta video **100 MB**, bitta loyihaga **5 tagacha**.
 - Oddiy o'rtacha reyting: 1 ta 5★ baho 100 ta 4.9 dan yuqori turishi mumkin. Kerak bo'lsa, "ishonchli reyting" (Bayes o'rtacha) ga o'tish mumkin.
+
+**Ochiq savollar (rasm/fayl va mas'uliyat, 2026-10-20 — taxmin bilan qilingan, foydalanuvchi tasdig'i kerak):**
+- **"Tasdiqlash"** PM/Boshliq tasdig'i sifatida **qilinmadi**: dasturchi yuklaganini "Yuklash"/"Saqlash" bilan o'zi joylaydi va darrov hamma ko'radi. Agar PM/Boshliq tasdig'idan keyingina ko'rinishi kerak bo'lsa — ayting.
+- **Mas'uliyatlar** matnga rasm/video/fayl **biriktirilmaydi** — faqat matn (dasturchi o'zi ham yozadi). Rasm, video va fayllar portfolio loyihasiga biriktiriladi, baho va sharh ham shu loyihada. Mas'uliyatning o'ziga fayl kerak bo'lsa — ayting.
+- Mas'uliyatlar matni faqat Xodim profilida (Boshliq/PM va dasturchining o'zi ko'radi), portfolioda boshqa foydalanuvchilarga ko'rsatilmaydi (ichki ish ma'lumoti).
 
 ## 12. Xavfsizlik
 

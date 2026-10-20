@@ -244,7 +244,14 @@ GET        /api/portfolio/{user_id}/      portfolio: ko'rsatkichlar, tajriba, yi
 POST/DELETE /api/portfolio/{user_id}/follow/   kuzatish / to'xtatish (o'zini emas)
 POST       /api/portfolio/items/          o'z loyihasini qo'shish (faqat dasturchi)
 GET/PATCH/DELETE /api/portfolio/items/{id}/    PATCH/DELETE — faqat egasi; TeamFlow loyihasida nom/sana o'zgarmaydi, o'chmaydi
-GET/POST/DELETE  /api/portfolio/items/{id}/reviews/   sahifalangan sharhlar · o'z bahom {stars, text} · o'chirish
+GET/POST/DELETE  /api/portfolio/items/{id}/reviews/   sahifalangan baholar · o'z bahom {stars} · o'chirish
+GET/POST   /api/portfolio/items/{id}/comments/        sahifalangan sharhlar (hamma ko'radi) · yangi sharh {text} — istalgancha
+DELETE     /api/portfolio/items/{id}/comments/{cid}/  faqat o'z sharhi
+POST       /api/portfolio/items/{id}/attachments/     multipart `file` — rasm yoki .docx/.pdf (faqat egasi)
+DELETE     /api/portfolio/items/{id}/attachments/{aid}/   faqat egasi
+GET        /api/portfolio/attachments/{aid}/          rasm (ko'rsatiladi) / hujjat (yuklanadi), faqat tizimga kirganlarga
+GET        /api/portfolio/items/{id}/history/         sahifalangan tarix: rasm/video/fayl/muqova qo'shildi-o'chirildi (`ActivityLog`, verb `portfolio_*`)
+PATCH      /api/people/{id}/responsibilities/         Boshliq/PM (o'z doirasida) yoki dasturchi — faqat o'ziniki
 POST       /api/portfolio/items/{id}/videos/          multipart `video` (faqat egasi)
 DELETE     /api/portfolio/items/{id}/videos/{vid}/
 GET        /api/portfolio/videos/{vid}/   video (Range 206), faqat tizimga kirganlarga

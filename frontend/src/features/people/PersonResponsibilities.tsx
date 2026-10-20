@@ -7,7 +7,7 @@ import { T } from "@/shared/text";
 import type { Person } from "@/shared/types";
 import { Button, ErrorBox, Field, useToast } from "@/shared/ui";
 
-export function PersonResponsibilities({ person, editable, onDirtyChange }: { person: Person; editable: boolean; onDirtyChange: (dirty: boolean) => void }) {
+export function PersonResponsibilities({ person, editable, onDirtyChange }: { person: { id: number; responsibilities?: string }; editable: boolean; onDirtyChange: (dirty: boolean) => void }) {
   const qc = useQueryClient();
   const toast = useToast();
   const [draft, setDraft] = useState<string | null>(null);
@@ -16,6 +16,7 @@ export function PersonResponsibilities({ person, editable, onDirtyChange }: { pe
     mutationFn: (text: string) => api.patch<{ id: number; responsibilities: string }>(`/people/${person.id}/responsibilities/`, { responsibilities: text }),
     onSuccess: (data) => {
       qc.setQueryData<Person>(["person", person.id], (current) => current ? { ...current, responsibilities: data.responsibilities } : current);
+      qc.setQueryData<{ responsibilities?: string }>(["profile"], (current) => current ? { ...current, responsibilities: data.responsibilities } : current);
       void qc.invalidateQueries({ queryKey: ["people"] });
       setDraft(null);
       onDirtyChange(false);

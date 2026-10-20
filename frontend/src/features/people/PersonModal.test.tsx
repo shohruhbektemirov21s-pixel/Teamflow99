@@ -31,6 +31,21 @@ describe("PersonModal", () => {
     expect((within(region).getByLabelText(T.people.responsibilities) as HTMLTextAreaElement).value).toBe("API va serverlar");
   });
 
+  it("dasturchi faqat o'z mas'uliyatini tahrirlay oladi", async () => {
+    testUser.current = { ...PM, id: JASUR.id, role: "developer" };
+    mockGet({ [`/people/${JASUR.id}/`]: ROW, [`/tasks/?assignee=${JASUR.id}`]: [] });
+    renderApp(<PersonModal id={JASUR.id} />);
+    expect(await screen.findByRole("button", { name: T.people.responsibilitiesAdd })).toBeTruthy();
+  });
+
+  it("dasturchi boshqa xodimning mas'uliyatini tahrirlay olmaydi", async () => {
+    testUser.current = { ...PM, id: JASUR.id + 100, role: "developer" };
+    mockGet({ [`/people/${JASUR.id}/`]: ROW, [`/tasks/?assignee=${JASUR.id}`]: [] });
+    renderApp(<PersonModal id={JASUR.id} />);
+    expect(await screen.findByRole("region", { name: T.people.responsibilities })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: T.people.responsibilitiesAdd })).toBeNull();
+  });
+
   it("bekor qilish matnni saqlamaydi", async () => {
     mockGet({ [`/people/${JASUR.id}/`]: { ...ROW, responsibilities: "Eski mas'uliyat" }, [`/tasks/?assignee=${JASUR.id}`]: [] });
     renderApp(<PersonModal id={JASUR.id} />);

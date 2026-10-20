@@ -11,12 +11,11 @@ describe("MyReviews", () => {
     mockGet({
       "/portfolio/my-reviews/": {
         count: 1, next: null, previous: null,
-        results: [{ id: 1, item_id: 7, item_title: "Shaxsiy sayt", developer: { id: 3, full_name: "Jasur Alimov" }, stars: 5, text: "Ajoyib", updated_at: "2026-10-10T10:00:00Z" }],
+        results: [{ id: 1, item_id: 7, item_title: "Shaxsiy sayt", developer: { id: 3, full_name: "Jasur Alimov" }, stars: 5, updated_at: "2026-10-10T10:00:00Z" }],
       },
     });
     renderApp(<MyReviews />);
     expect(await screen.findByText("Shaxsiy sayt")).toBeTruthy();
-    expect(screen.getByText("Ajoyib")).toBeTruthy();
   });
 
   it("baho bo'lmasa keyingi qadamni tushuntiradi", async () => {

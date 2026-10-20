@@ -35,7 +35,6 @@ export function MyReviews() {
           <span className="grow stack-sm" style={{ gap: 4, minWidth: 0, textAlign: "left" }}>
             <b className="ellipsis">{r.item_title}</b>
             <span className="small muted ellipsis">{T.user.reviewOf(r.developer.full_name)} · {fmtDate(r.updated_at)}</span>
-            {r.text && <span className="small">{r.text}</span>}
           </span>
           <Stars value={r.stars} />
         </button>
