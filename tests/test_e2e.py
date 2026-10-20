@@ -1,41 +1,31 @@
 from playwright.sync_api import sync_playwright
-import time
+from os import environ
 
-def test_app():
+BASE_URL = environ.get("BASE_URL", "http://127.0.0.1:5173")
+
+
+def test_public_navigation():
     with sync_playwright() as p:
-        # Launch browser in headed mode so it's visible to the user
-        browser = p.chromium.launch(headless=False, slow_mo=500)
+        browser = p.chromium.launch(headless=environ.get("E2E_HEADED") != "1")
         page = browser.new_page()
-        
-        # Go to the frontend app
-        print("Saytga o'tilmoqda...")
-        page.goto("http://localhost:5173/", wait_until="networkidle")
-        
-        # Wait a bit for the user to see the page
-        time.sleep(2)
-        
-        # Let's see if we can do something
-        # For example, check the title or click something
         try:
-            # Look for a login button or something
-            page.screenshot(path="tests/screenshot_1.png")
-            print("Skrinshot olindi.")
-            
-            # Simple interaction if there's an input or button
-            # We don't know the exact UI, so we just wait and scroll
-            page.evaluate("window.scrollBy(0, 500)")
-            time.sleep(2)
-            page.evaluate("window.scrollBy(0, -500)")
-            
-            # Let's take another screenshot
-            page.screenshot(path="tests/screenshot_2.png")
-            
-            print("Test yakunlandi.")
-            time.sleep(2)
-        except Exception as e:
-            print("Xatolik:", e)
+            page.goto(BASE_URL, wait_until="networkidle")
+            assert page.title() == "TeamFlow"
+            assert page.locator("main#landing-main").is_visible()
+            assert page.locator('a[href="/kirish"]').count() >= 1
+            assert page.locator('a[href="/royxatdan-otish"]').count() >= 1
+
+            page.locator('a[href="/kirish"]').first.click()
+            page.locator("main#auth-main").wait_for()
+            assert page.locator('input[autocomplete="username"]').is_visible()
+            assert page.locator('input[autocomplete="current-password"]').is_visible()
+            assert page.locator('button[type="submit"]').is_visible()
+
+            page.locator('a[href="/royxatdan-otish"]').first.click()
+            page.locator('input[autocomplete="new-password"]').wait_for()
+            assert page.locator("main#auth-main").is_visible()
         finally:
             browser.close()
 
 if __name__ == "__main__":
-    test_app()
+    test_public_navigation()

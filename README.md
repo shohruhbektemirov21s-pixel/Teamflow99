@@ -2,7 +2,7 @@
 
 Jamoa ishini boshqarish tizimi. Boshqarmalar buyurtma (TZ) yuboradi, loyiha menejeri uni tasdiqlab loyihaga aylantiradi, dasturchilarga vazifa beradi va bajarilgan ishni tekshiradi. Boshliq hamma narsani kuzatadi va boshqaradi.
 
-> **Holat (2026-10-06):** Production PostgreSQL/Redis, Gunicorn/Nginx, Telegram outbox, indekslar va sahifalash qo'shildi. 10 000 bir vaqtda virtual foydalanuvchi: 250 soniya peak, 501,96 so'rov/soniya, 135 349 so'rov, 0 xato, p95 110 ms. 269 PostgreSQL backend testi, 104 frontend testi, TypeScript, build va haqiqiy brauzerdagi 60 holat o'tdi. Mahalliy biznes ma'lumotlari saqlandi; root, JS, readiness va meta 200. Server hali tanlanmagan; natija sinovdagi aniq yuklama profiliga tegishli. [To'liq dalil va chegaralar](docs/performance/2026-10-06/REPORT.md), [production deploy](backend/deploy/README.md).
+> **Holat (2026-10-20):** Production PostgreSQL/Redis, Gunicorn/Nginx, Telegram outbox, indekslar va sahifalash tayyor. Lokal checkoutda 379 backend testi, 147 frontend testi, TypeScript va production build o'tdi; public landing/login/register oqimi headless Playwright bilan tekshirildi. 10 000 foydalanuvchilik eski capacity natijasi faqat o'sha aniq profilga tegishli; joriy portfolio, login burst, upload va uzoq soak uchun qayta o'lchov kerak. [To'liq dalil va chegaralar](docs/performance/2026-10-06/REPORT.md), [production deploy](backend/deploy/README.md).
 > Bu fayl — loyihaning **yagona haqiqat manbai**. Agentlar uchun qoidalar: `CLAUDE.md`, `GEMINI.md`. Flow va modal reestri: `docs/FLOWS_MODALS.md`. Arxitektura, ma'lumotlar modeli va API: `docs/ARCHITECTURE.md`.
 
 ## Mundarija
