@@ -41,7 +41,7 @@ export default function BoardPage() {
   const meta = useMeta();
   const statuses = meta.values<TaskStatus>("task_statuses");
   const [project, setProject] = useState("");
-  const [due, setDue] = useState<DueFilter>("");
+  const [due, setDue] = useState<DueFilter>("week");
   const [dragging, setDragging] = useState<Task | null>(null);
 
   const query = usePagedList<Task>(["tasks", "board", project, due], "/tasks/", { mine: 1, project, due });

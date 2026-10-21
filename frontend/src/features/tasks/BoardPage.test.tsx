@@ -18,9 +18,10 @@ describe("Board card controls", () => {
     mockGet({
       "/meta/": { ...META, task_moves: [{ from: "control", to: "in_progress" }] },
       "/projects/lookup/?page_size=100": { count: 0, next: null, previous: null, results: [] },
-      "/tasks/?mine=1": [task],
+      "/tasks/?mine=1&due=week": [task],
     });
     renderApp(<><BoardPage /><CurrentModal /></>);
+    expect((await screen.findByRole("button", { name: T.filters.dueWeek })).getAttribute("aria-pressed")).toBe("true");
     const open = await screen.findByRole("button", { name: new RegExp(`^${task.code}`) });
     expect(screen.getByText(task.assignees[0]!.full_name)).toBeTruthy();
     const drag = screen.getByRole("button", { name: `${T.board.dragTask}: ${task.title}` });
