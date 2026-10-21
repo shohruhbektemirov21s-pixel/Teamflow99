@@ -21,6 +21,7 @@ import { useAuth, useMe } from "@/app/auth";
 import { useTheme } from "@/app/Layout";
 import { useModal } from "@/app/modals";
 import { api, ApiError, formData } from "@/shared/api";
+import { CaptchaField, useCaptcha } from "@/shared/CaptchaField";
 import { fmtDate } from "@/shared/format";
 import { T } from "@/shared/text";
 import type { Profile } from "@/shared/types";
@@ -55,6 +56,7 @@ export function UserProfileView() {
   const [telegram, setTelegram] = useState("");
   const [oldPass, setOldPass] = useState("");
   const [newPass, setNewPass] = useState("");
+  const captcha = useCaptcha();
 
   const q = useQuery({ queryKey: ["profile"], queryFn: () => api.get<Profile>("/auth/profile/") });
   const p = q.data;
@@ -103,15 +105,20 @@ export function UserProfileView() {
   });
 
   const passMut = useMutation({
-    mutationFn: () => api.post("/auth/password/", { current_password: oldPass, new_password: newPass }),
+    mutationFn: () => api.post("/auth/password/", {
+      current_password: oldPass, new_password: newPass,
+      captcha_challenge: captcha.challenge?.challenge, captcha_answer: captcha.answer,
+    }),
     onSuccess: () => {
       toast(T.profile.passwordChangedToast);
       setOldPass("");
       setNewPass("");
+      void captcha.refresh();
     },
     onError: (err) => {
       const msg = generalError(err);
       if (msg) toast(msg, "error");
+      void captcha.refresh();
     },
   });
 
@@ -418,9 +425,10 @@ export function UserProfileView() {
                 )}
               </Field>
             </div>
+            <CaptchaField captcha={captcha} error={fieldError(passMut.error, "captcha_answer")} />
 
             <div className="form-actions" style={{ justifyContent: "flex-end" }}>
-              <Button type="submit" variant="primary" loading={passMut.isPending} disabled={!oldPass || !newPass}>
+              <Button type="submit" variant="primary" loading={passMut.isPending} disabled={!oldPass || !newPass || !captcha.answer}>
                 {T.profile.changePassword}
               </Button>
             </div>

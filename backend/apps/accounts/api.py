@@ -16,6 +16,7 @@ from apps.core.pagination import BoundedPagination, bounded_unpaged
 from apps.core.serving import protected_file
 
 from . import services
+from .captcha import issue as issue_captcha, verify as verify_captcha
 from .models import ResponsibleProject, Role, Specialty, User
 from .serializers import (
     LoginSerializer, MeSerializer, RegisterSerializer, SpecialtySerializer,
@@ -26,6 +27,20 @@ from .serializers import (
 
 class AuthThrottle(AnonRateThrottle):
     scope = "auth"
+
+
+def _check_captcha(data):
+    from django.conf import settings
+
+    if settings.CAPTCHA_REQUIRED and not verify_captcha(data.get("captcha_challenge"), data.get("captcha_answer")):
+        raise ValidationError({"captcha_answer": ["CAPTCHA javobi noto'g'ri yoki muddati tugagan."]})
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def captcha(request):
+    challenge, question = issue_captcha()
+    return Response({"challenge": challenge, "question": question})
 
 
 @api_view(["GET"])
@@ -48,6 +63,7 @@ def specialties(request):
 def register(request):
     serializer = RegisterSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
+    _check_captcha(serializer.validated_data)
     serializer.save()
     return Response(
         {"detail": "Ro'yxatdan o'tdingiz. Administrator tasdiqlagach tizimga kira olasiz."},
@@ -62,6 +78,7 @@ def register(request):
 def login_view(request):
     serializer = LoginSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
+    _check_captcha(serializer.validated_data)
     username = serializer.validated_data["username"]
     password = serializer.validated_data["password"]
     user = authenticate(request, username=username, password=password)
@@ -272,6 +289,7 @@ def avatar_image(request, pk):
 def change_password(request):
     s = ChangePasswordSerializer(data=request.data, context={"request": request})
     s.is_valid(raise_exception=True)
+    _check_captcha(s.validated_data)
     request.user.set_password(s.validated_data["new_password"])
     request.user.save()
     # Sessiyani yangilash (chiqarib yubormaslik uchun)

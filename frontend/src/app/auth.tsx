@@ -7,7 +7,7 @@ import type { Me } from "@/shared/types";
 interface AuthState {
   user: Me | null;
   ready: boolean;
-  login: (username: string, password: string) => Promise<Me>;
+  login: (username: string, password: string, captchaChallenge?: string, captchaAnswer?: string) => Promise<Me>;
   logout: () => Promise<void>;
   /** Profil o'zgargach menyudagi ism va boshqa ma'lumotlar yangilansin. */
   refresh: () => Promise<void>;
@@ -49,8 +49,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => window.removeEventListener(UNAUTHORIZED_EVENT, onUnauthorized);
   }, [qc]);
 
-  const login = useCallback(async (username: string, password: string) => {
-    const me = await api.post<Me>("/auth/login/", { username, password });
+  const login = useCallback(async (username: string, password: string, captchaChallenge?: string, captchaAnswer?: string) => {
+    const me = await api.post<Me>("/auth/login/", { username, password, captcha_challenge: captchaChallenge, captcha_answer: captchaAnswer });
     await api.get("/auth/csrf/"); // login'dan keyin CSRF token yangilanadi
     setUser(me);
     return me;
