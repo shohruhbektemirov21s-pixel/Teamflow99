@@ -161,10 +161,6 @@ PORTFOLIO_IMAGE_MAX_MB = 10
 PORTFOLIO_RANKING_CACHE_SECONDS = int(os.environ.get("PORTFOLIO_RANKING_CACHE_SECONDS", "60"))
 NOTIFICATION_UNREAD_CACHE_SECONDS = int(os.environ.get("NOTIFICATION_UNREAD_CACHE_SECONDS", "60"))
 MAX_UNPAGED_ROWS = int(os.environ.get("MAX_UNPAGED_ROWS", "1000"))
-CAPTCHA_REQUIRED = os.environ.get("CAPTCHA_REQUIRED", "1") == "1"
-if "test" in sys.argv and "CAPTCHA_REQUIRED" not in os.environ:
-    CAPTCHA_REQUIRED = False
-
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": ["apps.core.authentication.SessionAuth"],
     "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.IsAuthenticated"],

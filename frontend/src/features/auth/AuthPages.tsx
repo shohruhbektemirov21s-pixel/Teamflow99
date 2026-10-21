@@ -5,8 +5,8 @@ import { Link, useNavigate } from "react-router-dom";
 
 import { useAuth } from "@/app/auth";
 import { api, ApiError } from "@/shared/api";
-import { CaptchaField, useCaptcha } from "@/shared/CaptchaField";
 import { useMeta } from "@/shared/meta";
+import { PasswordField } from "@/shared/PasswordField";
 import { T } from "@/shared/text";
 import { Button, Callout, Field } from "@/shared/ui";
 
@@ -46,18 +46,16 @@ export function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<ApiError | null>(null);
   const [busy, setBusy] = useState(false);
-  const captcha = useCaptcha();
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
     setBusy(true);
     setError(null);
     try {
-      await login(username.trim(), password, captcha.challenge?.challenge, captcha.answer);
+      await login(username.trim(), password);
       navigate("/", { replace: true }); // hamma rolda bosh sahifa — Bosh panel
     } catch (err) {
       setError(err instanceof ApiError ? err : new ApiError(0, T.common.errorGeneric));
-      await captcha.refresh().catch(() => {});
     } finally {
       setBusy(false);
     }
@@ -74,10 +72,7 @@ export function LoginPage() {
         <Field label={T.auth.username} required>
           {(id) => <input id={id} className="input" autoComplete="username" autoFocus value={username} onChange={(e) => setUsername(e.target.value)} required />}
         </Field>
-        <Field label={T.auth.password} required>
-          {(id) => <input id={id} className="input" type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} required />}
-        </Field>
-        <CaptchaField captcha={captcha} error={error?.field("captcha_answer")} />
+        <PasswordField label={T.auth.password} required value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="current-password" />
         <Button type="submit" variant="primary" size="lg" loading={busy} className="btn-block">
           {T.auth.login}
         </Button>
@@ -99,7 +94,6 @@ export function RegisterPage() {
   const [error, setError] = useState<ApiError | null>(null);
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(false);
-  const captcha = useCaptcha();
   const set = (k: keyof typeof form) => (e: { target: { value: string } }) => setForm((f) => ({ ...f, [k]: e.target.value }));
 
   const submit = async (e: FormEvent) => {
@@ -107,12 +101,10 @@ export function RegisterPage() {
     setBusy(true);
     setError(null);
     try {
-      await api.post("/auth/register/", { ...form, specialty: form.specialty ? Number(form.specialty) : null,
-        captcha_challenge: captcha.challenge?.challenge, captcha_answer: captcha.answer });
+      await api.post("/auth/register/", { ...form, specialty: form.specialty ? Number(form.specialty) : null });
       setDone(true);
     } catch (err) {
       setError(err instanceof ApiError ? err : new ApiError(0, T.common.errorGeneric));
-      await captcha.refresh().catch(() => {});
     } finally {
       setBusy(false);
     }
@@ -187,10 +179,7 @@ export function RegisterPage() {
         <Field label={T.auth.username} required error={fe("username")}>
           {(id, bad) => <input id={id} className="input" aria-invalid={bad} value={form.username} onChange={set("username")} autoComplete="username" />}
         </Field>
-        <Field label={T.auth.password} required hint={T.auth.passwordHint} error={fe("password")}>
-          {(id, bad) => <input id={id} type="password" className="input" aria-invalid={bad} value={form.password} onChange={set("password")} autoComplete="new-password" />}
-        </Field>
-        <CaptchaField captcha={captcha} error={fe("captcha_answer")} />
+        <PasswordField label={T.auth.password} required hint={T.auth.passwordHint} error={fe("password")} value={form.password} onChange={set("password")} autoComplete="new-password" />
         <Button type="submit" variant="primary" size="lg" loading={busy} className="btn-block">
           {T.auth.register}
         </Button>

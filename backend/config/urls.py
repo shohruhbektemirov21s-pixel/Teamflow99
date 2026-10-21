@@ -31,7 +31,6 @@ router.register("chat", ChatViewSet, basename="chat")
 
 api = [
     path("auth/csrf/", accounts.csrf),
-    path("auth/captcha/", accounts.captcha),
     path("auth/register/", accounts.register),
     path("auth/login/", accounts.login_view),
     path("auth/logout/", accounts.logout_view),

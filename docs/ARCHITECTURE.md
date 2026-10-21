@@ -205,8 +205,6 @@ GET    /api/auth/me/                joriy foydalanuvchi + rol
 POST/DELETE /api/auth/avatar/       o'z profil rasmi (multipart `avatar`)
 GET    /api/avatars/{id}/           profil rasmi (faqat kirganlarga; `?v=` kesh uchun)
 GET    /api/specialties/            ro'yxatdan o'tish formasi uchun
-GET    /api/auth/captcha/           ro'yxatdan o'tish, login va parol almashtirish uchun bir martalik CAPTCHA savoli
-POST   /api/auth/register/          `/api/auth/login/` va `/api/auth/password/` CAPTCHA maydonlarini talab qiladi
 
 GET/POST   /api/orders/             POST: boshqarma (fayl bilan)
 GET        /api/orders/{id}/

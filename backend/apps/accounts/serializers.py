@@ -70,8 +70,6 @@ class RegisterSerializer(serializers.Serializer):
         error_messages={"invalid": "Login 3–150 belgi: lotin harflari, raqam, _ . - bo'lishi mumkin."},
     )
     password = serializers.CharField(write_only=True, trim_whitespace=False)
-    captcha_challenge = serializers.CharField(required=False, write_only=True)
-    captcha_answer = serializers.CharField(required=False, write_only=True, trim_whitespace=False)
 
     def validate_username(self, value):
         if User.objects.filter(username__iexact=value).exists():
@@ -100,8 +98,6 @@ class RegisterSerializer(serializers.Serializer):
 
     def create(self, validated):
         password = validated.pop("password")
-        validated.pop("captcha_challenge", None)
-        validated.pop("captcha_answer", None)
         user = User(**validated, is_active=False)  # admin tasdiqlaguncha kira olmaydi
         user.set_password(password)
         user.save()
@@ -111,8 +107,6 @@ class RegisterSerializer(serializers.Serializer):
 class LoginSerializer(serializers.Serializer):
     username = serializers.CharField()
     password = serializers.CharField(trim_whitespace=False)
-    captcha_challenge = serializers.CharField(required=False, write_only=True)
-    captcha_answer = serializers.CharField(required=False, write_only=True, trim_whitespace=False)
 
 
 class MeSerializer(serializers.ModelSerializer):
@@ -197,8 +191,6 @@ class ProfileUpdateSerializer(serializers.Serializer):
 class ChangePasswordSerializer(serializers.Serializer):
     current_password = serializers.CharField()
     new_password = serializers.CharField()
-    captcha_challenge = serializers.CharField(required=False, write_only=True)
-    captcha_answer = serializers.CharField(required=False, write_only=True, trim_whitespace=False)
 
     def validate_current_password(self, value):
         if not self.context["request"].user.check_password(value):

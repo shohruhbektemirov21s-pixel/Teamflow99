@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useMe } from "@/app/auth";
 import { api } from "@/shared/api";
 import { useMeta } from "@/shared/meta";
+import { PasswordField } from "@/shared/PasswordField";
 import { T } from "@/shared/text";
 import { Button, ErrorBox, Modal } from "@/shared/ui";
 
@@ -105,18 +106,7 @@ export default function NewEmployeeModal({ onClose, onSuccess }: Props) {
               onChange={(e) => setUsername(e.target.value)}
             />
           </div>
-          <div className="field">
-            <label className="field-label">Parol <span className="req">*</span></label>
-            <input
-              type="password"
-              required
-              minLength={6}
-              className="input"
-              placeholder="Kamida 6 belgi"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-          </div>
+          <PasswordField label="Parol" required minLength={6} autoComplete="new-password" placeholder="Kamida 6 belgi" value={password} onChange={(e) => setPassword(e.target.value)} />
         </div>
 
         <div className="grid-2">

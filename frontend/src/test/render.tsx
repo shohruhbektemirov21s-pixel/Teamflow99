@@ -12,7 +12,7 @@ import { META } from "./fixtures";
 
 /** GET javoblari: yo'l (so'rov qatori bilan) → javob. Kutilmagan yo'l xato beradi — noto'g'ri URL darrov ko'rinadi. */
 export function mockGet(routes: Record<string, unknown>) {
-  const all: Record<string, unknown> = { "/meta/": META, "/auth/captcha/": { challenge: "test-captcha", question: "2 + 2 = ?" }, ...routes };
+  const all: Record<string, unknown> = { "/meta/": META, ...routes };
   vi.mocked(api.get).mockImplementation(async (path: string) => {
     if (path in all) return all[path] as never;
     throw new Error(`Kutilmagan GET: ${path}`);

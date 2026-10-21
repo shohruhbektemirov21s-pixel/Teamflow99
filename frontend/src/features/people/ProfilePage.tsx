@@ -6,9 +6,9 @@ import { useAuth, useMe } from "@/app/auth";
 import { usePagedList } from "@/app/queries";
 import { TaskTable } from "@/features/tasks/TaskTable";
 import { api, ApiError, formData } from "@/shared/api";
-import { CaptchaField, useCaptcha } from "@/shared/CaptchaField";
 import { fmtDate } from "@/shared/format";
 import { useMeta } from "@/shared/meta";
+import { PasswordField } from "@/shared/PasswordField";
 import { T } from "@/shared/text";
 import type { Profile, Task } from "@/shared/types";
 import { Badge, Button, ErrorBox, Field, SkeletonRows, useToast } from "@/shared/ui";
@@ -39,7 +39,6 @@ export default function ProfilePage() {
   const [telegram, setTelegram] = useState("");
   const [oldPass, setOldPass] = useState("");
   const [newPass, setNewPass] = useState("");
-  const captcha = useCaptcha();
 
   const q = useQuery({ queryKey: ["profile"], queryFn: () => api.get<Profile>("/auth/profile/") });
   const p = q.data;
@@ -85,20 +84,15 @@ export default function ProfilePage() {
   });
 
   const passMut = useMutation({
-    mutationFn: () => api.post("/auth/password/", {
-      current_password: oldPass, new_password: newPass,
-      captcha_challenge: captcha.challenge?.challenge, captcha_answer: captcha.answer,
-    }),
+    mutationFn: () => api.post("/auth/password/", { current_password: oldPass, new_password: newPass }),
     onSuccess: () => {
       toast(T.profile.passwordChangedToast);
       setOldPass("");
       setNewPass("");
-      void captcha.refresh();
     },
     onError: (err) => {
       const msg = generalError(err);
       if (msg) toast(msg, "error");
-      void captcha.refresh();
     },
   });
 
@@ -194,20 +188,11 @@ export default function ProfilePage() {
       >
         <h3>{T.profile.passwordTitle}</h3>
         <div className="grid-2">
-          <Field label={T.profile.currentPassword} error={fieldError(passMut.error, "current_password")}>
-            {(id, bad) => (
-              <input id={id} className="input" type="password" autoComplete="current-password" aria-invalid={bad} value={oldPass} onChange={(e) => setOldPass(e.target.value)} />
-            )}
-          </Field>
-          <Field label={T.profile.newPassword} hint={T.auth.passwordHint} error={fieldError(passMut.error, "new_password")}>
-            {(id, bad) => (
-              <input id={id} className="input" type="password" autoComplete="new-password" aria-invalid={bad} value={newPass} onChange={(e) => setNewPass(e.target.value)} />
-            )}
-          </Field>
+          <PasswordField label={T.profile.currentPassword} error={fieldError(passMut.error, "current_password")} value={oldPass} onChange={(e) => setOldPass(e.target.value)} autoComplete="current-password" />
+          <PasswordField label={T.profile.newPassword} hint={T.auth.passwordHint} error={fieldError(passMut.error, "new_password")} value={newPass} onChange={(e) => setNewPass(e.target.value)} autoComplete="new-password" />
         </div>
-        <CaptchaField captcha={captcha} error={fieldError(passMut.error, "captcha_answer")} />
         <div className="form-actions">
-          <Button type="submit" variant="primary" loading={passMut.isPending} disabled={!oldPass || !newPass || !captcha.answer}>
+          <Button type="submit" variant="primary" loading={passMut.isPending} disabled={!oldPass || !newPass}>
             {T.profile.changePassword}
           </Button>
         </div>
