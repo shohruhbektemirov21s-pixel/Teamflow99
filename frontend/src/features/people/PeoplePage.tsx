@@ -26,25 +26,6 @@ import { Pagination } from "@/shared/ui/Pagination";
 import { EmployeeCard } from "./EmployeeCard";
 import NewEmployeeModal from "./NewEmployeeModal";
 
-/** Mini bar chart visual on the right of stat cards (as in mockup screenshot) */
-function MiniBarChart({ color, heights = [35, 55, 45, 75, 95] }: { color: string; heights?: number[] }) {
-  return (
-    <div className="people-mini-bar-chart" aria-hidden="true">
-      {heights.map((h, i) => (
-        <span
-          key={i}
-          className="people-mini-bar"
-          style={{
-            height: `${h}%`,
-            backgroundColor: color,
-            opacity: 0.35 + (i * 0.15),
-          }}
-        />
-      ))}
-    </div>
-  );
-}
-
 export default function PeoplePage() {
   const me = useMe();
   const boss = me.role === "boss";
@@ -126,7 +107,7 @@ export default function PeoplePage() {
   const stats = statsQuery.data;
   const totalEmployees = stats?.total_employees ?? rows.length;
   const freeEmployees = stats?.free_employees ?? 0;
-  const freePercent = totalEmployees > 0 ? Math.round((freeEmployees / totalEmployees) * 100) : 25;
+  const freePercent = totalEmployees > 0 ? Math.round((freeEmployees / totalEmployees) * 100) : 0;
 
   return (
     <div className="people-page-container">
@@ -144,11 +125,9 @@ export default function PeoplePage() {
                 <span className="people-stat-value">
                   {statsQuery.isLoading ? <Skeleton w={36} h={28} /> : <AnimatedNumber value={totalEmployees} />}
                 </span>
-                <span className="people-stat-pill-badge positive">↑ +2</span>
               </div>
             </div>
           </div>
-          <MiniBarChart color="var(--primary)" heights={[35, 55, 45, 75, 95]} />
         </div>
 
         {/* 2. Jarayondagi vazifalar */}
@@ -166,7 +145,6 @@ export default function PeoplePage() {
               </div>
             </div>
           </div>
-          <MiniBarChart color="var(--info)" heights={[40, 65, 50, 70, 85]} />
         </div>
 
         {/* 3. Kechikkan vazifalar */}
@@ -184,7 +162,6 @@ export default function PeoplePage() {
               </div>
             </div>
           </div>
-          <MiniBarChart color="var(--danger)" heights={[45, 30, 65, 45, 85]} />
         </div>
 
         {/* 4. Bo'sh xodimlar */}
@@ -203,7 +180,6 @@ export default function PeoplePage() {
               </div>
             </div>
           </div>
-          <MiniBarChart color="var(--success)" heights={[30, 50, 60, 75, 95]} />
         </div>
       </section>
 

@@ -1,19 +1,33 @@
-from django.db.models import Count, Max, Q
+from django.db.models import Case, Count, F, IntegerField, Max, Q, When
 
 from apps.core.api_utils import user_brief
 
 from .models import ChatMessage
 
 
+CONVERSATION_LIMIT = 100
+
+
 def conversation_summaries(user):
     """Return one latest message per partner without one unread query per row."""
-    outgoing_ids = ChatMessage.objects.filter(author=user).values("recipient_id").annotate(last_id=Max("id"))
-    incoming_ids = ChatMessage.objects.filter(recipient=user).values("author_id").annotate(last_id=Max("id"))
-    last_ids = set(outgoing_ids.values_list("last_id", flat=True))
-    last_ids.update(incoming_ids.values_list("last_id", flat=True))
+    latest_by_partner = (
+        ChatMessage.objects.filter(Q(author=user) | Q(recipient=user))
+        .annotate(
+            partner_id=Case(
+                When(author_id=user.pk, then=F("recipient_id")),
+                default=F("author_id"),
+                output_field=IntegerField(),
+            )
+        )
+        .values("partner_id")
+        .annotate(last_id=Max("id"))
+        .order_by("-last_id")[:CONVERSATION_LIMIT]
+    )
+    partner_ids = [row["partner_id"] for row in latest_by_partner]
+    last_ids = [row["last_id"] for row in latest_by_partner]
 
     unread_by_author = dict(
-        ChatMessage.objects.filter(recipient=user, is_read=False)
+        ChatMessage.objects.filter(recipient=user, is_read=False, author_id__in=partner_ids)
         .values("author_id")
         .annotate(total=Count("id"))
         .values_list("author_id", "total")

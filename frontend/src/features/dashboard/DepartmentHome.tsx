@@ -52,7 +52,7 @@ export default function DepartmentHome() {
   const newOrder = () => open({ new: "order" });
 
   return (
-    <>
+    <div className="dashboard-page">
       <div className="page-toolbar">
         <div className="page-actions">
           <Link to="/buyurtmalar" className="btn">
@@ -123,6 +123,6 @@ export default function DepartmentHome() {
         )}
         <Pagination data={orders.isPlaceholderData ? undefined : orders.data} page={page} onPageChange={setPage} />
       </section>
-    </>
+    </div>
   );
 }

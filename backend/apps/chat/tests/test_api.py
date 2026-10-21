@@ -55,6 +55,19 @@ class ChatApiTests(TestCase):
         self.assertTrue(partner_row["outgoing"])
         self.assertEqual(partner_row["unread_count"], 2)
 
+    def test_conversations_are_bounded_before_rows_reach_python(self):
+        from apps.chat.services import CONVERSATION_LIMIT
+
+        partners = [make_user(Role.DEVELOPER) for _ in range(CONVERSATION_LIMIT + 5)]
+        ChatMessage.objects.bulk_create(
+            ChatMessage(author=partner, recipient=self.me, text=str(partner.pk)) for partner in partners
+        )
+
+        response = self.client.get("/api/chat/conversations/")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data), CONVERSATION_LIMIT)
+
     def test_opening_messages_marks_only_that_partner_messages_read(self):
         incoming = ChatMessage.objects.create(author=self.partner, recipient=self.me, text="Yangi")
         untouched = ChatMessage.objects.create(author=self.other, recipient=self.me, text="Boshqa")

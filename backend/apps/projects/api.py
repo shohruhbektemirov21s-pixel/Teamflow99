@@ -73,6 +73,15 @@ class ProjectViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.
             return self.get_paginated_response(self.get_serializer(page, many=True).data)
         return Response(self.get_serializer(self._unpaged_rows, many=True).data)
 
+    @action(detail=False, methods=["get"])
+    def summary(self, request):
+        """Loyiha sahifasidagi statistik kartalar uchun ko'rinadigan loyihalar soni."""
+        queryset = visible_projects(request.user)
+        counts = queryset.values("stage").annotate(total=Count("pk"))
+        stages = {stage: 0 for stage, _ in Project.Stage.choices}
+        stages.update({row["stage"]: row["total"] for row in counts})
+        return Response({"total": queryset.count(), "stages": stages})
+
     def get_serializer_class(self):
         return ProjectDetailSerializer if self.action == "retrieve" else ProjectListSerializer
 

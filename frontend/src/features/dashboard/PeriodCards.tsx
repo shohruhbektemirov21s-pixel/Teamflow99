@@ -27,7 +27,7 @@ export function PeriodCards<B extends string>({
   onPick: (bucket: B, period: PeriodKey, title: string) => void;
 }) {
   return (
-    <div className="grid-3">
+    <div className="grid-3 dashboard-periods">
       {periods
         ? periods.map((p) => (
             <div key={p.key} className="card period">

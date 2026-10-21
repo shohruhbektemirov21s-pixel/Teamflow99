@@ -11,9 +11,9 @@ export default defineConfig(({ command }) => ({
   server: {
     port: 5173,
     proxy: {
-      "/api": "http://127.0.0.1:8020",
-      "/admin": "http://127.0.0.1:8020",
-      "/static/admin": "http://127.0.0.1:8020",
+      "/api": "http://127.0.0.1:8021",
+      "/admin": "http://127.0.0.1:8021",
+      "/static/admin": "http://127.0.0.1:8021",
     },
   },
   test: { environment: "jsdom", setupFiles: ["./src/test/setup.ts"] },

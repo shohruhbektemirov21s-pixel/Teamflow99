@@ -160,6 +160,7 @@ PORTFOLIO_ATTACHMENTS_PER_ITEM = 30
 PORTFOLIO_IMAGE_MAX_MB = 10
 PORTFOLIO_RANKING_CACHE_SECONDS = int(os.environ.get("PORTFOLIO_RANKING_CACHE_SECONDS", "60"))
 NOTIFICATION_UNREAD_CACHE_SECONDS = int(os.environ.get("NOTIFICATION_UNREAD_CACHE_SECONDS", "60"))
+MAX_UNPAGED_ROWS = int(os.environ.get("MAX_UNPAGED_ROWS", "1000"))
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": ["apps.core.authentication.SessionAuth"],
@@ -167,7 +168,10 @@ REST_FRAMEWORK = {
     "DEFAULT_PAGINATION_CLASS": "apps.core.pagination.BoundedPagination",
     "PAGE_SIZE": 50,
     "EXCEPTION_HANDLER": "apps.core.api_utils.api_exception_handler",
-    "DEFAULT_THROTTLE_RATES": {"auth": "20/min", "ai_web_agent": "5/hour"},
+    "DEFAULT_THROTTLE_RATES": {
+        "auth": os.environ.get("AUTH_THROTTLE_RATE", "20/min"),
+        "ai_web_agent": "5/hour",
+    },
 }
 
 SESSION_COOKIE_HTTPONLY = True

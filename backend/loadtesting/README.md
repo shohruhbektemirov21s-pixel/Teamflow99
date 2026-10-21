@@ -12,13 +12,24 @@ Use the deployment Compose file with a separate project name `teamflow-scale-tes
 
 ```powershell
 docker compose --env-file backend/deploy/.scale.env -p teamflow-scale-test -f backend/deploy/compose.yml run --rm --no-deps -v "${PWD}/backend/loadtesting/artifacts:/artifacts" app python manage.py seed_scale --output /artifacts/users.json
-docker compose --env-file backend/deploy/.scale.env -p teamflow-scale-test -f backend/deploy/compose.yml run --rm -e LOAD_WORKERS=4 load --processes 4 --host http://proxy --headless -u 10000 -r 200 -t 5m --csv /artifacts/10000 --csv-full-history --stop-timeout 25
+docker compose --env-file backend/deploy/.scale.env -p teamflow-scale-test -f backend/deploy/compose.yml run --rm -e LOAD_WORKERS=4 load -f /load/locustfile.py --processes 4 --host http://proxy --headless -u 10000 -r 200 -t 5m --csv /artifacts/10000 --csv-full-history --stop-timeout 25
 backend/.venv/Scripts/python.exe backend/loadtesting/analyze.py backend/loadtesting/artifacts/10000 --output backend/loadtesting/artifacts/summary.json
 ```
 
 Afterward retain only aggregate CSV/report files. Remove synthetic session fixtures and the private test env file. Confirm the Compose project label is `teamflow-scale-test`, then remove only that project's containers and named volumes with `docker compose ... down --volumes`. Do not remove unrelated Docker projects or the live application database. Keep external provider tokens blank.
 
 `LOAD_WORKERS` must match `--processes` so each generator worker uses its own disjoint session partition. Do not enable worker rebalancing/replacement with these fixed partitions. The analyzer independently checks user count, peak duration, failures and latency from CSV evidence. Run resource monitoring alongside the capacity test, but complete builds, regression tests and browser QA before measuring capacity. See [Locust distributed load generation](https://docs.locust.io/en/stable/running-distributed.html).
+
+## 100k+ production-shape test
+
+For an authentication burst, use the lightweight `sessions` seed profile. It creates users, password hashes and database-backed sessions without creating the full business dataset. The test is still isolated and must not use a live database:
+
+```powershell
+docker compose -p teamflow-scale-test -f backend/deploy/compose.yml -f backend/deploy/compose.100k.yml run --rm --no-deps -v "${PWD}/backend/loadtesting/artifacts:/artifacts" app python manage.py seed_scale --users 100000 --profile sessions --output /artifacts/users-100000.json
+docker compose -p teamflow-scale-test -f backend/deploy/compose.yml -f backend/deploy/compose.100k.yml run --rm -e LOAD_WORKERS=16 -e LOAD_FIXTURES=/artifacts/users-100000.json load -f /load/login_locustfile.py --processes 16 --host http://proxy --headless -u 100000 -r 5000 -t 10m --csv /artifacts/login-100000 --csv-full-history --stop-timeout 30
+```
+
+For this isolated test only, set `AUTH_THROTTLE_RATE=100000/min`; production must retain a finite per-IP/user rate limit and use distributed generators with realistic source IPs. The `compose.100k.yml` overlay increases DB/Redis memory and runs four Gunicorn threads per worker; choose replica count with `docker compose ... up --scale app=4` only after measuring PostgreSQL connection saturation. This is a capacity test recipe, not a guarantee: run it on the selected production host and add failover, upload, notification fanout and long-soak scenarios before launch.
 
 Browser QA uses Edge and Playwright without changing the application's dependency lockfile:
 

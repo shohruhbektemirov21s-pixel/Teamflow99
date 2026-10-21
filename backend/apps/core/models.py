@@ -16,7 +16,9 @@ class Comment(models.Model):
 
     class Meta:
         ordering = ["created_at"]
-        indexes = [models.Index(fields=["target_type", "target_id"])]
+        indexes = [
+            models.Index(fields=["target_type", "target_id", "created_at"], name="comment_target_feed_idx"),
+        ]
         verbose_name = "Izoh"
         verbose_name_plural = "Izohlar"
 
@@ -39,7 +41,10 @@ class ActivityLog(models.Model):
 
     class Meta:
         ordering = ["-created_at"]
-        indexes = [models.Index(fields=["target_type", "target_id"])]
+        indexes = [
+            models.Index(fields=["-created_at", "-id"], name="activity_feed_idx"),
+            models.Index(fields=["target_type", "target_id"], name="activity_target_idx"),
+        ]
         verbose_name = "Tarix yozuvi"
         verbose_name_plural = "Umumiy tarix"
 

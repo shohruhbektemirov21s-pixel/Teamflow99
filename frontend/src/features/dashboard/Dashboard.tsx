@@ -13,19 +13,11 @@ import type { Bucket, Dashboard as DashboardData, Paged, PeriodKey, Task } from 
 import { AnimatedNumber, Button, ErrorBox } from "@/shared/ui";
 import { Pagination } from "@/shared/ui/Pagination";
 
-import { PeriodCards } from "./PeriodCards";
-
 interface Selection {
   bucket: Bucket;
   period?: PeriodKey;
   title: string;
 }
-
-const PERIOD_BUCKETS: { key: "active" | "overdue" | "done"; label: string; alert?: boolean }[] = [
-  { key: "active", label: T.dashboard.active },
-  { key: "overdue", label: T.dashboard.overdue, alert: true },
-  { key: "done", label: T.dashboard.done },
-];
 
 export default function Dashboard() {
   const me = useMe();
@@ -35,13 +27,15 @@ export default function Dashboard() {
   const [selected, setSelected] = useState<Selection | null>({ bucket: "active", period: "week", title: T.dashboard.weekActive });
   const dash = useQuery({ queryKey: ["dashboard"], queryFn: () => api.get<DashboardData>("/dashboard/") });
   const d = dash.data;
+  const week = d?.periods?.find((period) => period.key === "week");
+  const year = d?.periods?.find((period) => period.key === "year");
 
   const pick = (s: Selection) =>
     setSelected((cur) => (cur && cur.bucket === s.bucket && cur.period === s.period ? null : s));
   const isOn = (bucket: Bucket, period?: PeriodKey) => selected?.bucket === bucket && selected?.period === period;
 
   return (
-    <>
+    <div className="dashboard-page">
       <div className="page-toolbar">
         <div className="page-actions">
           {manager ? (
@@ -72,12 +66,40 @@ export default function Dashboard() {
 
       {dash.error && <ErrorBox error={dash.error} onRetry={() => dash.refetch()} />}
 
-      <PeriodCards
-        periods={d?.periods}
-        buckets={PERIOD_BUCKETS}
-        isOn={isOn}
-        onPick={(bucket, period, title) => pick({ bucket, period, title })}
-      />
+      <section className="dashboard-summary-grid" aria-label="Bosh panel statistikasi">
+        {[
+          { label: "Jami", value: year ? year.counts.active + year.counts.overdue + year.counts.done : null, hint: "Barcha vazifalar", tone: "violet" },
+          { label: "Faol", value: week?.counts.active ?? null, hint: "Ish ketmoqda", tone: "slate" },
+          { label: "Muddati o'tgan", value: week?.counts.overdue ?? null, hint: "E'tibor talab qiladi", tone: "red" },
+          { label: "Tekshiruvda", value: d?.totals.review ?? null, hint: "Tasdiqlash kutilmoqda", tone: "purple" },
+          { label: "Yakunlangan", value: year?.counts.done ?? null, hint: "Muvaffaqiyatli tugagan", tone: "green" },
+        ].map((item) => (
+          <div key={item.label} className="card dashboard-summary-card">
+            <span className={`dashboard-summary-icon tone-${item.tone}`} aria-hidden />
+            <div className="dashboard-summary-copy">
+              <span>{item.label}</span>
+              <strong>{item.value ?? "—"}</strong>
+              <small>{item.hint}</small>
+            </div>
+          </div>
+        ))}
+      </section>
+
+      <section className="card dashboard-filter-card" aria-label="Vazifalar filtri">
+        <div className="dashboard-filter-chips">
+          {[
+            { bucket: "active" as const, label: "Faol", value: week?.counts.active ?? 0 },
+            { bucket: "overdue" as const, label: "Muddati o'tgan", value: week?.counts.overdue ?? 0 },
+            { bucket: "done" as const, label: "Bajarilgan", value: week?.counts.done ?? 0 },
+            { bucket: "review" as const, label: "Tekshiruv kutilmoqda", value: d?.totals.review ?? 0 },
+          ].map((item) => (
+            <button key={item.bucket} type="button" className={`dashboard-filter-chip ${isOn(item.bucket, "week") || (item.bucket === "review" && isOn("review")) ? "selected" : ""}`}
+              onClick={() => pick({ bucket: item.bucket, period: item.bucket === "review" ? undefined : "week", title: item.label })}>
+              <span>{item.label}</span><b>{item.value}</b>
+            </button>
+          ))}
+        </div>
+      </section>
 
       <div className="grid-3">
         {(
@@ -106,7 +128,7 @@ export default function Dashboard() {
         <SelectedTasks key={`${selected.bucket}:${selected.period ?? "all"}`} selection={selected}
           onClose={() => setSelected(null)} manager={manager} mine={!manager} />
       )}
-    </>
+    </div>
   );
 }
 

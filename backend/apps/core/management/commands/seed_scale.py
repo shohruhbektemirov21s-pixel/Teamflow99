@@ -8,6 +8,7 @@ from pathlib import Path
 from django.apps import apps
 from django.conf import settings
 from django.contrib.auth import BACKEND_SESSION_KEY, HASH_SESSION_KEY, SESSION_KEY
+from django.contrib.auth.hashers import make_password
 from django.contrib.sessions.backends.db import SessionStore
 from django.contrib.sessions.models import Session
 from django.core.management.base import BaseCommand, CommandError
@@ -23,10 +24,12 @@ from apps.tasks.models import SubTask, Task, TaskAssignment
 
 
 class Command(BaseCommand):
-    help = "Seed 10000 synthetic users in teamflow_scale only. Never uses the live SQLite database."
+    help = "Seed synthetic users in teamflow_scale only. Never uses the live SQLite database."
 
     def add_arguments(self, parser):
         parser.add_argument("--users", type=int, default=10000)
+        parser.add_argument("--profile", choices=("full", "sessions"), default="full",
+                            help="sessions creates only users and DB sessions for auth/concurrency tests.")
         parser.add_argument("--output", required=True)
 
     def handle(self, *args, **options):
@@ -35,8 +38,9 @@ class Command(BaseCommand):
         if User.objects.exists():
             raise CommandError("Load-test database must be empty. This command never overwrites existing users.")
         size = options["users"]
-        if not 100 <= size <= 20000:
-            raise CommandError("Use between 100 and 20000 synthetic users.")
+        if not 100 <= size <= 100000:
+            raise CommandError("Use between 100 and 100000 synthetic users.")
+        profile = options["profile"]
         now = timezone.now()
         pm_end, dept_end = max(2, size // 20), max(3, size * 15 // 100)
         with transaction.atomic():
@@ -47,6 +51,38 @@ class Command(BaseCommand):
                                   first_name=f"Synthetic{i:05d}", last_name="Test", role=role, is_active=True,
                                   department_name=f"Synthetic department {i}" if role == Role.DEPARTMENT else ""))
             User.objects.bulk_create(users, batch_size=1000)
+
+            if profile == "sessions":
+                # Auth burst uchun biznes jadvallarini 100k * 5 task bilan
+                # to'ldirish shart emas. 100k user/session fixture'ning o'zi
+                # login va session-cache sig'imini o'lchash uchun yetarli.
+                password = "LoadTestPassword!2026"
+                password_hash = make_password(password)
+                for user in users:
+                    user.password = password_hash
+                User.objects.bulk_update(users, ["password"], batch_size=1000)
+                sessions = []
+                fixtures = []
+                for user in users:
+                    store = SessionStore()
+                    session_key = secrets.token_hex(16)
+                    session_data = {
+                        SESSION_KEY: str(user.pk),
+                        BACKEND_SESSION_KEY: "django.contrib.auth.backends.ModelBackend",
+                        HASH_SESSION_KEY: user.get_session_auth_hash(),
+                    }
+                    sessions.append(Session(session_key=session_key, session_data=store.encode(session_data),
+                                            expire_date=now + timedelta(hours=2)))
+                    fixtures.append({"id": user.pk, "username": user.username, "password": password,
+                                     "role": user.role, "session": session_key, "task": None, "partner": None})
+                Session.objects.bulk_create(sessions, batch_size=1000)
+                output = Path(options["output"])
+                random.Random(20261006).shuffle(fixtures)
+                output.parent.mkdir(parents=True, exist_ok=True)
+                output.write_text(json.dumps(fixtures), encoding="utf-8")
+                self.stdout.write(self.style.SUCCESS(f"Created {size} synthetic users and sessions (sessions profile)."))
+                return
+
             developers = users[dept_end:]
             managers = users[1:pm_end]
             departments = users[pm_end:dept_end]

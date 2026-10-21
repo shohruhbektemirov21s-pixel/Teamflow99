@@ -1,4 +1,5 @@
 """Environment-driven storage configuration; local SQLite stays separate from production."""
+import os
 from urllib.parse import parse_qs, unquote, urlparse
 
 from django.core.exceptions import ImproperlyConfigured
@@ -13,14 +14,20 @@ def database_config(url, base_dir, *, debug):
     parsed = urlparse(url)
     if parsed.scheme not in ("postgres", "postgresql") or not parsed.hostname or not parsed.path.strip("/"):
         raise ImproperlyConfigured("DATABASE_URL must identify a PostgreSQL database.")
-    options = {"connect_timeout": 5, "options": "-c statement_timeout=15000 -c lock_timeout=5000"}
+    statement_timeout = int(os.environ.get("DB_STATEMENT_TIMEOUT_MS", "15000"))
+    lock_timeout = int(os.environ.get("DB_LOCK_TIMEOUT_MS", "5000"))
+    if statement_timeout <= 0 or lock_timeout <= 0:
+        raise ImproperlyConfigured("Database timeouts must be positive milliseconds.")
+    options = {"connect_timeout": 5,
+               "options": f"-c statement_timeout={statement_timeout} -c lock_timeout={lock_timeout}"}
     sslmode = parse_qs(parsed.query).get("sslmode", [None])[0]
     if sslmode:
         options["sslmode"] = sslmode
     return {"ENGINE": "django.db.backends.postgresql", "NAME": unquote(parsed.path[1:]),
             "USER": unquote(parsed.username or ""), "PASSWORD": unquote(parsed.password or ""),
             "HOST": parsed.hostname, "PORT": parsed.port or 5432,
-            "CONN_MAX_AGE": 60, "CONN_HEALTH_CHECKS": True, "OPTIONS": options}
+            "CONN_MAX_AGE": int(os.environ.get("DB_CONN_MAX_AGE", "60")),
+            "CONN_HEALTH_CHECKS": True, "OPTIONS": options}
 
 
 def cache_config(url, *, debug):

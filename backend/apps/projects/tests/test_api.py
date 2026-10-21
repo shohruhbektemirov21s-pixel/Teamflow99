@@ -80,6 +80,21 @@ class ProjectTests(TestCase):
         self.assertEqual(client_for(self.dev1).patch(f"/api/projects/{pid}/", {"stage": "done"},
                                                      format="json").status_code, 403)
 
+    def test_project_summary_returns_visible_stage_counts(self):
+        self.create(code="SUM-1")
+        started = self.create(code="SUM-2").data["id"]
+        done = self.create(code="SUM-3").data["id"]
+        Project.objects.filter(pk=started).update(stage=Project.Stage.STARTED)
+        Project.objects.filter(pk=done).update(stage=Project.Stage.DONE)
+
+        response = client_for(self.pm).get("/api/projects/summary/")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["total"], 3)
+        self.assertEqual(response.data["stages"][Project.Stage.PLANNED], 1)
+        self.assertEqual(response.data["stages"][Project.Stage.STARTED], 1)
+        self.assertEqual(response.data["stages"][Project.Stage.DONE], 1)
+
 
 class ProjectFromOrderTests(TestCase):
     def setUp(self):

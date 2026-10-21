@@ -1,0 +1,13 @@
+services:
+  db:
+    mem_limit: 4g
+  redis:
+    command: ["redis-server", "--maxmemory", "1gb", "--maxmemory-policy", "allkeys-lru"]
+    mem_limit: 1280m
+  app:
+    environment:
+      WEB_WORKERS: ${WEB_WORKERS:-4}
+      WEB_THREADS: ${WEB_THREADS:-4}
+      DB_CONN_MAX_AGE: ${DB_CONN_MAX_AGE:-30}
+  proxy:
+    mem_limit: 256m

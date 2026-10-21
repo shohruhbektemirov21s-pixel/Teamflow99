@@ -93,6 +93,12 @@ Ruxsatli fayllar (avatar, portfolio muqovasi/videosi, buyurtma/loyiha/vazifa huj
 
 2026-10-06 dagi 10k hisobot oldingi schema va synthetic workload uchun o'lchangan: u portfolio, login burst, fayl uploadi, browser polling va uzoq soakni to'liq qamramaydi. Shuning uchun bu arxitektura resurslarni kamaytiradi, lekin joriy mahsulot uchun yakuniy sig'im raqami faqat aynan tanlangan serverda yangilangan capacity harness bilan tasdiqlanadi.
 
+### 3.2. 100 000+ foydalanuvchi uchun majburiy production shape
+
+100k foydalanuvchi — bitta Compose hosti uchun va'da emas, balki horizontal scaling targetidir. Web qatlam stateless bo'lib, load balancer ortida bir nechta replica ishlaydi; sessiya/cache Redis'da, biznes ma'lumotlari PostgreSQL'da, uploadlar esa shared object storage yoki barcha replica ko'radigan volume'da bo'ladi. Har bir replica uchun DB connection budget alohida hisoblanadi: replica sonini ko'paytirishdan oldin PostgreSQL pool/saturation va query p95 o'lchanadi.
+
+Har bir foydalanuvchi-facing list bounded pagination yoki cursor bilan ishlashi shart. Chat conversation summary DB'da partner bo'yicha agregatsiya va limit bilan olinadi; web worker barcha conversation ID'larini Python xotirasiga yuklamaydi. Feed va target-history query'lari uchun kompozit indekslar mavjud. Keyingi capacity gate: joriy schema bilan login burst, 100k authenticated session soak, chat polling, notification fanout, 100 MB upload, multi-replica failover va backup restore testlari; shu testlarsiz 100k capacity yoki HA kafolati berilmaydi.
+
 ## 4. Ma'lumotlar modeli
 
 ### accounts
