@@ -34,8 +34,11 @@ class LoginUser(HttpUser):
             name="auth/login",
             timeout=20,
         )
-        if response.status_code == 200:
-            self.client.post("/api/auth/logout/", name="auth/logout", timeout=20)
+
+    @task
+    def hold_session(self):
+        """Keep each successful login as an active virtual user until the run ends."""
+        pass
 
 
 @events.quitting.add_listener
