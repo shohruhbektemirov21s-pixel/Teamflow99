@@ -22,8 +22,7 @@ interface SubtaskDraft {
 
 /**
  * Modal: vazifa yaratish / tahrirlash.
- * Menejer — loyiha jamoasidan bir nechta ijrochi tanlaydi. Dasturchi — faqat o'ziga ("Mening ishim"),
- * loyihani tanlamasa ham bo'ladi (loyihasiz vazifa).
+ * Loyiha ixtiyoriy. Menejer istalgan faol dasturchilarni, dasturchi esa faqat o'zini ijrochi qiladi.
  */
 export default function TaskFormModal({ projectId, editId, assigneeId }: { projectId?: number; editId?: number; assigneeId?: number }) {
   const me = useMe();
@@ -61,11 +60,6 @@ export default function TaskFormModal({ projectId, editId, assigneeId }: { proje
     setAssignees(t.assignees.map((a) => a.id));
     setSubtasks(t.subtasks.map((s) => ({ id: s.id, title: s.title, assignee_ids: s.assignees.map((u) => u.id), is_done: s.is_done })));
   }, [existing.data]);
-
-  // Menejerda bitta loyiha bo'lsa — avtomatik tanlanadi. Dasturchida bo'sh tanlov = "Loyihasiz", o'zi tanlaydi.
-  useEffect(() => {
-    if (manager && !editId && !project && projects.data?.length === 1) setProject(projects.data[0]!.id);
-  }, [manager, editId, projects.data, project]);
 
   const team = useQuery({
     queryKey: ["project", project],
@@ -106,7 +100,7 @@ export default function TaskFormModal({ projectId, editId, assigneeId }: { proje
   const save = useMutation({
     mutationFn: () => {
       const body = {
-        project: project ? Number(project) : null, // null — loyihasiz (faqat dasturchi)
+        project: project ? Number(project) : null, // null — loyihasiz vazifa
         title,
         description,
         priority,
@@ -135,9 +129,8 @@ export default function TaskFormModal({ projectId, editId, assigneeId }: { proje
   const dirty = touched;
   const existingAssignees = new Set(existing.data?.assignees.map((a) => a.id) ?? []);
   const tripSelected = members.some((m) => m.is_on_business_trip && assignees.includes(m.id) && !existingAssignees.has(m.id));
-  // Dasturchi yaratgan loyihasiz vazifani menejer tahrirlaydi: ijrochilar — istalgan faol dasturchi
-  const projectless = Boolean(editId) && !project;
-  const canSave = (Boolean(project) || !manager || projectless) && title.trim().length > 0 && (!manager || assignees.length > 0) && !tripSelected;
+  const projectless = !project;
+  const canSave = title.trim().length > 0 && (!manager || assignees.length > 0) && !tripSelected;
   const projectOptions = useMemo(() => projects.data ?? [], [projects.data]);
 
   if (editId && !existing.data)
@@ -166,10 +159,10 @@ export default function TaskFormModal({ projectId, editId, assigneeId }: { proje
     >
       <form className="stack" style={{ gap: 16 }} onChange={() => setTouched(true)} onSubmit={(e) => (e.preventDefault(), canSave && save.mutate())}>
         {error && !Object.keys(error.fields).length && <Callout tone="danger">{error.message}</Callout>}
-        <Field label={T.tasks.project} required={manager} hint={manager || editId ? undefined : T.tasks.noProjectHint} error={fe("project")}>
+        <Field label={T.tasks.project} hint={T.tasks.noProjectHint} error={fe("project")}>
           {(id, bad) => (
             <select id={id} className="select" aria-invalid={bad} value={project} disabled={Boolean(editId)} onChange={(e) => setProject(e.target.value ? Number(e.target.value) : "")}>
-              <option value="">{manager && !editId ? T.tasks.pickProject : T.tasks.noProject}</option>
+              <option value="">{T.tasks.noProject}</option>
               {projectOptions.map((p) => (
                 <option key={p.id} value={p.id}>
                   {p.name}

@@ -131,7 +131,7 @@ Yakunlash (`stage=done` so'ralganda): loyihada faol dasturchi bo'lsa, avval hamm
 ### tasks
 | Model | Maydonlar |
 |---|---|
-| `Task` | code (tasodifiy 9 xonali, unique), project FK? (PROTECT; bo'sh — dasturchining loyihasiz vazifasi, 2026-10-14; PM/Boshliq uchun servis majburiy qiladi), title, description, priority, status (control/in_progress/in_review/done), starts_at?, due_at?, completed_at?, archived_at?, created_by, created_at |
+| `Task` | code (tasodifiy 9 xonali, unique), project FK? (PROTECT; bo'sh — loyiha tanlanmagan vazifa), title, description, priority, status (control/in_progress/in_review/done), starts_at?, due_at?, completed_at?, archived_at?, created_by, created_at |
 | `TaskAssignment` | task FK, developer FK, `unique(task, developer)` — bitta vazifa bir nechta dasturchiga |
 | `SubTask` | task FK, title, assignees M2M (bir nechta dasturchi), is_done, position |
 | `TaskFile` | task FK, file, uploaded_by |
@@ -220,7 +220,7 @@ POST       /api/projects/setup/     loyiha + jamoa + har bir xodimga vazifa (mul
                                     bitta tranzaksiya, tasks.services.create_project_with_tasks (tasks yuqori qatlam)
 POST       /api/projects/{id}/completion-ack/   {confirmed, reason?}  (loyiha a'zosi dasturchi — yakunlashga tasdiq/rad)
 
-GET/POST   /api/tasks/          POST: `project` ixtiyoriy faqat dasturchi uchun (bo'sh — loyihasiz vazifa); PM/Boshliqqa majburiy
+GET/POST   /api/tasks/          POST: `project` ixtiyoriy (bo'sh — loyihasiz vazifa); PM/Boshliq ham loyiha tanlamasdan yaratishi mumkin
 GET/PATCH/DELETE /api/tasks/{id}/     DELETE: arxivlash, tarixni saqlash
 POST       /api/tasks/{id}/status/        {status}   (dasturchi: control→in_progress)
 POST       /api/tasks/{id}/submit/        {note, files}

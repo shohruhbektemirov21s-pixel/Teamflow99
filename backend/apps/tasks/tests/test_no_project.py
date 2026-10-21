@@ -1,4 +1,4 @@
-"""Dasturchi loyihasiz vazifa yarata oladi; PM/Boshliq uchun loyiha majburiy."""
+"""Har bir vazifa yaratuvchi rol loyiha tanlamasdan vazifa yarata oladi."""
 from datetime import timedelta
 
 from django.test import TestCase
@@ -34,14 +34,15 @@ class NoProjectTaskTests(TestCase):
         self.assertEqual(Task.objects.filter(project__isnull=True).count(), 2)
         self.assertFalse(ProjectMember.objects.exists())
 
-    def test_managers_still_must_choose_project(self):
+    def test_managers_can_create_task_without_project(self):
         for user in (self.pm, self.boss):
             r = self.create(user)
-            self.assertEqual(r.status_code, 400)
-            self.assertIn("project", r.data["fields"])
+            self.assertEqual(r.status_code, 201, r.data)
+            self.assertIsNone(r.data["project"])
+            self.assertEqual([a["id"] for a in r.data["assignees"]], [self.other.pk])
         for user in (make_user(Role.DEPARTMENT), make_user(Role.USER)):
             self.assertEqual(self.create(user).status_code, 400)
-        self.assertFalse(Task.objects.exists())
+        self.assertEqual(Task.objects.filter(project__isnull=True).count(), 2)
 
     def test_projectless_task_shows_everywhere_without_errors(self):
         tid = self.create().data["id"]

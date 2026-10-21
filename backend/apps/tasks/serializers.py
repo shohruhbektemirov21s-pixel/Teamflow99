@@ -127,7 +127,7 @@ class SubTaskInput(serializers.Serializer):
 
 
 class TaskCreateSerializer(serializers.Serializer):
-    # Bo'sh — loyihasiz vazifa (faqat dasturchi uchun, servis tekshiradi)
+    # Bo'sh — barcha vazifa yaratuvchilar uchun loyihasiz vazifa.
     project = serializers.IntegerField(required=False, allow_null=True, default=None)
     title = serializers.CharField(max_length=255)
     description = serializers.CharField(required=False, allow_blank=True, default="")

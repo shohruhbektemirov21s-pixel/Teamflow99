@@ -80,12 +80,8 @@ def _reviewers(task):
 @transaction.atomic
 def create_task(user, project, *, title, description="", priority="medium", starts_at=None, due_at=None,
                 assignee_ids=None, subtasks=None, files=None):
-    """Menejer — istalgan jamoa a'zosiga, loyiha majburiy. Dasturchi — faqat o'ziga: o'z loyihasida yoki
-    loyihasiz (`project=None`, "Mening ishim")."""
-    if project is None:
-        if not user.is_developer:
-            raise ServiceError("Loyihani tanlang.", "project")
-    else:
+    """Loyiha ixtiyoriy: menejer istalgan faol dasturchiga, dasturchi esa faqat o'ziga vazifa beradi."""
+    if project is not None:
         project = Project.objects.select_for_update().get(pk=project.pk)
         ensure_open(project)
     if user.is_developer:

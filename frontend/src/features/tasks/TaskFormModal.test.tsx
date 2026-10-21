@@ -23,10 +23,10 @@ describe("TaskFormModal", () => {
     testUser.current = DEV;
     mockGet({ [LOOKUP]: projects("Portal") });
     vi.mocked(api.post).mockResolvedValue(taskDetail({ id: 9, project: null }));
-    renderApp(<TaskFormModal />);
+    renderApp(<TaskFormModal assigneeId={JASUR.id} />);
     const select = (await screen.findByRole("combobox", { name: new RegExp(T.tasks.project) })) as HTMLSelectElement;
     await screen.findByRole("option", { name: "Portal" });
-    // Bitta loyiha bo'lsa ham dasturchiga avtomatik tanlanmaydi — "Loyihasiz" qoladi
+    // Loyiha mavjud bo'lsa ham avtomatik tanlanmaydi — "Loyihasiz" qoladi
     expect(select.value).toBe("");
     expect(screen.getByRole("option", { name: T.tasks.noProject })).toBeTruthy();
     expect(screen.getByText(T.tasks.noProjectHint)).toBeTruthy();
@@ -42,13 +42,17 @@ describe("TaskFormModal", () => {
     expect(form.get("assignee_ids")).toBe(JSON.stringify([JASUR.id]));
   });
 
-  it("PM uchun loyiha majburiy bo'lib qoladi", async () => {
+  it("PM ham loyiha tanlamasdan vazifa yarata oladi", async () => {
     mockGet({ [LOOKUP]: projects("Portal", "CRM") });
-    renderApp(<TaskFormModal />);
+    vi.mocked(api.post).mockResolvedValue(taskDetail({ id: 10, project: null }));
+    renderApp(<TaskFormModal assigneeId={JASUR.id} />);
     await screen.findByRole("option", { name: "CRM" });
-    expect(screen.getByRole("option", { name: T.tasks.pickProject })).toBeTruthy();
-    expect(screen.queryByRole("option", { name: T.tasks.noProject })).toBeNull();
+    expect(screen.getByRole("option", { name: T.tasks.noProject })).toBeTruthy();
     fireEvent.change(screen.getByPlaceholderText(T.tasks.namePh), { target: { value: "Login" } });
-    expect(saveButton().disabled).toBe(true);
+    expect(saveButton().disabled).toBe(false);
+    fireEvent.click(saveButton());
+    await waitFor(() => expect(api.post).toHaveBeenCalled());
+    const [, body] = vi.mocked(api.post).mock.calls[0]!;
+    expect((body as FormData).has("project")).toBe(false);
   });
 });
