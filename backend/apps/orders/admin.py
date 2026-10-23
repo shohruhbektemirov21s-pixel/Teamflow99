@@ -16,3 +16,11 @@ class OrderAdmin(admin.ModelAdmin):
     list_filter = ("status", "priority")
     search_fields = ("title", "submitted_by__username", "submitted_by__department_name")
     inlines = [OrderVersionInline]
+
+
+@admin.register(OrderVersion)
+class OrderVersionAdmin(admin.ModelAdmin):
+    list_display = ("order", "number", "decision", "uploaded_by", "created_at")
+    list_filter = ("decision", "created_at")
+    search_fields = ("order__title", "uploaded_by__username", "reject_reason")
+    readonly_fields = ("created_at",)

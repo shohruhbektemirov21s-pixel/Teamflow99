@@ -179,3 +179,14 @@ class WorkLog(models.Model):
     class Meta:
         ordering = ["-work_date", "-created_at", "-pk"]
         constraints = [models.CheckConstraint(condition=models.Q(hours__gt=0, hours__lte=24), name="worklog_hours_range")]
+        verbose_name = "Ish jurnali"
+        verbose_name_plural = "Ish jurnali"
+
+
+class ArchivedTask(Task):
+    """Tizimda o'chirilgan (arxivlangan) vazifalar proxy modeli."""
+
+    class Meta:
+        proxy = True
+        verbose_name = "O'chirilgan vazifa"
+        verbose_name_plural = "O'chirilgan (arxivlangan) vazifalar"

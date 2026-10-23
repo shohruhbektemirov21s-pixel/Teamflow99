@@ -20,6 +20,7 @@ from apps.panel.calendar import calendar_summary
 
 # Admin ilovalari standart site'ga registratsiya qilinadi. Registry'ni saqlagan
 # holda TeamFlow dashboard'iga o'tkazamiz.
+admin.autodiscover()
 teamflow_admin_site._registry.update(admin.site._registry)
 
 router = DefaultRouter(trailing_slash=True)

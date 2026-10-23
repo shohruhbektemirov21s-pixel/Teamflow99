@@ -39,3 +39,17 @@ class PortfolioCommentAdmin(admin.ModelAdmin):
 class FollowAdmin(admin.ModelAdmin):
     list_display = ["follower", "developer", "created_at"]
     raw_id_fields = ["follower", "developer"]
+
+
+@admin.register(PortfolioVideo)
+class PortfolioVideoAdmin(admin.ModelAdmin):
+    list_display = ["item", "original_name", "created_at"]
+    search_fields = ["original_name", "item__title"]
+    readonly_fields = ["created_at"]
+
+
+@admin.register(PortfolioAttachment)
+class PortfolioAttachmentAdmin(admin.ModelAdmin):
+    list_display = ["item", "original_name", "created_at"]
+    search_fields = ["original_name", "item__title"]
+    readonly_fields = ["created_at"]

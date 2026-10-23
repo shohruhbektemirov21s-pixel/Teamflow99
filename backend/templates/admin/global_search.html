@@ -1,0 +1,60 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block title %}Qidiruv natijalari | {{ site_title|default:_('TeamFlow') }}{% endblock %}
+{% block coltype %}colM{% endblock %}
+{% block bodyclass %}{{ block.super }} tf-search-page{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+  <a href="{% url 'admin:index' %}">Boshqaruv markazi</a>
+  &rsaquo; Qidiruv
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="tf-dashboard-container tf-search-results-page">
+  <section class="tf-dash-hero tf-dashboard-toolbar">
+    <div class="tf-dash-hero-left">
+      <p class="tf-dash-date-eyebrow">GLOBAL QIDIRUV</p>
+      <h1 class="tf-dash-main-heading">Qidiruv natijalari</h1>
+      {% if query_is_valid %}
+        <p class="tf-dash-subtitle">“{{ query }}” bo‘yicha foydalanuvchi, loyiha, vazifa va boshqa yozuvlar.</p>
+      {% else %}
+        <p class="tf-dash-subtitle">Qidirish uchun kamida 2 ta belgi kiriting.</p>
+      {% endif %}
+    </div>
+  </section>
+
+  {% if query_is_valid and search_groups %}
+    <div class="tf-search-groups">
+      {% for group in search_groups %}
+        <section class="tf-card-panel tf-search-group">
+          <div class="tf-card-header">
+            <div>
+              <p class="tf-eyebrow">{{ group.items|length }} ta natija</p>
+              <h2 class="tf-card-title">{{ group.label }}</h2>
+            </div>
+          </div>
+          <div class="tf-search-result-list">
+            {% for item in group.items %}
+              <a class="tf-search-result" href="{{ item.url }}">
+                <span>
+                  <strong>{{ item.title }}</strong>
+                  <small>{{ item.subtitle|default:"—" }}</small>
+                </span>
+                <span aria-hidden="true">→</span>
+              </a>
+            {% endfor %}
+          </div>
+        </section>
+      {% endfor %}
+    </div>
+  {% elif query_is_valid %}
+    <section class="tf-card-panel tf-empty-state" role="status">
+      <strong>Hech narsa topilmadi</strong>
+      <p>Boshqa nom, kod yoki kalit so‘z bilan qayta urinib ko‘ring.</p>
+    </section>
+  {% endif %}
+</div>
+{% endblock %}
