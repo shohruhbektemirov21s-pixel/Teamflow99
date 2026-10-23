@@ -13,6 +13,8 @@ frontend/dist-audit/
 *.env
 backend/loadtesting/artifacts/
 backend/server-error.log
+backend/admin_ui_server*.log
+backend/staticfiles/
 
 .playwright-mcp/
 *.tsbuildinfo
