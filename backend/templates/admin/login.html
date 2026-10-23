@@ -1,0 +1,21 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block title %}Kirish | {{ site_title|default:_('TeamFlow') }}{% endblock %}
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" href="{% static 'admin/css/login.css' %}">{{ form.media }}{% endblock %}
+{% block bodyclass %}{{ block.super }} login{% endblock %}
+{% block usertools %}{% endblock %}
+{% block nav-global %}{% endblock %}
+{% block nav-sidebar %}{% endblock %}
+{% block content_title %}{% endblock %}
+{% block nav-breadcrumbs %}{% endblock %}
+
+{% block content %}
+<div class="tf-login-shell"><div class="tf-login-card">
+  <div class="tf-login-brand"><span class="tf-brand-mark">T</span><div><strong>TeamFlow</strong><small>Boshqaruv markazi</small></div></div>
+  <div class="tf-login-heading"><p class="tf-eyebrow">Xush kelibsiz</p><h1>Admin panelga kirish</h1><p>Tizimni boshqarish uchun akkauntingiz bilan kiring.</p></div>
+  {% if form.errors %}<div class="tf-login-error">Login yoki parol noto‘g‘ri. Qayta urinib ko‘ring.</div>{% endif %}
+  <form action="{{ app_path }}" method="post" id="login-form">{% csrf_token %}<div class="tf-field"><label for="id_username">Login</label>{{ form.username }}</div><div class="tf-field"><label for="id_password">Parol</label>{{ form.password }}<input type="hidden" name="next" value="{{ next }}"></div><button class="tf-primary-button tf-login-button" type="submit">Kirish <span>→</span></button></form>
+  <p class="tf-login-footnote">TeamFlow · ichki boshqaruv tizimi</p>
+</div></div>
+{% endblock %}

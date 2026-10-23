@@ -1,0 +1,20 @@
+{% extends "admin/base.html" %}
+{% load i18n static %}
+
+{% block title %}{% if subtitle %}{{ subtitle }} | {% endif %}{{ title }} | {{ site_title|default:_('TeamFlow') }}{% endblock %}
+
+{% block extrastyle %}
+  {{ block.super }}
+  <link rel="stylesheet" href="{% static 'admin/teamflow.css' %}">
+{% endblock %}
+
+{% block branding %}
+<div id="site-name" class="tf-brand">
+  <a href="{% url 'admin:index' %}" aria-label="TeamFlow boshqaruv markazi">
+    <span class="tf-brand-mark">T</span>
+    <span class="tf-brand-copy"><strong>TeamFlow</strong><small>Boshqaruv markazi</small></span>
+  </a>
+</div>
+{% endblock %}
+
+{% block nav-global %}{% endblock %}

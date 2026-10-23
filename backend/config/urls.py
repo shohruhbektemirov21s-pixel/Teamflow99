@@ -15,11 +15,12 @@ from apps.tasks.api import TaskViewSet, project_setup
 from apps.chat.api import ChatViewSet
 from apps.ai.api import WebAgentView
 from apps.core.health import live, ready
+from apps.core.admin_site import teamflow_admin_site
 from apps.panel.calendar import calendar_summary
 
-admin.site.site_header = "TeamFlow — Boshqaruv paneli"
-admin.site.site_title = "TeamFlow"
-admin.site.index_title = "Boshqaruv"
+# Admin ilovalari standart site'ga registratsiya qilinadi. Registry'ni saqlagan
+# holda TeamFlow dashboard'iga o'tkazamiz.
+teamflow_admin_site._registry.update(admin.site._registry)
 
 router = DefaultRouter(trailing_slash=True)
 router.register("orders", OrderViewSet, basename="order")
@@ -95,7 +96,7 @@ def spa(request):
 urlpatterns = [
     path("healthz/live/", live),
     path("healthz/ready/", ready),
-    path("admin/", admin.site.urls),
+    path("admin/", teamflow_admin_site.urls),
     path("api/", include(api)),
     re_path(r"^(?!api/|admin/|static/).*$", spa),
 ]
