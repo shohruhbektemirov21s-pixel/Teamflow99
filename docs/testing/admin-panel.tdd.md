@@ -18,10 +18,11 @@ Journeys were derived from the request: an administrator can see and search all 
 - RED: `python manage.py test apps.core.tests.test_admin_ui -v 1` — 2 failures and 1 error for the missing catalog, live counters and search route.
 - RED: targeted trash permission test — expected 403, received 200.
 - GREEN: `python manage.py test apps.core.tests.test_admin_ui -v 1` — 12/12 passed.
-- Full backend regression: `python manage.py test -v 1` — 404 passed, 2 skipped.
+- Full backend regression after deployment-schema repair: `python manage.py test -v 1` — 406 passed, 2 skipped.
 - Django checks: `python manage.py check` — no issues.
 - Migration drift: `python manage.py makemigrations --check --dry-run` — no changes detected.
 - Browser QA: local Chrome at 1440×1000, 768×1024 and 375×812 — no horizontal overflow; mobile drawer opened and closed with Escape; dark mode, global search and trash page worked; 0 console errors.
+- Live Docker QA on `:8020/admin/`: refreshed static assets loaded, all 12 permitted app groups rendered, search/add-user/trash routes opened, mobile drawer worked and the browser reported 0 console errors.
 
 ## Known gaps
 
