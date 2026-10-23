@@ -5,31 +5,49 @@
 
 {% block extrastyle %}
   {{ block.super }}
-  <link rel="stylesheet" href="{% static 'admin/teamflow.css' %}?v=20261023.2">
+  <link rel="stylesheet" href="{% static 'admin/teamflow.css' %}?v=20261023.3">
 {% endblock %}
 
 {% block extrahead %}
   {{ block.super }}
-  <script src="{% static 'admin/teamflow.js' %}?v=20261023.2" defer></script>
+  <script src="{% static 'admin/teamflow.js' %}?v=20261023.3" defer></script>
 {% endblock %}
 
 {% block header %}
 <header id="header" class="tf-top-navbar">
   <div class="tf-top-left">
+    <button type="button" class="tf-mobile-toggle-btn" id="tf-mobile-sidebar-toggle" aria-label="Menyuni ochish">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="3" y1="12" x2="21" y2="12"></line>
+        <line x1="3" y1="6" x2="21" y2="6"></line>
+        <line x1="3" y1="18" x2="21" y2="18"></line>
+      </svg>
+    </button>
+
     <form class="tf-top-search-box" method="get" action="{% url 'admin:global_search' %}" role="search">
       <span class="tf-search-ico" aria-hidden="true">
-        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="11" cy="11" r="8"></circle>
           <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
         </svg>
       </span>
-      <input type="search" name="q" value="{{ request.GET.q }}" class="tf-search-input" id="tf-top-search-input" placeholder="Qidirish..." aria-label="Admin bo‘yicha qidirish" autocomplete="off">
+      <input type="search" name="q" value="{{ request.GET.q }}" class="tf-search-input" id="tf-top-search-input" placeholder="Qidirish... (Ctrl + K)" aria-label="Admin bo‘yicha qidirish" autocomplete="off">
+      <kbd class="tf-search-kbd">⌘K</kbd>
     </form>
   </div>
 
   <div class="tf-top-right">
+    <a href="/" class="tf-view-site-link" target="_blank" rel="noopener noreferrer" title="Asosiy TeamFlow dasturini ochish">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+        <polyline points="15 3 21 3 21 9"></polyline>
+        <line x1="10" y1="14" x2="21" y2="3"></line>
+      </svg>
+      <span>Saytni ko‘rish</span>
+    </a>
+
     <button type="button" class="tf-nav-icon-btn tf-theme-toggle" id="tf-theme-btn" title="Tungi / kunduzgi rejim" aria-label="Tungi / kunduzgi rejim">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <svg class="tf-icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <circle cx="12" cy="12" r="5"></circle>
         <line x1="12" y1="1" x2="12" y2="3"></line>
         <line x1="12" y1="21" x2="12" y2="23"></line>
@@ -40,8 +58,12 @@
         <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
         <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
       </svg>
+      <svg class="tf-icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+      </svg>
     </button>
 
+    {% if perms.notifications.view_notification %}
     <a href="{% url 'admin:notifications_notification_changelist' %}" class="tf-nav-icon-btn tf-notif-bell" title="Bildirishnomalar" aria-label="Bildirishnomalar">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
@@ -49,6 +71,7 @@
       </svg>
       {% if admin_nav_counts.notifications %}<span class="tf-bell-dot" data-testid="notification-count">{{ admin_nav_counts.notifications }}</span>{% endif %}
     </a>
+    {% endif %}
 
     <div class="tf-user-chip">
       <div class="tf-user-avatar">
@@ -75,6 +98,33 @@
     </div>
   </div>
 </header>
+
+<!-- Ctrl+K Quick Search Modal Backdrop -->
+<div class="tf-search-palette-backdrop" id="tf-palette-backdrop" hidden>
+  <div class="tf-search-palette" role="dialog" aria-modal="true" aria-label="Tezkor qidiruv paneli">
+    <div class="tf-palette-input-wrap">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"></circle>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+      </svg>
+      <input type="search" id="tf-palette-input" placeholder="Nimani qidiryapsiz? (Masalan: Ali, TSK-10, Loyiha)..." autocomplete="off">
+      <button type="button" class="tf-palette-close" id="tf-palette-close" aria-label="Yopish">Esc</button>
+    </div>
+    <div class="tf-palette-results" id="tf-palette-results">
+      <div class="tf-palette-shortcuts">
+        <span class="tf-palette-hint-title">Tezkor o‘tish</span>
+        <div class="tf-palette-quick-grid">
+          <a href="{% url 'admin:accounts_user_changelist' %}" class="tf-palette-chip">👥 Foydalanuvchilar</a>
+          <a href="{% url 'admin:projects_project_changelist' %}" class="tf-palette-chip">▣ Loyihalar</a>
+          <a href="{% url 'admin:tasks_task_changelist' %}" class="tf-palette-chip">✓ Vazifalar</a>
+          <a href="{% url 'admin:orders_order_changelist' %}" class="tf-palette-chip">≡ Buyurtmalar</a>
+          <a href="{% url 'admin:chat_chatmessage_changelist' %}" class="tf-palette-chip">✉ Yozishmalar</a>
+          <a href="{% url 'admin:trash' %}" class="tf-palette-chip">♲ O‘chirilganlar va kesh</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 {% endblock %}
 
 {% block nav-global %}{% endblock %}
@@ -98,6 +148,8 @@
 
       <!-- Navigation Links -->
       <div class="tf-nav-scroll">
+        <!-- ASOSIY -->
+        <p class="tf-section-kicker">ASOSIY</p>
         <a class="tf-sidebar-item{% if request.resolver_match.url_name == 'index' %} is-active{% endif %}" href="{% url 'admin:index' %}">
           <span class="tf-item-icon">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
@@ -105,6 +157,8 @@
           <span class="tf-item-text">Boshqaruv markazi</span>
         </a>
 
+        <!-- FOYDALANUVCHILAR -->
+        <p class="tf-section-kicker">FOYDALANUVCHILAR</p>
         {% if perms.accounts.view_user %}
         <a class="tf-sidebar-item{% if request.resolver_match.url_name == 'accounts_user_changelist' %} is-active{% endif %}" href="{% url 'admin:accounts_user_changelist' %}">
           <span class="tf-item-icon">
@@ -123,6 +177,8 @@
         </a>
         {% endif %}
 
+        <!-- ISH JARAYONI -->
+        <p class="tf-section-kicker">ISH JARAYONI</p>
         {% if perms.projects.view_project %}
         <a class="tf-sidebar-item{% if request.resolver_match.url_name == 'projects_project_changelist' %} is-active{% endif %}" href="{% url 'admin:projects_project_changelist' %}">
           <span class="tf-item-icon">
@@ -141,6 +197,26 @@
         </a>
         {% endif %}
 
+        {% if perms.orders.view_order %}
+        <a class="tf-sidebar-item{% if request.resolver_match.url_name == 'orders_order_changelist' %} is-active{% endif %}" href="{% url 'admin:orders_order_changelist' %}">
+          <span class="tf-item-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+          </span>
+          <span class="tf-item-text">Buyurtmalar</span>
+        </a>
+        {% endif %}
+
+        {% if perms.suggestions.view_suggestion %}
+        <a class="tf-sidebar-item{% if request.resolver_match.url_name == 'suggestions_suggestion_changelist' %} is-active{% endif %}" href="{% url 'admin:suggestions_suggestion_changelist' %}">
+          <span class="tf-item-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+          </span>
+          <span class="tf-item-text">Takliflar</span>
+        </a>
+        {% endif %}
+
+        <!-- ALOQA VA XABARLAR -->
+        <p class="tf-section-kicker">ALOQA VA XABARLAR</p>
         {% if perms.chat.view_chatmessage %}
         <a class="tf-sidebar-item{% if request.resolver_match.url_name == 'chat_chatmessage_changelist' %} is-active{% endif %}" href="{% url 'admin:chat_chatmessage_changelist' %}">
           <span class="tf-item-icon">
@@ -178,9 +254,8 @@
         </a>
         {% endif %}
 
-        <!-- BOSHQA Section -->
+        <!-- BOSHQA -->
         <p class="tf-section-kicker">BOSHQA</p>
-
         {% if perms.portfolio.view_portfolioitem %}
         <a class="tf-sidebar-item{% if request.resolver_match.url_name == 'portfolio_portfolioitem_changelist' %} is-active{% endif %}" href="{% url 'admin:portfolio_portfolioitem_changelist' %}">
           <span class="tf-item-icon">
@@ -201,7 +276,7 @@
 
         <a class="tf-sidebar-item{% if request.resolver_match.url_name == 'trash' %} is-active{% endif %}" href="{% url 'admin:trash' %}">
           <span class="tf-item-icon">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
           </span>
           <span class="tf-item-text">O‘chirilganlar va kesh</span>
         </a>

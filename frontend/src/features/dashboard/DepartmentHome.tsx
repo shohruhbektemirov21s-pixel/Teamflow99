@@ -12,6 +12,7 @@ import type { DepartmentDashboard, Order, OrderBucket, Paged, PeriodKey } from "
 import { Button, Empty, ErrorBox, Skeleton, SkeletonRows } from "@/shared/ui";
 import { Pagination } from "@/shared/ui/Pagination";
 
+import { OnboardingGuide } from "./OnboardingGuide";
 import { PeriodCards } from "./PeriodCards";
 
 const PERIOD_BUCKETS: { key: OrderBucket; label: string; alert?: boolean }[] = [
@@ -33,12 +34,19 @@ interface Selection {
 export default function DepartmentHome() {
   const { open } = useModal();
   const meta = useMeta();
-  const [selected, setSelected] = useState<Selection | null>(null);
+  const [selected, setSelected] = useState<Selection | null>({
+    params: { period: "week", bucket: "sent" },
+    title: T.dashboard.tableTitle("Hafta boshidan", T.dashboard.deptSent),
+  });
   const [page, setPage] = useState(1);
   const status = selected?.params.status ?? "";
   const toggle = (next: Selection) => {
     setPage(1);
-    setSelected((cur) => (cur && JSON.stringify(cur.params) === JSON.stringify(next.params) ? null : next));
+    setSelected((cur) => {
+      const same = cur && JSON.stringify(cur.params) === JSON.stringify(next.params);
+      if (same && next.params.period === "week" && next.params.bucket === "sent") return cur;
+      return same ? null : next;
+    });
   };
   const summary = useQuery({
     queryKey: ["dashboard", "department"],
@@ -63,6 +71,8 @@ export default function DepartmentHome() {
           </Button>
         </div>
       </div>
+
+      <OnboardingGuide onNewOrder={newOrder} />
 
       {summary.error && <ErrorBox error={summary.error} onRetry={() => summary.refetch()} />}
 

@@ -94,6 +94,7 @@ export default function Layout() {
           </span>
           <span className="brand-copy">
             <strong>{T.app}</strong>
+            <span className="brand-tag">// NEO DEV</span>
           </span>
         </Link>
         <nav className="nav" aria-label={T.nav.menu}>
@@ -117,7 +118,10 @@ export default function Layout() {
         </nav>
         <div className="me">
           <Link to="/profil" className="me-link grow">
-            <Avatar user={me} />
+            <div className="me-avatar-wrap">
+              <Avatar user={me} />
+              <span className="status-dot-online" title="Online" />
+            </div>
             <div className="grow me-copy">
               <div className="me-name ellipsis">{me.full_name}</div>
               <div className="me-role ellipsis">{me.department_name || meta.label("roles", me.role)}</div>

@@ -5,110 +5,138 @@
 
 {% block extrastyle %}
   {{ block.super }}
-  <link rel="stylesheet" href="{% static 'admin/teamflow.css' %}">
+  <link rel="stylesheet" href="{% static 'admin/teamflow.css' %}?v=20261023.3">
 {% endblock %}
 
 {% block coltype %}colM{% endblock %}
-{% block bodyclass %}{{ block.super }} change-list{% endblock %}
-
-{% block breadcrumbs %}
-<div class="breadcrumbs">
-  <a href="{% url 'admin:index' %}">Boshqaruv markazi</a>
-  &rsaquo; O‘chirilganlar va keshlar
-</div>
-{% endblock %}
+{% block bodyclass %}{{ block.super }} change-list tf-trash-page{% endblock %}
 
 {% block content %}
-<div class="tf-dashboard">
+<div class="tf-dashboard-container tf-trash-container">
   <!-- Hero Section -->
-  <section class="tf-hero tf-dashboard-toolbar">
-    <div>
-      <p class="tf-eyebrow">Chiqindilar qutisi va keshlar</p>
-      <h1>O‘chirilganlar va keshlar markazi</h1>
-      <p class="tf-muted">Tizimda o‘chirilgan yoki arxivlangan vazifalar, nofaol akkauntlar, o‘chirishlar auditi va kesh boshqaruvi.</p>
+  <section class="tf-dash-hero tf-dashboard-toolbar">
+    <div class="tf-dash-hero-left">
+      <div class="tf-dash-date-pill">
+        <span class="tf-pulse-dot" style="background:#ef4444;"></span>
+        <span class="tf-dash-date-eyebrow">Chiqindilar qutisi va xotira boshqaruvi</span>
+      </div>
+      <h1 class="tf-dash-main-heading">O‘chirilganlar va keshlar markazi</h1>
+      <p class="tf-dash-subtitle">Tizimda o‘chirilgan yoki arxivlangan vazifalar, nofaol akkauntlar, o‘chirishlar auditi va kesh boshqaruvi.</p>
     </div>
+
     <div class="tf-hero-actions">
-      <a class="tf-secondary-button" href="{% url 'admin:index' %}">← Boshqaruv markaziga qaytish</a>
+      <a class="tf-btn-secondary" href="{% url 'admin:index' %}">← Boshqaruv markaziga qaytish</a>
       <form method="post" style="display:inline;">
         {% csrf_token %}
         <input type="hidden" name="action" value="clear_cache">
-        <button type="submit" class="tf-secondary-button" title="Redis va Django keshini tozalash">⚡ Keshni tozalash</button>
+        <button type="submit" class="tf-btn-secondary" title="Redis va Django keshini tozalash">⚡ Keshni tozalash</button>
       </form>
       {% if stats.archived_tasks_count > 0 %}
       <form method="post" style="display:inline;" onsubmit="return confirm('Barcha arxivlangan vazifalarni qayta tiklashni tasdiqlaysizmi?');">
         {% csrf_token %}
         <input type="hidden" name="action" value="restore_all_tasks">
-        <button type="submit" class="tf-primary-button">Barcha vazifalarni tiklash</button>
+        <button type="submit" class="tf-btn-primary">Barcha vazifalarni tiklash</button>
       </form>
       {% endif %}
     </div>
   </section>
 
   <!-- KPI Cards -->
-  <section class="tf-kpi-grid tf-kpi-grid-4" aria-label="O'chirilganlar statistikasi">
-    <div class="tf-kpi tf-kpi-rose">
-      <span class="tf-kpi-icon">🗑</span>
-      <span class="tf-kpi-label">O‘chirilgan vazifalar</span>
-      <strong>{{ stats.archived_tasks_count }}</strong>
-      <small>Arxivlangan va tiklash mumkin</small>
+  <section class="tf-kpi-row" aria-label="O'chirilganlar statistikasi">
+    <div class="tf-stat-card tf-stat-red">
+      <div class="tf-stat-top">
+        <span class="tf-stat-icon-sq tf-sq-red">🗑</span>
+        <span class="tf-stat-trend">Tiklash mumkin</span>
+      </div>
+      <div class="tf-stat-middle">
+        <span class="tf-stat-label">O‘chirilgan vazifalar</span>
+        <strong class="tf-stat-number">{{ stats.archived_tasks_count }}</strong>
+      </div>
+      <small class="tf-stat-note">Arxivlangan vazifalar</small>
     </div>
-    <div class="tf-kpi tf-kpi-amber">
-      <span class="tf-kpi-icon">👤</span>
-      <span class="tf-kpi-label">Nofaol akkauntlar</span>
-      <strong>{{ stats.inactive_users_count }}</strong>
-      <small>Bloklangan yoki tasdiqlanmagan</small>
+
+    <div class="tf-stat-card tf-stat-amber">
+      <div class="tf-stat-top">
+        <span class="tf-stat-icon-sq tf-sq-amber">👤</span>
+        <span class="tf-stat-trend">Nofaol</span>
+      </div>
+      <div class="tf-stat-middle">
+        <span class="tf-stat-label">Nofaol akkauntlar</span>
+        <strong class="tf-stat-number">{{ stats.inactive_users_count }}</strong>
+      </div>
+      <small class="tf-stat-note">Bloklangan yoki tasdiqlanmagan</small>
     </div>
-    <div class="tf-kpi tf-kpi-cyan">
-      <span class="tf-kpi-icon">📋</span>
-      <span class="tf-kpi-label">O‘chirishlar auditi</span>
-      <strong>{{ stats.deletion_logs_count }}</strong>
-      <small>Tizimda qayd etilgan o‘chirishlar</small>
+
+    <div class="tf-stat-card tf-stat-blue">
+      <div class="tf-stat-top">
+        <span class="tf-stat-icon-sq tf-sq-blue">📋</span>
+        <span class="tf-stat-trend">Tizim auditi</span>
+      </div>
+      <div class="tf-stat-middle">
+        <span class="tf-stat-label">O‘chirishlar auditi</span>
+        <strong class="tf-stat-number">{{ stats.deletion_logs_count }}</strong>
+      </div>
+      <small class="tf-stat-note">Qayd etilgan o‘chirishlar</small>
     </div>
-    <div class="tf-kpi tf-kpi-indigo">
-      <span class="tf-kpi-icon">⚡</span>
-      <span class="tf-kpi-label">Kesh va xotira</span>
-      <strong>Faol</strong>
-      <small>Redis / Django sessiya keshi</small>
+
+    <div class="tf-stat-card tf-stat-indigo">
+      <div class="tf-stat-top">
+        <span class="tf-stat-icon-sq tf-sq-indigo">⚡</span>
+        <span class="tf-stat-trend">Faol holat</span>
+      </div>
+      <div class="tf-stat-middle">
+        <span class="tf-stat-label">Kesh va xotira</span>
+        <strong class="tf-stat-number">Faol</strong>
+      </div>
+      <small class="tf-stat-note">Redis / Django sessiya keshi</small>
     </div>
   </section>
 
   <!-- Section 1: O'chirilgan vazifalar -->
-  <section class="tf-panel tf-trash-section">
-    <div class="tf-panel-heading">
+  <section class="tf-card-panel">
+    <div class="tf-card-header">
       <div>
         <p class="tf-eyebrow">Vazifalar arxivi</p>
-        <h2>O‘chirilgan vazifalar ({{ stats.archived_tasks_count }})</h2>
+        <h2 class="tf-card-title">O‘chirilgan vazifalar ({{ stats.archived_tasks_count }})</h2>
+        <p class="tf-card-sub">Arxivlangan vazifalar bu yerda saqlanadi va xohlagan vaqtda bir tugma bilan qayta tiklanadi.</p>
       </div>
-      <a class="tf-panel-link" href="{% url 'admin:tasks_archivedtask_changelist' %}">To‘liq ro‘yxatga o‘tish →</a>
+      <a class="tf-card-link-more" href="{% url 'admin:tasks_archivedtask_changelist' %}">To‘liq ro‘yxatga o‘tish →</a>
     </div>
 
     {% if archived_tasks %}
-      <div class="results" style="overflow-x:auto;">
-        <table class="tf-table" style="width:100%; border-collapse:collapse;">
+      <div class="tf-table-responsive">
+        <table class="tf-table">
           <thead>
-            <tr style="background:#fafbfe; border-bottom:2px solid var(--tf-border); text-align:left;">
-              <th style="padding:10px 12px; font-size:11px;">Kod</th>
-              <th style="padding:10px 12px; font-size:11px;">Vazifa nomi</th>
-              <th style="padding:10px 12px; font-size:11px;">Loyiha</th>
-              <th style="padding:10px 12px; font-size:11px;">Kim tomonidan</th>
-              <th style="padding:10px 12px; font-size:11px;">O‘chirilgan vaqti</th>
-              <th style="padding:10px 12px; font-size:11px; text-align:right;">Amal</th>
+            <tr>
+              <th>Kod</th>
+              <th>Vazifa nomi</th>
+              <th>Loyiha</th>
+              <th>Kim tomonidan</th>
+              <th>O‘chirilgan vaqti</th>
+              <th style="text-align:right;">Amal</th>
             </tr>
           </thead>
           <tbody>
             {% for task in archived_tasks %}
-              <tr style="border-bottom:1px solid #f1f3f6;">
-                <td style="padding:11px 12px; font-weight:700;"><a href="{% url 'admin:tasks_task_change' task.pk %}">{{ task.code }}</a></td>
-                <td style="padding:11px 12px;"><strong>{{ task.title }}</strong></td>
-                <td style="padding:11px 12px;">{{ task.project.name|default:'Loyihasiz' }}</td>
-                <td style="padding:11px 12px; font-size:11px; color:#556;">{{ task.created_by.full_name|default:task.created_by.username }}</td>
-                <td style="padding:11px 12px; font-size:11px; color:#881337;"><span class="tf-badge tf-badge-danger">{{ task.archived_at|date:"d.m.Y H:i" }}</span></td>
-                <td style="padding:11px 12px; text-align:right;">
+              <tr>
+                <td><span class="tf-code-tag">{{ task.code|default:"—" }}</span></td>
+                <td>
+                  <strong>{{ task.title }}</strong>
+                  {% if task.description %}
+                    <br><small class="tf-muted-desc">{{ task.description|truncatechars:60 }}</small>
+                  {% endif %}
+                </td>
+                <td>{{ task.project.name|default:"Loyiha belgilanmagan" }}</td>
+                <td>{{ task.created_by.full_name|default:task.created_by.username }}</td>
+                <td><time>{{ task.archived_at|date:"d.m.Y H:i" }}</time></td>
+                <td style="text-align:right;">
                   <form method="post" style="display:inline;">
                     {% csrf_token %}
                     <input type="hidden" name="action" value="restore_task">
                     <input type="hidden" name="task_id" value="{{ task.pk }}">
-                    <button type="submit" class="tf-badge tf-badge-success" style="cursor:pointer; border:0; padding:5px 10px;">Qayta tiklash</button>
+                    <button type="submit" class="tf-btn-sm-primary" title="Vazifani qayta tiklash">
+                      <span>↺</span> Qayta tiklash
+                    </button>
                   </form>
                 </td>
               </tr>
@@ -117,47 +145,54 @@
         </table>
       </div>
     {% else %}
-      <p class="tf-empty-state">Hozircha tizimda o‘chirilgan vazifalar yo‘q. Barcha vazifalar faol holatda.</p>
+      <div class="tf-empty-state">
+        <strong>O‘chirilgan vazifalar yo‘q</strong>
+        <p>Barcha vazifalar faol holatda yoki hali hech qanday vazifa arxivlanmagan.</p>
+      </div>
     {% endif %}
   </section>
 
-  <!-- Section 2: Nofaol foydalanuvchilar -->
-  <section class="tf-panel tf-trash-section" style="margin-top:22px;">
-    <div class="tf-panel-heading">
+  <!-- Section 2: Nofaol yoki tasdiqlanmagan foydalanuvchilar -->
+  <section class="tf-card-panel">
+    <div class="tf-card-header">
       <div>
         <p class="tf-eyebrow">Akkauntlar nazorati</p>
-        <h2>Nofaol / Bloklangan akkauntlar ({{ stats.inactive_users_count }})</h2>
+        <h2 class="tf-card-title">Tasdiqlanmagan / Nofaol foydalanuvchilar ({{ stats.inactive_users_count }})</h2>
+        <p class="tf-card-sub">Ro‘yxatdan o‘tgan ammo admin tomonidan tasdiqlanmagan yoki bloklangan xodimlar.</p>
       </div>
-      <a class="tf-panel-link" href="{% url 'admin:accounts_user_changelist' %}?is_active__exact=0">Akkauntlar bo‘limiga o‘tish →</a>
+      <a class="tf-card-link-more" href="{% url 'admin:accounts_user_changelist' %}?is_active__exact=0">Akkauntlar ro‘yxati →</a>
     </div>
 
     {% if inactive_users %}
-      <div class="results" style="overflow-x:auto;">
-        <table class="tf-table" style="width:100%; border-collapse:collapse;">
+      <div class="tf-table-responsive">
+        <table class="tf-table">
           <thead>
-            <tr style="background:#fafbfe; border-bottom:2px solid var(--tf-border); text-align:left;">
-              <th style="padding:10px 12px; font-size:11px;">Foydalanuvchi</th>
-              <th style="padding:10px 12px; font-size:11px;">Login</th>
-              <th style="padding:10px 12px; font-size:11px;">Rol</th>
-              <th style="padding:10px 12px; font-size:11px;">Bo‘lim</th>
-              <th style="padding:10px 12px; font-size:11px;">Ro‘yxatdan o‘tgan sana</th>
-              <th style="padding:10px 12px; font-size:11px; text-align:right;">Amal</th>
+            <tr>
+              <th>Foydalanuvchi</th>
+              <th>Login</th>
+              <th>Rol</th>
+              <th>Ro‘yxatdan o‘tgan sana</th>
+              <th style="text-align:right;">Amal</th>
             </tr>
           </thead>
           <tbody>
             {% for u in inactive_users %}
-              <tr style="border-bottom:1px solid #f1f3f6;">
-                <td style="padding:11px 12px; font-weight:700;"><a href="{% url 'admin:accounts_user_change' u.pk %}">{{ u.full_name }}</a></td>
-                <td style="padding:11px 12px; font-family:monospace;">@{{ u.username }}</td>
-                <td style="padding:11px 12px;"><span class="tf-badge tf-badge-info">{{ u.get_role_display }}</span></td>
-                <td style="padding:11px 12px;">{{ u.department_name|default:'-' }}</td>
-                <td style="padding:11px 12px; font-size:11px; color:#556;">{{ u.date_joined|date:"d.m.Y H:i" }}</td>
-                <td style="padding:11px 12px; text-align:right;">
+              <tr>
+                <td>
+                  <strong>{{ u.full_name }}</strong>
+                  {% if u.email %}<br><small class="tf-muted-desc">{{ u.email }}</small>{% endif %}
+                </td>
+                <td><code>@{{ u.username }}</code></td>
+                <td><span class="tf-pill-badge">{{ u.get_role_display|default:u.role }}</span></td>
+                <td><time>{{ u.date_joined|date:"d.m.Y H:i" }}</time></td>
+                <td style="text-align:right;">
                   <form method="post" style="display:inline;">
                     {% csrf_token %}
                     <input type="hidden" name="action" value="activate_user">
                     <input type="hidden" name="user_id" value="{{ u.pk }}">
-                    <button type="submit" class="tf-badge tf-badge-success" style="cursor:pointer; border:0; padding:5px 10px;">Faollashtirish</button>
+                    <button type="submit" class="tf-btn-sm-primary" style="background:#10b981;">
+                      <span>✓</span> Faollashtirish
+                    </button>
                   </form>
                 </td>
               </tr>
@@ -166,63 +201,52 @@
         </table>
       </div>
     {% else %}
-      <p class="tf-empty-state">Hozircha tasdiqlanmagan yoki bloklangan nofaol akkauntlar yo‘q.</p>
+      <div class="tf-empty-state">
+        <strong>Tasdiqlash kutilayotgan akkauntlar yo‘q</strong>
+        <p>Barcha xodimlar allaqachon faollashtirilgan.</p>
+      </div>
     {% endif %}
   </section>
 
-  <!-- Section 3 & 4: Audit jurnallari -->
-  <div class="tf-dashboard-columns" style="margin-top:22px;">
-    <!-- Tizimda o'chirishlar tarixi -->
-    <section class="tf-panel">
-      <div class="tf-panel-heading">
-        <div>
-          <p class="tf-eyebrow">Audit</p>
-          <h2>Tizimda o‘chirishlar auditi</h2>
-        </div>
+  <!-- Section 3: O'chirishlar audit tarixi -->
+  <section class="tf-card-panel">
+    <div class="tf-card-header">
+      <div>
+        <p class="tf-eyebrow">Xavfsizlik & Audit</p>
+        <h2 class="tf-card-title">O‘chirish va arxivlash harakatlari jurnali</h2>
+        <p class="tf-card-sub">Tizimda kim, qachon va qaysi yozuvni o‘chirganligi to‘liq saqlanadi.</p>
       </div>
-      {% if deletion_logs %}
-        <div class="tf-deletion-feed">
-          {% for del in deletion_logs %}
-            <div class="tf-deletion-row">
-              <span class="tf-status-dot tf-dot-danger"></span>
-              <div class="tf-deletion-body">
-                <strong>{{ del.message }}</strong>
-                <small>{{ del.actor.full_name|default:'Tizim' }} · {{ del.created_at|date:"d.m.Y H:i" }}</small>
-              </div>
-              <span class="tf-badge tf-badge-danger">O‘chirish</span>
-            </div>
-          {% endfor %}
-        </div>
-      {% else %}
-        <p class="tf-empty-state">O‘chirish amallari tarixi bo‘sh.</p>
-      {% endif %}
-    </section>
+      <a class="tf-card-link-more" href="{% url 'admin:core_activitylog_changelist' %}">To‘liq jurnal →</a>
+    </div>
 
-    <!-- Admin amallari jurnali -->
-    <section class="tf-panel">
-      <div class="tf-panel-heading">
-        <div>
-          <p class="tf-eyebrow">Admin Log</p>
-          <h2>Admin orqali o‘chirilganlar</h2>
-        </div>
+    {% if deletion_logs %}
+      <div class="tf-table-responsive">
+        <table class="tf-table">
+          <thead>
+            <tr>
+              <th>Vaqt</th>
+              <th>Xodim</th>
+              <th>Amal turi</th>
+              <th>Batafsil ma’lumot</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for log in deletion_logs %}
+              <tr>
+                <td><time>{{ log.created_at|date:"d.m.Y H:i" }}</time></td>
+                <td><strong>{{ log.actor.full_name|default:"Tizim" }}</strong></td>
+                <td><span class="tf-pill-badge" style="background:rgba(239,68,68,0.1); color:#ef4444;">{{ log.verb }}</span></td>
+                <td>{{ log.message }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
       </div>
-      {% if admin_deletions %}
-        <div class="tf-deletion-feed">
-          {% for entry in admin_deletions %}
-            <div class="tf-deletion-row">
-              <span class="tf-status-dot tf-dot-rose"></span>
-              <div class="tf-deletion-body">
-                <strong>{{ entry.object_repr }}</strong>
-                <small>{{ entry.user.full_name|default:entry.user.username }} · {{ entry.content_type.name }} · {{ entry.action_time|date:"d.m.Y H:i" }}</small>
-              </div>
-              <span class="tf-badge tf-badge-danger">Admin delete</span>
-            </div>
-          {% endfor %}
-        </div>
-      {% else %}
-        <p class="tf-empty-state">Admin orqali o‘chirilgan yozuvlar yo‘q.</p>
-      {% endif %}
-    </section>
-  </div>
+    {% else %}
+      <div class="tf-empty-state">
+        <strong>O‘chirishlar qaydi topilmadi</strong>
+      </div>
+    {% endif %}
+  </section>
 </div>
 {% endblock %}

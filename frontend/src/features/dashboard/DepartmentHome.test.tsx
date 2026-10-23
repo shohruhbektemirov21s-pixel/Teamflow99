@@ -36,8 +36,8 @@ describe("DepartmentHome", () => {
     testUser.current = DEPT;
     mockGet({
       "/dashboard/": { orders: { submitted: 51, rejected: 0, approved: 0 }, periods: PERIODS },
-      "/orders/": { count: 51, next: "/api/orders/?page=2", previous: null, results: [order(1, "Birinchi buyurtma", "submitted")] },
-      "/orders/?page=2": { count: 51, next: null, previous: "/api/orders/", results: [order(51, "Ellik birinchi buyurtma", "submitted")] },
+      "/orders/?period=week&bucket=sent": { count: 51, next: "/api/orders/?page=2", previous: null, results: [order(1, "Birinchi buyurtma", "submitted")] },
+      "/orders/?period=week&bucket=sent&page=2": { count: 51, next: null, previous: "/api/orders/", results: [order(51, "Ellik birinchi buyurtma", "submitted")] },
     });
     renderApp(<DepartmentHome />);
 
@@ -49,7 +49,7 @@ describe("DepartmentHome", () => {
     testUser.current = DEPT;
     mockGet({
       "/dashboard/": { orders: { submitted: 1, rejected: 1, approved: 2 }, periods: PERIODS },
-      "/orders/": { count: 2, next: null, previous: null, results: [order(1, "Kadrlar tizimi", "submitted"), order(2, "Hujjat aylanishi", "rejected")] },
+      "/orders/?period=week&bucket=sent": { count: 2, next: null, previous: null, results: [order(1, "Kadrlar tizimi", "submitted"), order(2, "Hujjat aylanishi", "rejected")] },
       "/orders/?status=approved%2Cproject_created": EMPTY,
     });
     renderApp(<DepartmentHome />);
@@ -72,7 +72,7 @@ describe("DepartmentHome", () => {
     testUser.current = DEPT;
     mockGet({
       "/dashboard/": { orders: { submitted: 1, rejected: 1, approved: 2 }, periods: PERIODS },
-      "/orders/": EMPTY,
+      "/orders/?period=week&bucket=sent": EMPTY,
       "/orders/?period=week&bucket=rejected": { count: 1, next: null, previous: null, results: [order(3, "Haftalik rad", "rejected")] },
     });
     renderApp(<DepartmentHome />);
@@ -80,6 +80,8 @@ describe("DepartmentHome", () => {
     expect(await screen.findByText("Yil boshidan")).toBeTruthy();
     expect(screen.getByText("Oy boshidan")).toBeTruthy();
     const week = screen.getByText("Hafta boshidan").closest(".period") as HTMLElement;
+    const sent = Array.from(week.querySelectorAll("button")).find((b) => b.textContent?.includes(T.dashboard.deptSent))!;
+    expect(sent.getAttribute("aria-pressed")).toBe("true");
     const rejected = Array.from(week.querySelectorAll("button")).find((b) => b.textContent?.includes(T.dashboard.deptRejected))!;
     fireEvent.click(rejected);
 

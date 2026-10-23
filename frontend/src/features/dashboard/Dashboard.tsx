@@ -12,6 +12,7 @@ import { T } from "@/shared/text";
 import type { Bucket, Dashboard as DashboardData, Paged, PeriodKey, Task } from "@/shared/types";
 import { AnimatedNumber, Button, ErrorBox } from "@/shared/ui";
 import { Pagination } from "@/shared/ui/Pagination";
+import { OnboardingGuide } from "./OnboardingGuide";
 
 interface Selection {
   bucket: Bucket;
@@ -31,7 +32,12 @@ export default function Dashboard() {
   const year = d?.periods?.find((period) => period.key === "year");
 
   const pick = (s: Selection) =>
-    setSelected((cur) => (cur && cur.bucket === s.bucket && cur.period === s.period ? null : s));
+    setSelected((cur) => {
+      // "Shu hafta" dashboard ochilganda asosiy tanlov bo'lib qoladi.
+      // Jadvalni yopish kerak bo'lsa, pastdagi alohida "Yopish" tugmasi ishlatiladi.
+      if (s.bucket === "active" && s.period === "week" && cur?.bucket === s.bucket && cur.period === s.period) return cur;
+      return cur && cur.bucket === s.bucket && cur.period === s.period ? null : s;
+    });
   const isOn = (bucket: Bucket, period?: PeriodKey) => selected?.bucket === bucket && selected?.period === period;
 
   return (
@@ -63,6 +69,8 @@ export default function Dashboard() {
           )}
         </div>
       </div>
+
+      <OnboardingGuide />
 
       {dash.error && <ErrorBox error={dash.error} onRetry={() => dash.refetch()} />}
 

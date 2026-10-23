@@ -34,7 +34,7 @@ Jamoa ishini boshqarish tizimi. Boshqarmalar buyurtma (TZ) yuboradi, loyiha mene
 | Backend | Python + Django + Django REST Framework |
 | Ma'lumotlar bazasi | Mahalliy SQLite; production PostgreSQL |
 | Production | Gunicorn + Nginx, Redis sessiya keshi, alohida Telegram outbox worker |
-| Admin panel | Django admin (alohida admin panel yozilmaydi) |
+| Admin panel | Django admin (zamonaviy dark-navy TeamFlow boshqaruv markazi, chap navigatsiya paneli, 6 ta KPI kartasi, SVG analitika grafigi, tezkor amallar, kesh va chiqindilar markazi) |
 | Frontend | React + TypeScript (Vite). Node faqat ishlab chiqishda kerak |
 | Word (.docx) ko'rish | Brauzerda, modal ichida (`docx-preview`) |
 | Autentifikatsiya | Cookie / Session (DRF standart) + CSRF |
@@ -541,6 +541,7 @@ docs/       ARCHITECTURE.md, FLOWS_MODALS.md
 Auditoriya **18–40 yosh**. Interfeys ko'rgan zahoti tushunarli, o'qitish kerak emas:
 - qisqa va oddiy o'zbekcha so'zlar, texnik atama yo'q;
 - har ekranda bitta asosiy amal, ikonka doim matn bilan;
+- **1 daqiqada moslashish (Onboarding & Landing):** Tizimga birinchi marta kelgan foydalanuvchi Landing sahifasida jonli Kanban maketi (`📋 Nazoratda`, `⚡ Jarayonda`, `🔍 Tekshiruvda`, `✅ Bajarildi`), 3 qadamli vizual oqim va rollar kommutatori orqali ish tartibini ko'radi. Tizimga kirgach esa Bosh panelda o'z roliga mos 3 ta boshlang'ich harakat yo'riqnomasi (`OnboardingGuide`) orqali darhol moslashadi;
 - tanish naqshlar: doska, sudrab o'tkazish, qidiruv;
 - bo'sh holatda keyingi qadam tushuntiriladi, xatoda nima qilish kerakligi yoziladi;
 - muddat rang va matn bilan ("5 kun qoldi"), bo'sh maydonlar yashiriladi;

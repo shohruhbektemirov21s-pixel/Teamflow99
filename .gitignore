@@ -18,5 +18,6 @@ backend/staticfiles/
 
 .playwright-mcp/
 *.tsbuildinfo
+**/scratch/
 
 backend/db.sqlite3.bak-*
