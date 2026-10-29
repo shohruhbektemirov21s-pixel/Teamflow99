@@ -5,11 +5,13 @@ from django.shortcuts import redirect
 from django.urls import path
 from django.utils.html import format_html
 
+from apps.core.recovery import RecoverableDeleteMixin
+
 from .models import ResponsibleProject, ResponsibleProjectNews, Role, Specialty, User
 
 
 @admin.register(Specialty)
-class SpecialtyAdmin(admin.ModelAdmin):
+class SpecialtyAdmin(RecoverableDeleteMixin, admin.ModelAdmin):
     list_display = ("name", "is_active")
     list_filter = ("is_active",)
     search_fields = ("name",)
@@ -36,7 +38,7 @@ class ResponsibleProjectNewsInline(admin.TabularInline):
 
 
 @admin.register(ResponsibleProject)
-class ResponsibleProjectAdmin(admin.ModelAdmin):
+class ResponsibleProjectAdmin(RecoverableDeleteMixin, admin.ModelAdmin):
     list_display = ("name", "employee", "created_by", "created_at", "updated_at")
     list_filter = ("created_at",)
     search_fields = ("name", "employee__username", "employee__first_name", "employee__last_name")
@@ -44,7 +46,7 @@ class ResponsibleProjectAdmin(admin.ModelAdmin):
 
 
 @admin.register(ResponsibleProjectNews)
-class ResponsibleProjectNewsAdmin(admin.ModelAdmin):
+class ResponsibleProjectNewsAdmin(RecoverableDeleteMixin, admin.ModelAdmin):
     list_display = ("project", "author", "short_text", "created_at")
     list_filter = ("created_at",)
     search_fields = ("text", "project__name", "author__username")
@@ -79,7 +81,7 @@ class CustomUserCreationForm(AdminUserCreationForm):
 
 
 @admin.register(User)
-class UserAdmin(DjangoUserAdmin):
+class UserAdmin(RecoverableDeleteMixin, DjangoUserAdmin):
     add_form = CustomUserCreationForm
     list_display = (
         "username",

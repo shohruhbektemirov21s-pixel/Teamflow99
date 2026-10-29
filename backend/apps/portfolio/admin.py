@@ -1,6 +1,7 @@
 from django.contrib import admin
 
 from .models import Follow, PortfolioAttachment, PortfolioComment, PortfolioItem, PortfolioReview, PortfolioVideo
+from apps.core.recovery import RecoverableDeleteMixin
 
 
 class PortfolioVideoInline(admin.TabularInline):
@@ -14,7 +15,7 @@ class PortfolioAttachmentInline(admin.TabularInline):
 
 
 @admin.register(PortfolioItem)
-class PortfolioItemAdmin(admin.ModelAdmin):
+class PortfolioItemAdmin(RecoverableDeleteMixin, admin.ModelAdmin):
     list_display = ["__str__", "owner", "project", "created_at"]
     list_select_related = ["owner", "project"]
     search_fields = ["title", "project__name", "owner__first_name", "owner__last_name"]
@@ -23,33 +24,33 @@ class PortfolioItemAdmin(admin.ModelAdmin):
 
 
 @admin.register(PortfolioReview)
-class PortfolioReviewAdmin(admin.ModelAdmin):
+class PortfolioReviewAdmin(RecoverableDeleteMixin, admin.ModelAdmin):
     list_display = ["item", "author", "stars", "updated_at"]
     list_filter = ["stars"]
     raw_id_fields = ["item", "author"]
 
 
 @admin.register(PortfolioComment)
-class PortfolioCommentAdmin(admin.ModelAdmin):
+class PortfolioCommentAdmin(RecoverableDeleteMixin, admin.ModelAdmin):
     list_display = ["item", "author", "created_at"]
     raw_id_fields = ["item", "author"]
 
 
 @admin.register(Follow)
-class FollowAdmin(admin.ModelAdmin):
+class FollowAdmin(RecoverableDeleteMixin, admin.ModelAdmin):
     list_display = ["follower", "developer", "created_at"]
     raw_id_fields = ["follower", "developer"]
 
 
 @admin.register(PortfolioVideo)
-class PortfolioVideoAdmin(admin.ModelAdmin):
+class PortfolioVideoAdmin(RecoverableDeleteMixin, admin.ModelAdmin):
     list_display = ["item", "original_name", "created_at"]
     search_fields = ["original_name", "item__title"]
     readonly_fields = ["created_at"]
 
 
 @admin.register(PortfolioAttachment)
-class PortfolioAttachmentAdmin(admin.ModelAdmin):
+class PortfolioAttachmentAdmin(RecoverableDeleteMixin, admin.ModelAdmin):
     list_display = ["item", "original_name", "created_at"]
     search_fields = ["original_name", "item__title"]
     readonly_fields = ["created_at"]

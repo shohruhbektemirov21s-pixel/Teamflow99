@@ -150,7 +150,7 @@ export default function PeoplePage() {
               <Calendar size={22} />
             </div>
             <div className="people-stat-content">
-              <span className="people-stat-label">Jarayondagi vazifalar</span>
+              <span className="people-stat-label">Jarayondagi topshiriqlar</span>
               <div className="people-stat-value-row">
                 <span className="people-stat-value">
                   {statsQuery.isLoading ? <Skeleton w={36} h={28} /> : <AnimatedNumber value={stats?.in_progress_tasks ?? 0} />}
@@ -175,7 +175,7 @@ export default function PeoplePage() {
               <Clock size={22} />
             </div>
             <div className="people-stat-content">
-              <span className="people-stat-label">Kechikkan vazifalar</span>
+              <span className="people-stat-label">Kechikkan topshiriqlar</span>
               <div className="people-stat-value-row">
                 <span className="people-stat-value text-danger">
                   {statsQuery.isLoading ? <Skeleton w={36} h={28} /> : <AnimatedNumber value={stats?.overdue_tasks ?? 0} />}
@@ -284,12 +284,12 @@ export default function PeoplePage() {
                 if (val === "free") setOnlyFree(true);
                 else setOnlyFree(false);
               }}
-              aria-label="Vazifa holati bo'yicha filtr"
+              aria-label="Topshiriq holati bo'yicha filtr"
             >
               <option value="all">Barcha holatlar</option>
               <option value="free">Bo'sh xodimlar</option>
               <option value="busy">Faol ishlayotganlar</option>
-              <option value="overdue">Kechikkan vazifasi borlar</option>
+              <option value="overdue">Kechikkan topshirig'i borlar</option>
             </select>
             <ChevronDown size={14} className="people-pill-chevron" />
           </div>

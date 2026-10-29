@@ -12,6 +12,7 @@ from .models import (
     TaskFile,
     WorkLog,
 )
+from apps.core.recovery import RecoverableDeleteMixin
 
 
 class TaskArchiveStatusFilter(admin.SimpleListFilter):
@@ -20,8 +21,8 @@ class TaskArchiveStatusFilter(admin.SimpleListFilter):
 
     def lookups(self, request, model_admin):
         return (
-            ("active", "Faqat faol vazifalar"),
-            ("archived", "O'chirilgan (arxivlangan) vazifalar"),
+            ("active", "Faqat faol topshiriqlar"),
+            ("archived", "O'chirilgan (arxivlangan) topshiriqlar"),
         )
 
     def queryset(self, request, queryset):
@@ -33,17 +34,17 @@ class TaskArchiveStatusFilter(admin.SimpleListFilter):
         return queryset
 
 
-@admin.action(description="Tanlangan vazifalarni qayta tiklash (arxivdan chiqarish)")
+@admin.action(description="Tanlangan topshiriqlarni qayta tiklash (arxivdan chiqarish)")
 def restore_selected_tasks(modeladmin, request, queryset):
     count = queryset.filter(archived_at__isnull=False).update(archived_at=None)
-    modeladmin.message_user(request, f"{count} ta vazifa qayta tiklandi (arxivdan chiqarildi).")
+    modeladmin.message_user(request, f"{count} ta topshiriq qayta tiklandi (arxivdan chiqarildi).")
 
 
-@admin.action(description="Tanlangan vazifalarni arxivlash (o'chirish)")
+@admin.action(description="Tanlangan topshiriqlarni arxivlash (o'chirish)")
 def archive_selected_tasks(modeladmin, request, queryset):
     now = timezone.now()
     count = queryset.filter(archived_at__isnull=True).update(archived_at=now)
-    modeladmin.message_user(request, f"{count} ta vazifa arxivlandi (o'chirildi).")
+    modeladmin.message_user(request, f"{count} ta topshiriq arxivlandi (o'chirildi).")
 
 
 class TaskAssignmentInline(admin.TabularInline):
@@ -72,7 +73,7 @@ class WorkLogInline(admin.TabularInline):
 
 
 @admin.register(Task)
-class TaskAdmin(admin.ModelAdmin):
+class TaskAdmin(RecoverableDeleteMixin, admin.ModelAdmin):
     list_display = (
         "code",
         "title",
@@ -104,7 +105,7 @@ class TaskAdmin(admin.ModelAdmin):
 
 
 @admin.register(ArchivedTask)
-class ArchivedTaskAdmin(admin.ModelAdmin):
+class ArchivedTaskAdmin(RecoverableDeleteMixin, admin.ModelAdmin):
     list_display = ("code", "title", "project", "status", "priority", "archived_at_display", "created_by")
     list_filter = ("status", "priority", "project")
     search_fields = ("code", "title", "project__name")
@@ -128,21 +129,21 @@ class ArchivedTaskAdmin(admin.ModelAdmin):
 
 
 @admin.register(SubTask)
-class SubTaskAdmin(admin.ModelAdmin):
+class SubTaskAdmin(RecoverableDeleteMixin, admin.ModelAdmin):
     list_display = ("title", "task", "is_done", "position")
     list_filter = ("is_done",)
     search_fields = ("title", "task__title", "task__code")
 
 
 @admin.register(TaskAssignment)
-class TaskAssignmentAdmin(admin.ModelAdmin):
+class TaskAssignmentAdmin(RecoverableDeleteMixin, admin.ModelAdmin):
     list_display = ("task", "developer", "assigned_at")
     list_filter = ("assigned_at",)
     search_fields = ("task__title", "task__code", "developer__username", "developer__first_name")
 
 
 @admin.register(TaskFile)
-class TaskFileAdmin(admin.ModelAdmin):
+class TaskFileAdmin(RecoverableDeleteMixin, admin.ModelAdmin):
     list_display = ("original_name", "task", "uploaded_by", "created_at")
     list_filter = ("created_at",)
     search_fields = ("original_name", "task__title", "task__code", "uploaded_by__username")
@@ -155,7 +156,7 @@ class SubmissionFileInline(admin.TabularInline):
 
 
 @admin.register(Submission)
-class SubmissionAdmin(admin.ModelAdmin):
+class SubmissionAdmin(RecoverableDeleteMixin, admin.ModelAdmin):
     list_display = ("task", "round", "submitted_by", "decision", "submitted_at")
     list_filter = ("decision",)
     search_fields = ("task__title", "task__code", "submitted_by__username")
@@ -163,13 +164,13 @@ class SubmissionAdmin(admin.ModelAdmin):
 
 
 @admin.register(SubmissionFile)
-class SubmissionFileAdmin(admin.ModelAdmin):
+class SubmissionFileAdmin(RecoverableDeleteMixin, admin.ModelAdmin):
     list_display = ("original_name", "submission")
     search_fields = ("original_name", "submission__task__title")
 
 
 @admin.register(WorkLog)
-class WorkLogAdmin(admin.ModelAdmin):
+class WorkLogAdmin(RecoverableDeleteMixin, admin.ModelAdmin):
     list_display = ("task", "author", "work_date", "hours", "short_note", "created_at")
     list_filter = ("work_date", "author")
     search_fields = (

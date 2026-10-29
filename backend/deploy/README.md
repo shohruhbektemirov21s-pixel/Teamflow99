@@ -10,7 +10,7 @@ Copy `.env.example` to a private `.env`, replace both secrets, and keep it out o
 docker compose --env-file backend/deploy/.env -p teamflow-prod -f backend/deploy/compose.yml build app
 docker compose --env-file backend/deploy/.env -p teamflow-prod -f backend/deploy/compose.yml up -d db redis
 docker compose --env-file backend/deploy/.env -p teamflow-prod -f backend/deploy/compose.yml run --rm --no-deps app python manage.py migrate --noinput
-docker compose --env-file backend/deploy/.env -p teamflow-prod -f backend/deploy/compose.yml run --rm --no-deps app python manage.py collectstatic --noinput
+docker compose --env-file backend/deploy/.env -p teamflow-prod -f backend/deploy/compose.yml run --rm --no-deps app python manage.py collectstatic --noinput --clear
 docker compose --env-file backend/deploy/.env -p teamflow-prod -f backend/deploy/compose.yml run --rm --no-deps app python manage.py check --deploy
 docker compose --env-file backend/deploy/.env -p teamflow-prod -f backend/deploy/compose.yml up -d app proxy
 ```

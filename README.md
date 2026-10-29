@@ -128,7 +128,7 @@ Qoidalar:
 
 **Loyiha yaratish oynasi (3 qadam):** Asosiy → Jamoa → Vazifalar va fayllar. Buyurtmadan yaratilsa, 1-qadam oldindan to'ldirilgan.
 - 1-qadamda (**Asosiy**) **loyiha raqami** maydoni bor — foydalanuvchi qo'lda kiritadi, bo'sh qoldirib bo'lmaydi, boshqa loyihada xuddi shu raqam bo'lsa xatolik chiqib saqlanmaydi.
-- 3-qadamda **loyiha fayllari** va **har bir xodimga alohida vazifalar** beriladi. Har bir tanlangan xodim uchun alohida blok va "Vazifa qo'shish" tugmasi bor: vazifa nomi, **boshlanish** va **tugash vaqti**, **vazifa fayllari**. Tugash vaqti boshlanishdan oldin bo'lsa, yaratib bo'lmaydi.
+- 3-qadamda **loyiha fayllari** va **har bir xodimga alohida topshiriqlar** beriladi. Har bir tanlangan xodim uchun alohida blok va "Topshiriq qo'shish" tugmasi bor: topshiriq mazmuni, **boshlanish** va **tugash vaqti**, **topshiriq fayllari**. Tugash vaqti boshlanishdan oldin bo'lsa, yaratib bo'lmaydi.
 - Loyiha, jamoa va vazifalar bitta so'rovda (`POST /api/projects/setup/`) bitta tranzaksiyada yaratiladi. Biror vazifada xato bo'lsa, hech narsa saqlanmaydi (chala loyiha qolmaydi).
 
 **Loyiha oynasi — Jamoa bo'limi:**
@@ -245,7 +245,7 @@ Menyu guruhlarga bo'lingan: *Asosiy ish* | *Muloqot* | *Kuzatuv* (Kuzatuv faqat 
 - **Xodim kartalari va jadval (2026-10-14):**
   - Chap taraf: dumaloq avatar, xodimning to'liq ismi, lavozimi, bo'limi, online/xizmat safari indikatori.
   - O'rta qism: faol va kechikkan vazifalar soni, bandlik darajasi (kichik dumaloq progress indikatori).
-  - Pastki qism: 36–42px ixcham vazifalar ro'yxati (vazifa nomi, loyiha kodi va nomi, holat, muddat; **bajarilgan vazifalar bu sahifada ko'rsatilmaydi**; dastlab 3 tasi ko'rinadi, qolgani uchun "Yana N ta" havolasi).
+  - Pastki qism: 36–42px ixcham topshiriqlar ro'yxati (topshiriq mazmuni, loyiha kodi va nomi, holat, muddat; **bajarilgan topshiriqlar bu sahifada ko'rsatilmaydi**; dastlab 3 tasi ko'rinadi, qolgani uchun "Yana N ta" havolasi).
   - O'ng taraf: "Profil", "+ Vazifa berish" va uch nuqtali qo'shimcha menyu (profil, vazifa biriktirish, xabarlar/chat, portfolio).
 - Bo'sh (vazifasi yo'q yoki yuklamasi kam) xodimga to'g'ridan-to'g'ri vazifa berish tugmasi.
 - Vazifa topshiriqlarga ajratilib, ularga boshqa xodimlar biriktiriladi.

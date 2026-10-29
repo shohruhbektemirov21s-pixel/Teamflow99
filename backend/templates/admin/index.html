@@ -1,5 +1,5 @@
 {% extends "admin/base_site.html" %}
-{% load i18n %}
+{% load i18n l10n %}
 
 {% block title %}Boshqaruv markazi | {{ site_title|default:_('TeamFlow') }}{% endblock %}
 {% block coltype %}colM{% endblock %}
@@ -9,54 +9,603 @@
 
 {% block content %}
 <div class="tf-dashboard-container tf-simple-panel" data-testid="admin-dashboard">
+
+  <!-- 1. HERO BANNER -->
   <section class="tf-dash-hero tf-dashboard-toolbar" data-testid="admin-simple-panel">
     <div class="tf-dash-hero-left">
-      <span class="tf-status-line"><i></i> LIVE OPERATIONS · {{ admin_metrics.formatted_date }}</span>
-      <h1>Boshqaruv markazi</h1>
-      <p>TeamFlow ish jarayonlarini, jamoani va tizim signalini bir oynada boshqaring.</p>
+      <div class="tf-hero-date-line">
+        <span class="tf-hero-date-text">{{ admin_metrics.formatted_date }}</span>
+      </div>
+      <h1 class="tf-hero-h1">Boshqaruv markazi</h1>
+      <p class="tf-hero-sub">TeamFlow tizimidagi jarayonlar, yozishmalar va o‘chirilgan ma’lumotlarni bir joydan boshqaring.</p>
     </div>
-    <div class="tf-hero-actions">
-      {% if perms.accounts.add_user %}<a class="tf-btn-primary" href="{% url 'admin:accounts_user_add' %}"><span>+</span> Foydalanuvchi / Boshliq yaratish</a>{% endif %}
-      <a class="tf-btn-secondary" href="/" target="_blank" rel="noopener noreferrer">Ilovani ko'rish ↗</a>
+
+    <div class="tf-dash-hero-right">
+      <div class="tf-hero-floating-card">
+        <div class="tf-hero-card-art">
+          <svg width="84" height="60" viewBox="0 0 84 60" fill="none" class="tf-hero-illus">
+            <rect x="6" y="8" width="56" height="38" rx="7" fill="url(#hero-laptop-screen)" stroke="#3b82f6" stroke-width="1.8"/>
+            <path d="M2 46H66C68.2 46 70 47.8 70 50V52H0V50C0 47.8 1.8 46 2 46Z" fill="#1e293b"/>
+            <rect x="36" y="22" width="42" height="26" rx="5" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5" filter="drop-shadow(0 4px 10px rgba(0,0,0,0.12))"/>
+            <rect x="42" y="27" width="16" height="3" rx="1.5" fill="#3b82f6"/>
+            <rect x="42" y="33" width="28" height="2.5" rx="1" fill="#cbd5e1"/>
+            <rect x="42" y="38" width="22" height="2.5" rx="1" fill="#e2e8f0"/>
+            <defs>
+              <linearGradient id="hero-laptop-screen" x1="6" y1="8" x2="62" y2="46" gradientUnits="userSpaceOnUse">
+                <stop stop-color="#eff6ff"/>
+                <stop offset="1" stop-color="#dbeafe"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        <div class="tf-hero-card-copy">
+          <strong>Xush kelibsiz, {{ request.user.first_name|default:request.user.username|capfirst }}!</strong>
+          <small>Tizim samaradorligini birgalikda oshiramiz.</small>
+        </div>
+      </div>
+
+      <div class="tf-hero-actions">
+        {% if perms.accounts.add_user %}
+        <a class="tf-btn-hero-primary" href="{% url 'admin:accounts_user_add' %}">
+          <span class="tf-plus-circle">+</span>
+          <span>Yangi foydalanuvchi</span>
+        </a>
+        {% endif %}
+        <a class="tf-btn-hero-secondary" href="/" target="_blank" rel="noopener noreferrer">
+          <span>Ilovani ko'rish</span>
+          <span aria-hidden="true">↗</span>
+        </a>
+      </div>
     </div>
   </section>
 
+  <!-- 2. EXACT 6 KPI STATISTIC CARDS IN 1 ROW -->
   {% if request.user.is_superuser %}
   <section class="tf-kpi-row" data-testid="admin-kpi-grid" aria-label="Asosiy ko'rsatkichlar">
-    <a href="{% url 'admin:accounts_user_changelist' %}" class="tf-stat-card tf-stat-purple"><span class="tf-stat-icon-sq">◎</span><span class="tf-stat-label">Jami foydalanuvchilar</span><strong class="tf-stat-number">{{ admin_metrics.total_users }}</strong><small>Faol baza <b>→</b></small></a>
-    <a href="{% url 'admin:accounts_user_changelist' %}?is_active__exact=0" class="tf-stat-card tf-stat-amber"><span class="tf-stat-icon-sq">!</span><span class="tf-stat-label">Tasdiqlash kutilmoqda</span><strong class="tf-stat-number">{{ admin_metrics.pending_users }}</strong><small>Nofaol akkauntlar <b>→</b></small></a>
-    <a href="{% url 'admin:projects_project_changelist' %}" class="tf-stat-card tf-stat-blue"><span class="tf-stat-icon-sq">□</span><span class="tf-stat-label">Faol loyihalar</span><strong class="tf-stat-number">{{ admin_metrics.active_projects }}</strong><small>Ish jarayonida <b>→</b></small></a>
-    <a href="{% url 'admin:tasks_task_changelist' %}" class="tf-stat-card tf-stat-green"><span class="tf-stat-icon-sq">✓</span><span class="tf-stat-label">Ochiq vazifalar</span><strong class="tf-stat-number">{{ admin_metrics.open_tasks }}</strong><small>Ijroda <b>→</b></small></a>
-    <a href="{% url 'admin:chat_chatmessage_changelist' %}" class="tf-stat-card tf-stat-indigo"><span class="tf-stat-icon-sq">✉</span><span class="tf-stat-label">Yozishmalar (Chat)</span><strong class="tf-stat-number">{{ admin_metrics.total_chat_messages }}</strong><small>Jonli muloqot <b>→</b></small></a>
-    <a href="{% url 'admin:trash' %}" class="tf-stat-card tf-stat-red"><span class="tf-stat-icon-sq">⌫</span><span class="tf-stat-label">O'chirilgan vazifalar</span><strong class="tf-stat-number">{{ admin_metrics.archived_tasks }}</strong><small>Qayta tiklash mumkin <b>→</b></small></a>
+
+    <!-- KPI 1: Jami foydalanuvchilar -->
+    <a href="{% url 'admin:accounts_user_changelist' %}" class="tf-kpi-card tf-kpi-purple">
+      <div class="tf-kpi-top">
+        <span class="tf-kpi-icon-box">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+            <circle cx="9" cy="7" r="4"></circle>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+          </svg>
+        </span>
+      </div>
+      <div class="tf-kpi-mid">
+        <span class="tf-kpi-label">Jami foydalanuvchilar</span>
+        <strong class="tf-kpi-value">{{ admin_metrics.total_users }}</strong>
+      </div>
+      <div class="tf-kpi-bottom">
+        <span class="tf-kpi-trend tf-trend-{{ admin_metrics.trends.users.type }}">
+          <i class="tf-trend-arrow">{{ admin_metrics.trends.users.symbol }}</i> {{ admin_metrics.trends.users.text }}
+        </span>
+        <div class="tf-kpi-sparkline" aria-hidden="true">
+          <svg width="68" height="24" viewBox="0 0 68 24" fill="none">
+            <path d="M2 18 C 14 12, 24 20, 36 10 C 48 2, 56 14, 66 6" stroke="#8b5cf6" stroke-width="2" stroke-linecap="round"/>
+            <circle cx="66" cy="6" r="2.5" fill="#8b5cf6"/>
+          </svg>
+        </div>
+      </div>
+    </a>
+
+    <!-- KPI 2: Tasdiqlash kutilmoqda -->
+    <a href="{% url 'admin:accounts_user_changelist' %}?is_active__exact=0" class="tf-kpi-card tf-kpi-amber">
+      <div class="tf-kpi-top">
+        <span class="tf-kpi-icon-box">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"></path>
+          </svg>
+        </span>
+      </div>
+      <div class="tf-kpi-mid">
+        <span class="tf-kpi-label">Tasdiqlash kutilmoqda</span>
+        <strong class="tf-kpi-value">{{ admin_metrics.pending_users }}</strong>
+      </div>
+      <div class="tf-kpi-bottom">
+        <span class="tf-kpi-trend tf-trend-{{ admin_metrics.trends.pending.type }}">
+          <i class="tf-trend-arrow">{{ admin_metrics.trends.pending.symbol }}</i> {{ admin_metrics.trends.pending.text }}
+        </span>
+        <div class="tf-kpi-sparkline" aria-hidden="true">
+          <svg width="68" height="24" viewBox="0 0 68 24" fill="none">
+            <rect x="8" y="14" width="6" height="8" rx="2" fill="#f59e0b" opacity="0.4"/>
+            <rect x="20" y="10" width="6" height="12" rx="2" fill="#f59e0b" opacity="0.6"/>
+            <rect x="32" y="6" width="6" height="16" rx="2" fill="#f59e0b" opacity="0.8"/>
+            <rect x="44" y="12" width="6" height="10" rx="2" fill="#f59e0b" opacity="0.5"/>
+            <rect x="56" y="8" width="6" height="14" rx="2" fill="#f59e0b"/>
+          </svg>
+        </div>
+      </div>
+    </a>
+
+    <!-- KPI 3: Faol loyihalar -->
+    <a href="{% url 'admin:projects_project_changelist' %}" class="tf-kpi-card tf-kpi-cyan">
+      <div class="tf-kpi-top">
+        <span class="tf-kpi-icon-box">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+          </svg>
+        </span>
+      </div>
+      <div class="tf-kpi-mid">
+        <span class="tf-kpi-label">Faol loyihalar</span>
+        <strong class="tf-kpi-value">{{ admin_metrics.active_projects }}</strong>
+      </div>
+      <div class="tf-kpi-bottom">
+        <span class="tf-kpi-trend tf-trend-{{ admin_metrics.trends.projects.type }}">
+          <i class="tf-trend-arrow">{{ admin_metrics.trends.projects.symbol }}</i> {{ admin_metrics.trends.projects.text }}
+        </span>
+        <div class="tf-kpi-sparkline" aria-hidden="true">
+          <svg width="68" height="24" viewBox="0 0 68 24" fill="none">
+            <path d="M2 16 C 14 20, 26 8, 38 14 C 50 20, 58 6, 66 8" stroke="#0ea5e9" stroke-width="2" stroke-linecap="round"/>
+            <circle cx="66" cy="8" r="2.5" fill="#0ea5e9"/>
+          </svg>
+        </div>
+      </div>
+    </a>
+
+    <!-- KPI 4: Ochiq vazifalar (topshiriqlar) -->
+    <a href="{% url 'admin:tasks_task_changelist' %}" class="tf-kpi-card tf-kpi-emerald">
+      <div class="tf-kpi-top">
+        <span class="tf-kpi-icon-box">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+          </svg>
+        </span>
+      </div>
+      <div class="tf-kpi-mid">
+        <span class="tf-kpi-label">Ochiq vazifalar <small class="tf-kpi-sub-tag">(topshiriqlar)</small></span>
+        <strong class="tf-kpi-value">{{ admin_metrics.open_tasks }}</strong>
+      </div>
+      <div class="tf-kpi-bottom">
+        <span class="tf-kpi-trend tf-trend-{{ admin_metrics.trends.tasks.type }}">
+          <i class="tf-trend-arrow">{{ admin_metrics.trends.tasks.symbol }}</i> {{ admin_metrics.trends.tasks.text }}
+        </span>
+        <div class="tf-kpi-sparkline" aria-hidden="true">
+          <svg width="68" height="24" viewBox="0 0 68 24" fill="none">
+            <path d="M2 8 C 14 18, 28 6, 42 16 C 52 22, 58 10, 66 12" stroke="#f43f5e" stroke-width="2" stroke-linecap="round"/>
+            <circle cx="66" cy="12" r="2.5" fill="#f43f5e"/>
+          </svg>
+        </div>
+      </div>
+    </a>
+
+    <!-- KPI 5: Yozishmalar (Chat) -->
+    <a href="{% url 'admin:chat_chatmessage_changelist' %}" class="tf-kpi-card tf-kpi-violet">
+      <div class="tf-kpi-top">
+        <span class="tf-kpi-icon-box">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+          </svg>
+        </span>
+      </div>
+      <div class="tf-kpi-mid">
+        <span class="tf-kpi-label">Yozishmalar (Chat)</span>
+        <strong class="tf-kpi-value">{{ admin_metrics.total_chat_messages }}</strong>
+      </div>
+      <div class="tf-kpi-bottom">
+        <span class="tf-kpi-trend tf-trend-{{ admin_metrics.trends.chat.type }}">
+          <i class="tf-trend-arrow">{{ admin_metrics.trends.chat.symbol }}</i> {{ admin_metrics.trends.chat.text }}
+        </span>
+        <div class="tf-kpi-sparkline" aria-hidden="true">
+          <svg width="68" height="24" viewBox="0 0 68 24" fill="none">
+            <path d="M2 18 C 16 22, 28 6, 44 14 C 54 18, 60 8, 66 10" stroke="#a855f7" stroke-width="2" stroke-linecap="round"/>
+            <circle cx="66" cy="10" r="2.5" fill="#a855f7"/>
+          </svg>
+        </div>
+      </div>
+    </a>
+
+    <!-- KPI 6: O'chirilgan vazifalar -->
+    <a href="{% url 'admin:trash' %}" class="tf-kpi-card tf-kpi-rose">
+      <div class="tf-kpi-top">
+        <span class="tf-kpi-icon-box">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="3 6 5 6 21 6"></polyline>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+          </svg>
+        </span>
+      </div>
+      <div class="tf-kpi-mid">
+        <span class="tf-kpi-label">O'chirilgan vazifalar <span class="tf-kpi-sub-tag">(O'chirilgan topshiriqlar)</span></span>
+        <strong class="tf-kpi-value">{{ admin_metrics.archived_tasks }}</strong>
+      </div>
+      <div class="tf-kpi-bottom">
+        <span class="tf-kpi-trend tf-trend-{{ admin_metrics.trends.trash.type }}">
+          <i class="tf-trend-arrow">{{ admin_metrics.trends.trash.symbol }}</i> {{ admin_metrics.trends.trash.text }}
+        </span>
+        <div class="tf-kpi-sparkline" aria-hidden="true">
+          <svg width="68" height="24" viewBox="0 0 68 24" fill="none">
+            <path d="M2 16 C 14 10, 26 18, 40 12 C 50 8, 58 14, 66 12" stroke="#e11d48" stroke-width="2" stroke-linecap="round"/>
+            <circle cx="66" cy="12" r="2.5" fill="#e11d48"/>
+          </svg>
+        </div>
+      </div>
+    </a>
+
   </section>
 
-  <div class="tf-dashboard-grid">
-    <section class="tf-card-panel tf-queue-panel">
-      <div class="tf-card-header"><div><span class="tf-eyebrow">ACTION QUEUE</span><h2 class="tf-card-title">Tezkor amallar</h2><p class="tf-card-sub">Bugun e'tibor talab qilayotgan navbatlar.</p></div><span class="tf-card-count">{{ admin_metrics.pending_users|add:admin_metrics.pending_orders|add:admin_metrics.pending_suggestions }}</span></div>
-      <div class="tf-queue-list">
-        <a href="{% url 'admin:accounts_user_changelist' %}?is_active__exact=0" class="tf-queue-row"><span class="tf-queue-icon tf-icon-warn">!</span><span><strong>Yangi akkauntlar</strong><small>Faollashtirish navbatida</small></span><b>{{ admin_metrics.pending_users }}</b></a>
-        <a href="{% url 'admin:orders_order_changelist' %}?status__exact=submitted" class="tf-queue-row"><span class="tf-queue-icon tf-icon-blue">≡</span><span><strong>Buyurtmalar</strong><small>Ko'rib chiqilmagan TZlar</small></span><b>{{ admin_metrics.pending_orders }}</b></a>
-        <a href="{% url 'admin:suggestions_suggestion_changelist' %}?status__exact=pending" class="tf-queue-row"><span class="tf-queue-icon tf-icon-purple">✦</span><span><strong>Takliflar</strong><small>Qaror kutilayotgan fikrlar</small></span><b>{{ admin_metrics.pending_suggestions }}</b></a>
-        <a href="{% url 'admin:trash' %}" class="tf-queue-row"><span class="tf-queue-icon tf-icon-red">⌫</span><span><strong>O'chirilgan vazifalar</strong><small>Arxivdagi tiklanadigan yozuvlar</small></span><b>{{ admin_metrics.archived_tasks }}</b></a>
+  <!-- 3. MIDDLE SECTION: TIZIM FAOLLIGI (58%) + TEZKOR AMALLAR (42%) -->
+  <div class="tf-middle-grid">
+
+    <!-- LEFT: TIZIM FAOLLIGI CURVED MULTI-LINE SPLINE CHART -->
+    <section class="tf-card-panel tf-activity-chart-panel" data-testid="admin-activity-charts">
+      <div class="tf-panel-head">
+        <div class="tf-panel-head-left">
+          <span class="tf-panel-icon tf-icon-purple-bubble">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+            </svg>
+          </span>
+          <div>
+            <h2 class="tf-panel-title">Tizim faolligi</h2>
+            <p class="tf-panel-subtitle">So‘nggi 14 kun davomida amalga oshirilgan amallar soni</p>
+          </div>
+        </div>
+        <div class="tf-panel-head-right">
+          <div class="tf-period-select-pill">
+            <span>So'nggi 14 kun</span>
+            <span class="tf-caret-down">⌵</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="tf-spline-chart-wrap" aria-label="Tizim faolligi dinamikasi grafigi">
+        <div class="tf-y-axis-labels">
+          {% for y in system_activity.y_axis %}
+          <span>{{ y }}</span>
+          {% endfor %}
+        </div>
+
+        <div class="tf-svg-chart-container">
+          {% localize off %}
+          <svg class="tf-spline-svg" viewBox="0 0 580 150" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="grad-users" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#6366f1" stop-opacity="0.28"/>
+                <stop offset="100%" stop-color="#6366f1" stop-opacity="0.0"/>
+              </linearGradient>
+              <linearGradient id="grad-projects" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#0ea5e9" stop-opacity="0.25"/>
+                <stop offset="100%" stop-color="#0ea5e9" stop-opacity="0.0"/>
+              </linearGradient>
+              <linearGradient id="grad-tasks" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#10b981" stop-opacity="0.25"/>
+                <stop offset="100%" stop-color="#10b981" stop-opacity="0.0"/>
+              </linearGradient>
+              <linearGradient id="grad-chats" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.25"/>
+                <stop offset="100%" stop-color="#f59e0b" stop-opacity="0.0"/>
+              </linearGradient>
+            </defs>
+
+            <!-- Horizontal grid lines -->
+            <line x1="24" y1="16" x2="556" y2="16" stroke="var(--tf-border)" stroke-dasharray="3 3"/>
+            <line x1="24" y1="45" x2="556" y2="45" stroke="var(--tf-border)" stroke-dasharray="3 3"/>
+            <line x1="24" y1="75" x2="556" y2="75" stroke="var(--tf-border)" stroke-dasharray="3 3"/>
+            <line x1="24" y1="104" x2="556" y2="104" stroke="var(--tf-border)" stroke-dasharray="3 3"/>
+            <line x1="24" y1="134" x2="556" y2="134" stroke="var(--tf-border)"/>
+
+            <!-- Area fills -->
+            {% if system_activity.users.area %}<path d="{{ system_activity.users.area }}" fill="url(#grad-users)"/>{% endif %}
+            {% if system_activity.projects.area %}<path d="{{ system_activity.projects.area }}" fill="url(#grad-projects)"/>{% endif %}
+            {% if system_activity.tasks.area %}<path d="{{ system_activity.tasks.area }}" fill="url(#grad-tasks)"/>{% endif %}
+            {% if system_activity.chats.area %}<path d="{{ system_activity.chats.area }}" fill="url(#grad-chats)"/>{% endif %}
+
+            <!-- Stroke lines -->
+            {% if system_activity.users.path %}<path d="{{ system_activity.users.path }}" fill="none" stroke="#6366f1" stroke-width="2.5" stroke-linecap="round"/>{% endif %}
+            {% if system_activity.projects.path %}<path d="{{ system_activity.projects.path }}" fill="none" stroke="#0ea5e9" stroke-width="2.2" stroke-linecap="round"/>{% endif %}
+            {% if system_activity.tasks.path %}<path d="{{ system_activity.tasks.path }}" fill="none" stroke="#10b981" stroke-width="2.2" stroke-linecap="round"/>{% endif %}
+            {% if system_activity.chats.path %}<path d="{{ system_activity.chats.path }}" fill="none" stroke="#f59e0b" stroke-width="2.2" stroke-linecap="round"/>{% endif %}
+
+            <!-- Dots -->
+            {% for pt in system_activity.users.dots %}{% if forloop.counter|divisibleby:3 or forloop.last %}<circle cx="{{ pt.x }}" cy="{{ pt.y }}" r="3.5" fill="#6366f1" stroke="#ffffff" stroke-width="1.8"/>{% endif %}{% endfor %}
+            {% for pt in system_activity.projects.dots %}{% if forloop.counter|divisibleby:3 or forloop.last %}<circle cx="{{ pt.x }}" cy="{{ pt.y }}" r="3.2" fill="#0ea5e9" stroke="#ffffff" stroke-width="1.5"/>{% endif %}{% endfor %}
+            {% for pt in system_activity.tasks.dots %}{% if forloop.counter|divisibleby:3 or forloop.last %}<circle cx="{{ pt.x }}" cy="{{ pt.y }}" r="3.2" fill="#10b981" stroke="#ffffff" stroke-width="1.5"/>{% endif %}{% endfor %}
+            {% for pt in system_activity.chats.dots %}{% if forloop.counter|divisibleby:3 or forloop.last %}<circle cx="{{ pt.x }}" cy="{{ pt.y }}" r="3.2" fill="#f59e0b" stroke="#ffffff" stroke-width="1.5"/>{% endif %}{% endfor %}
+          </svg>
+          {% endlocalize %}
+          
+
+          <div class="tf-x-axis-labels">
+            {% for lbl in system_activity.labels %}
+            <span>{{ lbl }}</span>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      <div class="tf-chart-legend">
+        <span class="tf-legend-item"><i class="tf-legend-dot tf-dot-purple"></i> Yangi foydalanuvchilar</span>
+        <span class="tf-legend-item"><i class="tf-legend-dot tf-dot-cyan"></i> Yangi loyihalar</span>
+        <span class="tf-legend-item"><i class="tf-legend-dot tf-dot-green"></i> Vazifalar</span>
+        <span class="tf-legend-item"><i class="tf-legend-dot tf-dot-amber"></i> Yozishmalar</span>
       </div>
     </section>
 
-    <section class="tf-card-panel tf-activity-panel">
-      <div class="tf-card-header"><div><span class="tf-eyebrow">ACTIVITY STREAM</span><h2 class="tf-card-title">So'nggi faolliklar</h2><p class="tf-card-sub">Tizimdagi eng yangi amallar.</p></div><a class="tf-card-link-more" href="{% url 'admin:core_activitylog_changelist' %}">Jurnal →</a></div>
-      <div class="tf-activity-list">
-        {% for act in recent_activities %}<div class="tf-activity-item"><span class="tf-activity-marker tf-marker-{{ act.icon }}"></span><span class="tf-act-content"><strong>{{ act.title }}</strong><small>{{ act.desc|truncatechars:90 }}</small></span><time>{{ act.created_at|date:"d.m.Y H:i" }}</time></div>{% empty %}<div class="tf-empty-state"><strong>Faolliklar hali yo'q</strong><p>Yangi amallar va yozishmalar shu yerda paydo bo'ladi.</p></div>{% endfor %}
+    <!-- RIGHT: TEZKOR AMALLAR 2x3 INTERACTIVE GRID -->
+    <section class="tf-card-panel tf-quick-actions-panel">
+      <div class="tf-panel-head">
+        <div class="tf-panel-head-left">
+          <span class="tf-panel-icon tf-icon-lightning">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+            </svg>
+          </span>
+          <div>
+            <h2 class="tf-panel-title">Tezkor amallar</h2>
+            <p class="tf-panel-subtitle">Eng muhim funksiyalarga tezkor kirish</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="tf-actions-grid-2x3">
+        <!-- Action 1: Foydalanuvchilar -->
+        <a href="{% url 'admin:accounts_user_changelist' %}" class="tf-action-tile tf-tile-purple">
+          <div class="tf-tile-icon-box">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+              <circle cx="9" cy="7" r="4"></circle>
+            </svg>
+          </div>
+          <div class="tf-tile-copy">
+            <strong>Foydalanuvchilar</strong>
+            <small>Akkauntlarni tasdiqlash va boshqarish</small>
+          </div>
+          <span class="tf-tile-arrow">→</span>
+        </a>
+
+        <!-- Action 2: Yangi foydalanuvchi -->
+        <a href="{% url 'admin:accounts_user_add' %}" class="tf-action-tile tf-tile-cyan">
+          <div class="tf-tile-icon-box">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="8" x2="12" y2="16"></line>
+              <line x1="8" y1="12" x2="16" y2="12"></line>
+            </svg>
+          </div>
+          <div class="tf-tile-copy">
+            <strong>Yangi foydalanuvchi</strong>
+            <small>Tizimga yangi foydalanuvchi qo‘shish</small>
+          </div>
+          <span class="tf-tile-arrow">→</span>
+        </a>
+
+        <!-- Action 3: Loyiha yaratish -->
+        <a href="{% url 'admin:projects_project_add' %}" class="tf-action-tile tf-tile-green">
+          <div class="tf-tile-icon-box">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+            </svg>
+          </div>
+          <div class="tf-tile-copy">
+            <strong>Loyiha yaratish</strong>
+            <small>Yangi loyiha qo‘shish</small>
+          </div>
+          <span class="tf-tile-arrow">→</span>
+        </a>
+
+        <!-- Action 4: Vazifa yaratish -->
+        <a href="{% url 'admin:tasks_task_add' %}" class="tf-action-tile tf-tile-amber">
+          <div class="tf-tile-icon-box">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+              <polyline points="22 4 12 14.01 9 11.01"></polyline>
+            </svg>
+          </div>
+          <div class="tf-tile-copy">
+            <strong>Vazifa yaratish</strong>
+            <small>Yangi vazifa yaratish</small>
+          </div>
+          <span class="tf-tile-arrow">→</span>
+        </a>
+
+        <!-- Action 5: Yozishmalar -->
+        <a href="{% url 'admin:chat_chatmessage_changelist' %}" class="tf-action-tile tf-tile-indigo">
+          <div class="tf-tile-icon-box">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+            </svg>
+          </div>
+          <div class="tf-tile-copy">
+            <strong>Yozishmalar</strong>
+            <small>Jami yozishmalarni ko‘rish</small>
+          </div>
+          <span class="tf-tile-arrow">→</span>
+        </a>
+
+        <!-- Action 6: Tizim sozlamalari -->
+        <a href="{% url 'admin:trash' %}" class="tf-action-tile tf-tile-pink">
+          <div class="tf-tile-icon-box">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="3"></circle>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+            </svg>
+          </div>
+          <div class="tf-tile-copy">
+            <strong>Tizim sozlamalari</strong>
+            <small>Tizim parametrlarini boshqarish</small>
+          </div>
+          <span class="tf-tile-arrow">→</span>
+        </a>
       </div>
     </section>
+
+  </div>
+
+  <!-- 4. BOTTOM SECTION: KUTILAYOTGANLAR (38%) + SO'NGGI FAOLLIKLAR (62%) -->
+  <div class="tf-bottom-dual-grid">
+
+    <!-- LEFT: KUTILAYOTGANLAR -->
+    <section class="tf-card-panel tf-queue-panel">
+      <div class="tf-panel-head">
+        <div class="tf-panel-head-left">
+          <span class="tf-panel-icon tf-icon-hourglass">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M5 22h14"></path>
+              <path d="M5 2h14"></path>
+              <path d="M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22"></path>
+              <path d="M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2"></path>
+            </svg>
+          </span>
+          <div>
+            <h2 class="tf-panel-title">Kutilayotganlar</h2>
+            <p class="tf-panel-subtitle">E'tibor talab qiladigan elementlar</p>
+          </div>
+        </div>
+        <div class="tf-panel-head-right">
+          <a class="tf-panel-link-more" href="{% url 'admin:accounts_user_changelist' %}?is_active__exact=0">Barchasini ko'rish →</a>
+        </div>
+      </div>
+
+      <div class="tf-queue-items-list">
+        {% for item in pending_queue %}
+        <a href="{{ item.url }}" class="tf-queue-item-row">
+          <span class="tf-dot-indicator tf-dot-{{ item.dot }}"></span>
+          <div class="tf-queue-item-copy">
+            <strong>{{ item.title }}</strong>
+            <small>{{ item.desc }}</small>
+          </div>
+          <span class="tf-queue-badge">{{ item.count }}</span>
+          <span class="tf-queue-chevron">›</span>
+        </a>
+        {% endfor %}
+      </div>
+    </section>
+
+    <!-- RIGHT: SO'NGGI FAOLLIKLAR -->
+    <section class="tf-card-panel tf-activity-panel">
+      <div class="tf-panel-head">
+        <div class="tf-panel-head-left">
+          <span class="tf-panel-icon tf-icon-clock">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+          </span>
+          <div>
+            <h2 class="tf-panel-title">So'nggi faolliklar</h2>
+            <p class="tf-panel-subtitle">Tizimdagi so'nggi o'zgarishlar</p>
+          </div>
+        </div>
+        <div class="tf-panel-head-right">
+          <a class="tf-panel-link-more" href="{% url 'admin:core_activitylog_changelist' %}">Barchasini ko'rish →</a>
+        </div>
+      </div>
+
+      <div class="tf-activity-items-list">
+        {% for act in recent_activities %}
+        <div class="tf-activity-item-row">
+          <span class="tf-activity-icon-circle tf-icon-{{ act.icon }}">
+            {% if act.icon == 'chat' %}
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+            {% elif act.icon == 'trash' %}
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+            {% else %}
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            {% endif %}
+          </span>
+
+          <div class="tf-activity-body">
+            <strong>{{ act.title }}</strong>
+            <small>{{ act.desc|truncatechars:95 }}</small>
+          </div>
+
+          <div class="tf-activity-meta">
+            <time>{{ act.created_at|date:"d M, H:i" }}</time>
+            <span class="tf-actor-badge">● {{ act.actor|default:"Admin" }}</span>
+          </div>
+        </div>
+        {% empty %}
+        <div class="tf-empty-state">
+          <strong>Faolliklar hali yo'q</strong>
+          <p>Yangi amallar va yozishmalar shu yerda paydo bo'ladi.</p>
+        </div>
+        {% endfor %}
+      </div>
+    </section>
+
   </div>
   {% endif %}
 
+  <!-- 5. SYSTEM STATUS & WORKSPACE MAP (100% DJANGO MODELS ACCESS) -->
   <div class="tf-bottom-grid">
     <section class="tf-card-panel tf-health-panel">
-      <div class="tf-card-header"><div><span class="tf-eyebrow">SYSTEM STATUS</span><h2 class="tf-card-title">Tizim holati</h2><p class="tf-card-sub">Muhit va xizmatlar haqida qisqa signal.</p></div><span class="tf-health-badge"><i></i> Tizim faol</span></div>
-      <div class="tf-health-grid"><div><small>Ma'lumotlar bazasi</small><strong>{{ admin_runtime.database }}</strong></div><div><small>Kesh xotirasi</small><strong>{{ admin_runtime.cache }}</strong></div><div><small>Xavfsizlik</small><strong>CSRF / RBAC</strong></div><div><small>Media</small><strong>{{ admin_runtime.media }}</strong></div></div>
+      <div class="tf-panel-head">
+        <div class="tf-panel-head-left">
+          <span class="tf-panel-icon tf-icon-shield">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+            </svg>
+          </span>
+          <div>
+            <h2 class="tf-panel-title">Tizim holati</h2>
+            <p class="tf-panel-subtitle">Muhit va xizmatlar haqida qisqa signal</p>
+          </div>
+        </div>
+        <span class="tf-health-badge"><i></i> Tizim faol</span>
+      </div>
+      <div class="tf-health-grid">
+        <div><small>Ma'lumotlar bazasi</small><strong>{{ admin_runtime.database }}</strong></div>
+        <div><small>Kesh xotirasi</small><strong>{{ admin_runtime.cache }}</strong></div>
+        <div><small>Xavfsizlik</small><strong>CSRF / RBAC</strong></div>
+        <div><small>Media</small><strong>{{ admin_runtime.media }}</strong></div>
+      </div>
     </section>
-    <section class="tf-card-panel tf-app-catalog" aria-labelledby="all-sections-title"><div class="tf-card-header"><div><span class="tf-eyebrow">WORKSPACE MAP</span><h2 class="tf-card-title" id="all-sections-title">Barcha bo'limlar</h2><p class="tf-card-sub">Sizdagi ruxsatlar asosida ochilgan modullar.</p></div></div><div class="tf-app-grid">{% for app in app_list %}<article class="tf-app-card"><div class="tf-app-card-head"><span class="tf-app-icon">{{ app.name|make_list|first|upper }}</span><div><h3>{{ app.name }}</h3><small>{{ app.models|length }} ta model</small></div></div><div class="tf-model-links">{% for model in app.models %}<div class="tf-model-link-row">{% if model.admin_url %}<a href="{{ model.admin_url }}">{{ model.name }}</a>{% else %}<span>{{ model.name }}</span>{% endif %}{% if model.add_url %}<a class="tf-model-add-link" href="{{ model.add_url }}">+</a>{% endif %}</div>{% endfor %}</div></article>{% empty %}<div class="tf-empty-state">Ko'rish uchun ruxsat berilgan bo'limlar topilmadi.</div>{% endfor %}</div></section>
+
+    <section class="tf-card-panel tf-app-catalog" aria-labelledby="all-sections-title">
+      <div class="tf-panel-head">
+        <div class="tf-panel-head-left">
+          <span class="tf-panel-icon tf-icon-grid">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="7" height="7"></rect>
+              <rect x="14" y="3" width="7" height="7"></rect>
+              <rect x="14" y="14" width="7" height="7"></rect>
+              <rect x="3" y="14" width="7" height="7"></rect>
+            </svg>
+          </span>
+          <div>
+            <h2 class="tf-panel-title" id="all-sections-title">Barcha bo'limlar</h2>
+            <p class="tf-panel-subtitle">Sizdagi ruxsatlar asosida ochilgan modullar</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="tf-app-grid">
+        {% for app in app_list %}
+        <article class="tf-app-card">
+          <div class="tf-app-card-head">
+            <span class="tf-app-icon">{{ app.name|make_list|first|upper }}</span>
+            <div>
+              <h3>{{ app.name }}</h3>
+              <small>{{ app.models|length }} ta model</small>
+            </div>
+          </div>
+          <div class="tf-model-links">
+            {% for model in app.models %}
+            <div class="tf-model-link-row">
+              {% if model.admin_url %}
+              <a href="{{ model.admin_url }}">{{ model.name }}</a>
+              {% else %}
+              <span>{{ model.name }}</span>
+              {% endif %}
+              {% if model.add_url %}
+              <a class="tf-model-add-link" href="{{ model.add_url }}">+</a>
+              {% endif %}
+            </div>
+            {% endfor %}
+          </div>
+        </article>
+        {% empty %}
+        <div class="tf-empty-state">Ko'rish uchun ruxsat berilgan bo'limlar topilmadi.</div>
+        {% endfor %}
+      </div>
+    </section>
   </div>
+
 </div>
 {% endblock %}

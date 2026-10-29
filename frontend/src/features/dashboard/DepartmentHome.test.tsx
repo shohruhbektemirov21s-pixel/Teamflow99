@@ -57,9 +57,11 @@ describe("DepartmentHome", () => {
     expect(await screen.findByText("Kadrlar tizimi")).toBeTruthy();
     expect(screen.getByText("Hujjat aylanishi")).toBeTruthy();
     expect(screen.queryByText(/sababini o'qing/)).toBeNull();
-    // Sahifa sarlavhasi/salomlashish yo'q (nom tepadagi panelda); asosiy amal o'ngda
+    // Sahifa sarlavhasi/salomlashish yo'q (nom tepadagi panelda); dashboard actionlari olib tashlangan
     expect(screen.queryByRole("heading", { level: 1 })).toBeNull();
-    expect(screen.getByRole("button", { name: T.orders.new })).toBeTruthy();
+    expect(screen.queryByRole("link", { name: T.nav.myOrders })).toBeNull();
+    expect(screen.queryByRole("button", { name: T.orders.new })).toBeNull();
+    expect(screen.queryByRole("button", { name: /Qo.?llanma/ })).toBeNull();
 
     // "Tasdiqlangan" kartasi loyihaga aylanganlarni ham ko'rsatadi (soni bilan mos)
     const cards = screen.getAllByRole("button", { pressed: false }).filter((b) => b.classList.contains("total"));

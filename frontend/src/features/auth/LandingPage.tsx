@@ -52,10 +52,10 @@ const ROLES: RoleInfo[] = [
     label: "Loyiha menejeri (PM)",
     icon: <FolderKanban size={20} />,
     tagline: "Loyiha va jamoani boshqaruvchi",
-    description: "Buyurtmalarni loyihaga aylantiring, xodimlarni tanlang va vazifalarni muddatlari bilan taqsimlang.",
+    description: "Buyurtmalarni loyihaga aylantiring, xodimlarni tanlang va topshiriqlarni muddatlari bilan taqsimlang.",
     steps: [
       "Buyurtmani tasdiqlab, loyiha ochish",
-      "Mutaxassislarga alohida vazifalar biriktirish",
+      "Mutaxassislarga alohida topshiriqlar biriktirish",
       "Bajarilgan ishlarni tekshirib qabul qilish yoki qaytarish",
     ],
     highlight: "Jamoa yuklamasi va muddatlar bitta ekranda",
@@ -65,10 +65,10 @@ const ROLES: RoleInfo[] = [
     label: "Dasturchi",
     icon: <Laptop size={20} />,
     tagline: "Ijrochi va mutaxassis",
-    description: "Faqat o'zingizga tegishli vazifalarni qulay doskada ko'ring, bajaring va portfoliongizni yarating.",
+    description: "Faqat o'zingizga tegishli topshiriqlarni qulay doskada ko'ring, bajaring va portfoliongizni yarating.",
     steps: [
-      "'Mening ishim' doskasidan vazifalarni qabul qilish",
-      "Vazifani 'Jarayonda'ga surib, ish boshlash",
+      "'Mening ishim' doskasidan topshiriqlarni qabul qilish",
+      "Topshiriqni 'Jarayonda'ga surib, ish boshlash",
       "Natija va fayllarni tekshiruvga yuborish",
     ],
     highlight: "Chalg'ituvchi ortiqcha ma'lumotlarsiz shaxsiy doska",
@@ -151,7 +151,7 @@ export default function LandingPage() {
           <span className="landing-eyebrow">
             <Sparkles size={14} /> 1 daqiqada tushunish oson · TeamFlow
           </span>
-          <h1>Barcha vazifalar, buyurtmalar va jamoa — bir qarashda tushunarli</h1>
+          <h1>Barcha topshiriqlar, buyurtmalar va jamoa — bir qarashda tushunarli</h1>
           <p>
             Texnik atamalarsiz, o‘rganish shart bo‘lmagan sodda ish maydoni.
             Boshqarma buyurtmasidan tortib dasturchi topshirig‘igacha hamma narsa bitta oqimda ishlaydi.
@@ -198,7 +198,7 @@ export default function LandingPage() {
             <div className="landing-mockup-body">
               <div className="landing-mockup-kpis">
                 <div className="mock-kpi">
-                  <small>Faol vazifalar</small>
+                  <small>Faol topshiriqlar</small>
                   <strong>14 ta</strong>
                 </div>
                 <div className="mock-kpi">
@@ -300,9 +300,9 @@ export default function LandingPage() {
               <div className="landing-step-icon step-indigo">
                 <FolderKanban size={24} />
               </div>
-              <h3>2. Menejer vazifalarni taqsimlaydi</h3>
+              <h3>2. Menejer topshiriqlarni taqsimlaydi</h3>
               <p>
-                Loyiha menejeri buyurtmani tasdiqlaydi, jamoa a’zolarini yig‘adi va har bir xodimga aniq vazifa biriktiradi.
+                Loyiha menejeri buyurtmani tasdiqlaydi, jamoa a’zolarini yig‘adi va har bir xodimga aniq topshiriq biriktiradi.
               </p>
             </div>
 
@@ -398,7 +398,7 @@ export default function LandingPage() {
               </div>
               <h3>Telegram bot bildirishnomalari</h3>
               <p>
-                Yangi vazifa, izoh yoki tasdiq kelganda Telegram bot darhol sizga xabar beradi. Muhim ishlar esdan chiqmaydi.
+                Yangi topshiriq, izoh yoki tasdiq kelganda Telegram bot darhol sizga xabar beradi. Muhim ishlar esdan chiqmaydi.
               </p>
             </article>
 
@@ -408,7 +408,7 @@ export default function LandingPage() {
               </div>
               <h3>Tezkor qidiruv (Ctrl + K)</h3>
               <p>
-                Istalgan vazifa kodi (masalan, TSK-12) yoki loyiha nomini 1–2 raqam kiritish orqali darhol topasiz.
+                Istalgan topshiriq kodi (masalan, TSK-12) yoki loyiha nomini 1–2 raqam kiritish orqali darhol topasiz.
               </p>
             </article>
 
@@ -418,7 +418,7 @@ export default function LandingPage() {
               </div>
               <h3>Shaffof va xavfsiz nazorat</h3>
               <p>
-                Har kim faqat o‘ziga tegishli loyiha va vazifalarni ko‘radi. Ruxsatlar qat’iy server darajasida tekshiriladi.
+                Har kim faqat o‘ziga tegishli loyiha va topshiriqlarni ko‘radi. Ruxsatlar qat’iy server darajasida tekshiriladi.
               </p>
             </article>
           </div>

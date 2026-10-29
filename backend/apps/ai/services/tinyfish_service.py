@@ -57,7 +57,7 @@ class TinyFishUnavailable(TinyFishError):
 
 class TinyFishRemoteError(TinyFishError):
     status_code = 502
-    user_message = "Web agent vazifani qabul qila olmadi. Keyinroq qayta urinib ko'ring."
+    user_message = "Web agent topshiriqni qabul qila olmadi. Keyinroq qayta urinib ko'ring."
 
 
 @dataclass(frozen=True)

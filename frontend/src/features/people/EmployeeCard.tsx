@@ -192,7 +192,7 @@ export function EmployeeCard({ person: p, hasRange = false }: EmployeeCardProps)
             <Briefcase size={17} className="employee-metric-icon text-primary" />
             <div className="employee-metric-copy">
               <strong className="employee-metric-num">{p.active_tasks}</strong>
-              <span className="employee-metric-label">Faol vazifalar</span>
+              <span className="employee-metric-label">Faol topshiriqlar</span>
             </div>
           </div>
           <div className={`employee-metric-item ${p.overdue_tasks > 0 ? "danger" : ""}`}>
@@ -268,7 +268,7 @@ export function EmployeeCard({ person: p, hasRange = false }: EmployeeCardProps)
                     }}
                   >
                     <Plus size={14} />
-                    <span>Vazifa biriktirish</span>
+                    <span>Topshiriq biriktirish</span>
                   </button>
                 )}
                 <button
@@ -317,7 +317,7 @@ export function EmployeeCard({ person: p, hasRange = false }: EmployeeCardProps)
           <div className="employee-tasks-list">
             {visibleTasks.map((t) => (
               <div key={t.id} className="employee-task-row">
-                {/* 1. Vazifa nomi */}
+                {/* 1. Topshiriq mazmuni */}
                 <div className="col-title">
                   <FileText size={15} className="employee-task-icon" />
                   <button
@@ -361,7 +361,7 @@ export function EmployeeCard({ person: p, hasRange = false }: EmployeeCardProps)
                     type="button"
                     className="employee-task-dots-btn"
                     onClick={() => open({ task: t.id })}
-                    aria-label="Vazifa amallari"
+                    aria-label="Topshiriq amallari"
                   >
                     <MoreHorizontal size={16} />
                   </button>
@@ -397,7 +397,7 @@ export function EmployeeCard({ person: p, hasRange = false }: EmployeeCardProps)
         ) : (
           <div className="employee-empty-work">
             <CheckCircle2 size={16} className="text-success" />
-            <span className="small muted">Hozirda faol vazifalar yo'q. Xodim bo'sh</span>
+            <span className="small muted">Hozirda faol topshiriqlar yo'q. Xodim bo'sh</span>
           </div>
         )}
 

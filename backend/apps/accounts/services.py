@@ -7,6 +7,7 @@ from django.utils import timezone
 from PIL import Image, ImageOps, UnidentifiedImageError
 
 from apps.core.api_utils import ServiceError
+from apps.core.recovery import snapshot_instance
 from apps.core.services import log
 
 from .models import ResponsibleProject, ResponsibleProjectNews, Role, User
@@ -92,6 +93,7 @@ def update_responsible_project(actor, project, *, name, description=""):
 def delete_responsible_project(actor, project):
     _ensure_manage(actor, project.employee)
     log(actor, "responsible_project_deleted", f"{actor.full_name} mas'ul loyihani o'chirdi: {project.name}", project.employee)
+    snapshot_instance(project, actor)
     project.delete()
 
 

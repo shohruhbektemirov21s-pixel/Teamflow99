@@ -89,7 +89,7 @@ export default function TasksPage() {
   };
 
   const summaryCards: SummaryCardItem[] = [
-    { key: "", label: "Jami", value: total, hint: "Barcha vazifalar", icon: Layers3, tone: "primary" },
+    { key: "", label: "Jami", value: total, hint: "Barcha topshiriqlar", icon: Layers3, tone: "primary" },
     { key: "in_progress", label: "Faol", value: activeCount, hint: "Ish ketmoqda", icon: Play, tone: "info" },
     { key: "overdue", label: "Muddati o'tgan", value: overdueCount, hint: "E'tibor talab qiladi", icon: AlertTriangle, tone: "danger" },
     { key: "in_review", label: "Tekshiruvda", value: reviewCount, hint: "Tasdiq kutilmoqda", icon: Hourglass, tone: "violet" },

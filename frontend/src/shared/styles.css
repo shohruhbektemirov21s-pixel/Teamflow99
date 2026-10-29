@@ -2122,3 +2122,11 @@ body, .sidebar, .topbar, .card, .input, .textarea, .select { transition: backgro
   flex-wrap: wrap;
   gap: 8px;
 }
+
+.person-stat-modal-intro {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border-color: var(--primary-border);
+  background: var(--primary-soft);
+}

@@ -2,10 +2,11 @@ from django.contrib import admin
 from django.utils.html import format_html
 
 from .models import Notification, TelegramDelivery
+from apps.core.recovery import RecoverableDeleteMixin
 
 
 @admin.register(Notification)
-class NotificationAdmin(admin.ModelAdmin):
+class NotificationAdmin(RecoverableDeleteMixin, admin.ModelAdmin):
     list_display = ("recipient", "kind", "message", "is_read_badge", "created_at")
     list_filter = ("kind", "is_read", "created_at")
     search_fields = ("message", "recipient__username", "recipient__first_name", "recipient__last_name")
@@ -19,7 +20,7 @@ class NotificationAdmin(admin.ModelAdmin):
 
 
 @admin.register(TelegramDelivery)
-class TelegramDeliveryAdmin(admin.ModelAdmin):
+class TelegramDeliveryAdmin(RecoverableDeleteMixin, admin.ModelAdmin):
     list_display = ("chat_id", "short_text", "attempts", "delivery_status", "created_at")
     list_filter = ("attempts", "created_at")
     search_fields = ("chat_id", "text")

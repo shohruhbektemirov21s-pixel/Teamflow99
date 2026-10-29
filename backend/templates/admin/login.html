@@ -54,7 +54,7 @@
 {% endblock %}
 
 {% block content %}
-<main class="tf-login-viewport">
+<div class="tf-login-viewport">
   <div class="tf-login-grid">
     <!-- LEFT: HERO & HIGHLIGHTS -->
     <section class="tf-login-hero" aria-label="TeamFlow Boshqaruv Markazi">
@@ -277,7 +277,7 @@
                 </svg>
               </span>
               <input type="password" name="password" autocomplete="current-password" required id="id_password" placeholder="Parolni kiriting" class="tf-input-field">
-              <button type="button" class="tf-password-toggle" id="tf-pw-toggle" aria-label="Parolni ko'rsatish" title="Parolni ko'rsatish">
+              <button type="button" class="tf-password-toggle" id="tf-pw-toggle" aria-label="Parolni ko'rsatish" aria-pressed="false" title="Parolni ko'rsatish">
                 <svg class="tf-eye-open" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                   <circle cx="12" cy="12" r="3"></circle>
@@ -297,8 +297,11 @@
               <span class="tf-checkbox-custom"></span>
               <span class="tf-checkbox-label">Meni esda saqlash</span>
             </label>
-            <a href="javascript:void(0)" class="tf-forgot-link" id="tf-forgot-btn">Parolni unutdingizmi?</a>
+            <button type="button" class="tf-forgot-link" id="tf-forgot-btn" aria-expanded="false" aria-controls="tf-forgot-help">Parolni unutdingizmi?</button>
           </div>
+          <p id="tf-forgot-help" class="tf-forgot-help" role="status" hidden>
+            Administrator parolini tiklash uchun tizim boshqaruvchisiga yoki server administratoriga murojaat qiling.
+          </p>
 
           <button class="tf-btn-primary tf-login-submit" type="submit">
             <span>Tizimga kirish</span>
@@ -325,7 +328,7 @@
       </div>
     </section>
   </div>
-</main>
+</div>
 
 <script>
   document.addEventListener("DOMContentLoaded", function () {
@@ -341,11 +344,15 @@
           pwInput.type = "text";
           if (eyeOpen) eyeOpen.style.display = "none";
           if (eyeClosed) eyeClosed.style.display = "block";
+          pwToggle.setAttribute("aria-label", "Parolni yashirish");
+          pwToggle.setAttribute("aria-pressed", "true");
           pwToggle.setAttribute("title", "Parolni yashirish");
         } else {
           pwInput.type = "password";
           if (eyeOpen) eyeOpen.style.display = "block";
           if (eyeClosed) eyeClosed.style.display = "none";
+          pwToggle.setAttribute("aria-label", "Parolni ko'rsatish");
+          pwToggle.setAttribute("aria-pressed", "false");
           pwToggle.setAttribute("title", "Parolni ko'rsatish");
         }
       });
@@ -363,11 +370,14 @@
       }
     });
 
-    // Forgot password hint
+    // Forgot password guidance
     var forgotBtn = document.getElementById("tf-forgot-btn");
+    var forgotHelp = document.getElementById("tf-forgot-help");
     if (forgotBtn) {
       forgotBtn.addEventListener("click", function () {
-        alert("Administrator parolini tiklash yoki yangilash uchun tizim boshqaruvchisi yoki server adminiga murojaat qiling.");
+        var expanded = forgotBtn.getAttribute("aria-expanded") === "true";
+        forgotBtn.setAttribute("aria-expanded", expanded ? "false" : "true");
+        if (forgotHelp) forgotHelp.hidden = expanded;
       });
     }
   });

@@ -38,3 +38,30 @@ Implementatsiyadan keyingi tekshiruvlar:
 Visual regression baseline repositoryda yo'q, shuning uchun pixel-level regression xulosasi **inconclusive**. Screenshotlar layout/overflow va qo'lda ko'rik uchun `.playwright-mcp/ui-redesign/` ichida saqlandi.
 
 Git checkpoint commitlari yaratilmadi: foydalanuvchi commit so'ramagan va ishchi daraxtda mavjud `docs/PROJECT_PROMPT_UZ.md` untracked fayli saqlandi.
+
+## 2026-10-29 follow-up: Admin login va boshqarma dashboard actionlari
+
+### User journeys
+
+- Administrator 320–1672px ekranlarda login sahifasini overflow va overlap’siz ishlatadi.
+- Administrator password visibility, forgot-password guidance, keyboard focus va invalid-login error holatlarini tushunarli ko'radi.
+- Boshqarma dashboard’i ortiqcha yuqori actionlar bilan chalg'itmaydi; buyurtma yaratishning empty-state flow'i saqlanadi.
+
+### RED / GREEN evidence
+
+| Guarantee | RED evidence | GREEN evidence |
+|---|---|---|
+| Admin login nested landmark va `javascript:void(0)` ishlatmaydi | Focused Django UI test yiqildi | `apps.core.tests.test_admin_ui`: 16/16 passed |
+| Invalid admin login accessible error state beradi | Yangi error-state assertion yiqildi | Full backend: 410 passed, 2 skipped |
+| Department dashboard screenshotdagi yuqori actionlarni ko'rsatmaydi | `DepartmentHome.test.tsx`: 1 failed | Targeted: 3/3 passed; full frontend: 151/151 passed |
+| Mobile login 320/375px’da viewport’dan chiqmaydi | 320px’da input badge va flex centering muammosi kuzatildi | Browser metrics: `scrollWidth === clientWidth`; 320, 375, 768, 1672px tekshirildi |
+
+### Commands
+
+- `python manage.py test -v 1` — 410 passed, 2 skipped.
+- `npm test` — 36 test files, 151 passed.
+- `npm run typecheck` — passed.
+- `npm run build` — passed.
+- `git diff --check` — passed.
+
+Visual baseline repositoryda yo'q; reference screenshot bilan qo'lda visual QA qilindi. Live `192.168.224.70:8020/admin/` sessiyasiz bo'lgani uchun login’ga redirect qildi; credential bilan mutating test bajarilmadi.

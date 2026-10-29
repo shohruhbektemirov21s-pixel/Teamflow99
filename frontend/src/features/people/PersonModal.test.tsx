@@ -87,6 +87,25 @@ describe("PersonModal", () => {
     expect(await screen.findByText("Profil vazifasi")).toBeTruthy();
   });
 
+  it("statistika kartasi modal ochadi va yopilganda profil qadamini saqlaydi", async () => {
+    mockGet({
+      [`/people/${JASUR.id}/`]: { ...ROW, active_tasks: 1 },
+      [`/tasks/?assignee=${JASUR.id}`]: [taskDetail({ title: "Faol profil vazifasi", status: "in_progress" })],
+      [RESP]: BASE[RESP],
+    });
+
+    renderApp(<PersonModal id={JASUR.id} />);
+    const activeCard = await screen.findByRole("button", { name: /Faol/ });
+    fireEvent.click(activeCard);
+
+    const statDialog = await screen.findByRole("dialog", { name: "Faol topshiriqlar" });
+    expect(within(statDialog).getByText("Faol profil vazifasi")).toBeTruthy();
+    fireEvent.click(within(statDialog).getByRole("button", { name: T.common.close }));
+
+    expect(screen.getByRole("dialog", { name: T.people.profileTitle })).toBeTruthy();
+    expect(screen.queryByRole("dialog", { name: "Faol topshiriqlar" })).toBeNull();
+  });
+
   it("profil yuklanmasa qayta urinish ko'rinadi", async () => {
     mockGet({});
     renderApp(<PersonModal id={99} />);

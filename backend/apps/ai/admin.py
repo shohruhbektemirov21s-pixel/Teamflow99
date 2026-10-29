@@ -2,10 +2,11 @@ from django.contrib import admin
 from django.utils.html import format_html
 
 from .models import WebAgentRun
+from apps.core.recovery import RecoverableDeleteMixin
 
 
 @admin.register(WebAgentRun)
-class WebAgentRunAdmin(admin.ModelAdmin):
+class WebAgentRunAdmin(RecoverableDeleteMixin, admin.ModelAdmin):
     list_display = ("id", "provider_kind", "status_badge", "created_by", "created_at")
     list_filter = ("status", "provider_kind", "created_at")
     search_fields = ("task", "provider_run_id", "created_by__username")

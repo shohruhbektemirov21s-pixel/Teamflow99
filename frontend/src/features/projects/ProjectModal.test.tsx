@@ -43,7 +43,7 @@ describe("ProjectModal — yakunlash", () => {
     await screen.findByRole("button", { name: T.projects.requestCompletion });
     expect(api.get).not.toHaveBeenCalledWith("/tasks/?project=1");
     expect(api.get).not.toHaveBeenCalledWith("/developers/");
-    fireEvent.click(screen.getByRole("tab", { name: /Vazifalar/ }));
+    fireEvent.click(screen.getByRole("tab", { name: /Topshiriqlar/ }));
     await waitFor(() => expect(api.get).toHaveBeenCalledWith("/tasks/?project=1"));
   });
 

@@ -1,6 +1,7 @@
 from django.contrib import admin
 
 from .models import Order, OrderVersion
+from apps.core.recovery import RecoverableDeleteMixin
 
 
 class OrderVersionInline(admin.TabularInline):
@@ -11,7 +12,7 @@ class OrderVersionInline(admin.TabularInline):
 
 
 @admin.register(Order)
-class OrderAdmin(admin.ModelAdmin):
+class OrderAdmin(RecoverableDeleteMixin, admin.ModelAdmin):
     list_display = ("title", "submitted_by", "status", "priority", "requested_due_date", "created_at")
     list_filter = ("status", "priority")
     search_fields = ("title", "submitted_by__username", "submitted_by__department_name")
@@ -19,7 +20,7 @@ class OrderAdmin(admin.ModelAdmin):
 
 
 @admin.register(OrderVersion)
-class OrderVersionAdmin(admin.ModelAdmin):
+class OrderVersionAdmin(RecoverableDeleteMixin, admin.ModelAdmin):
     list_display = ("order", "number", "decision", "uploaded_by", "created_at")
     list_filter = ("decision", "created_at")
     search_fields = ("order__title", "uploaded_by__username", "reject_reason")

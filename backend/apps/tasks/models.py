@@ -20,7 +20,7 @@ class Task(models.Model):
     # Bo'sh bo'lishi mumkin: dasturchi o'ziga loyihasiz vazifa yarata oladi. PM/Boshliq loyihani tanlaydi.
     project = models.ForeignKey("projects.Project", on_delete=models.PROTECT, related_name="tasks", null=True, blank=True)
     code = models.CharField("Kod", max_length=9, unique=True, editable=False)
-    title = models.CharField("Nomi", max_length=255)
+    title = models.CharField("Topshiriq mazmuni", max_length=255)
     description = models.TextField("Izoh", blank=True)
     priority = models.CharField("Muhimlik", max_length=16, choices=Priority.choices, default=Priority.MEDIUM)
     status = models.CharField(max_length=16, choices=Status.choices, default=Status.CONTROL, db_index=True)
@@ -43,8 +43,8 @@ class Task(models.Model):
             models.Index(fields=["archived_at", "due_at", "-created_at", "-id"], name="task_active_due_order_idx"),
             models.Index(fields=["project", "archived_at", "due_at"], name="task_project_active_due_idx"),
         ]
-        verbose_name = "Vazifa"
-        verbose_name_plural = "Vazifalar"
+        verbose_name = "Topshiriq"
+        verbose_name_plural = "Topshiriqlar"
 
     def clean(self):
         super().clean()
@@ -77,13 +77,13 @@ class TaskAssignment(models.Model):
     class Meta:
         indexes = [models.Index(fields=["developer", "task"], name="assignment_developer_task_idx")]
         constraints = [models.UniqueConstraint(fields=["task", "developer"], name="uniq_task_assignment")]
-        verbose_name = "Vazifa ijrochisi"
-        verbose_name_plural = "Vazifa ijrochilari"
+        verbose_name = "Topshiriq ijrochisi"
+        verbose_name_plural = "Topshiriq ijrochilari"
 
     def clean(self):
         super().clean()
         if self.developer_id and not self.developer.is_developer:
-            raise ValidationError({"developer": "Vazifa faqat 'Dasturchi' rolidagi foydalanuvchiga biriktiriladi."})
+            raise ValidationError({"developer": "Topshiriq faqat 'Dasturchi' rolidagi foydalanuvchiga biriktiriladi."})
 
     def __str__(self):
         return f"{self.task} — {self.developer}"
@@ -93,7 +93,7 @@ class SubTask(models.Model):
     """Vazifa ichidagi kichik qadam; unga bir nechta dasturchi biriktirish mumkin."""
 
     task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name="subtasks")
-    title = models.CharField("Nomi", max_length=255)
+    title = models.CharField("Topshiriq mazmuni", max_length=255)
     assignees = models.ManyToManyField(
         settings.AUTH_USER_MODEL, blank=True, related_name="assigned_subtasks", verbose_name="Ijrochilar"
     )
@@ -118,8 +118,8 @@ class TaskFile(models.Model):
 
     class Meta:
         ordering = ["-created_at"]
-        verbose_name = "Vazifa fayli"
-        verbose_name_plural = "Vazifa fayllari"
+        verbose_name = "Topshiriq fayli"
+        verbose_name_plural = "Topshiriq fayllari"
 
     def __str__(self):
         return self.original_name
@@ -188,5 +188,5 @@ class ArchivedTask(Task):
 
     class Meta:
         proxy = True
-        verbose_name = "O'chirilgan vazifa"
-        verbose_name_plural = "O'chirilgan (arxivlangan) vazifalar"
+        verbose_name = "O'chirilgan topshiriq"
+        verbose_name_plural = "O'chirilgan (arxivlangan) topshiriqlar"

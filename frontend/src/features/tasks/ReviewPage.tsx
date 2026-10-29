@@ -21,7 +21,7 @@ export default function ReviewPage() {
 
   const reviewSummary: SummaryCardItem[] = [
     { key: "", label: "Tekshiruv kutilmoqda", value: query.pagination?.count ?? tasks.length, hint: "Barcha tekshiruvlar", icon: Hourglass, tone: "violet" },
-    { key: "urgent", label: "Muhim vazifalar", value: urgentCount, hint: "Shoshilinch va yuqori", icon: AlertTriangle, tone: "danger" },
+    { key: "urgent", label: "Muhim topshiriqlar", value: urgentCount, hint: "Shoshilinch va yuqori", icon: AlertTriangle, tone: "danger" },
     { key: "ontime", label: "O'z vaqtida", value: onTimeCount, hint: "Muddatidan kechikmagan", icon: CheckCircle2, tone: "success" },
   ];
 

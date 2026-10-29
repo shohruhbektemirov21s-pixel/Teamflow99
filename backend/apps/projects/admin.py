@@ -1,6 +1,7 @@
 from django.contrib import admin
 
 from .models import Project, ProjectCompletionAck, ProjectFile, ProjectMember
+from apps.core.recovery import RecoverableDeleteMixin
 
 
 class ProjectMemberInline(admin.TabularInline):
@@ -24,7 +25,7 @@ class ProjectCompletionAckInline(admin.TabularInline):
 
 
 @admin.register(Project)
-class ProjectAdmin(admin.ModelAdmin):
+class ProjectAdmin(RecoverableDeleteMixin, admin.ModelAdmin):
     list_display = ("code", "name", "stage", "start_date", "end_date", "created_by")
     list_filter = ("stage",)
     search_fields = ("code", "name")
@@ -32,14 +33,14 @@ class ProjectAdmin(admin.ModelAdmin):
 
 
 @admin.register(ProjectMember)
-class ProjectMemberAdmin(admin.ModelAdmin):
+class ProjectMemberAdmin(RecoverableDeleteMixin, admin.ModelAdmin):
     list_display = ("project", "developer", "added_at")
     list_filter = ("added_at",)
     search_fields = ("project__name", "project__code", "developer__username", "developer__first_name")
 
 
 @admin.register(ProjectFile)
-class ProjectFileAdmin(admin.ModelAdmin):
+class ProjectFileAdmin(RecoverableDeleteMixin, admin.ModelAdmin):
     list_display = ("project", "original_name", "is_completion", "uploaded_by", "created_at")
     list_filter = ("is_completion", "created_at")
     search_fields = ("original_name", "project__name", "project__code", "uploaded_by__username")
@@ -47,7 +48,7 @@ class ProjectFileAdmin(admin.ModelAdmin):
 
 
 @admin.register(ProjectCompletionAck)
-class ProjectCompletionAckAdmin(admin.ModelAdmin):
+class ProjectCompletionAckAdmin(RecoverableDeleteMixin, admin.ModelAdmin):
     list_display = ("project", "developer", "confirmed", "decided_at")
     list_filter = ("confirmed", "decided_at")
     search_fields = ("project__name", "project__code", "developer__username", "reason")

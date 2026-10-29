@@ -1,7 +1,6 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { FileText, Plus } from "lucide-react";
 import { useState } from "react";
-import { Link } from "react-router-dom";
 
 import { useModal } from "@/app/modals";
 import { OrdersTable, OrderStatusCards } from "@/features/orders/OrdersTable";
@@ -12,7 +11,6 @@ import type { DepartmentDashboard, Order, OrderBucket, Paged, PeriodKey } from "
 import { Button, Empty, ErrorBox, Skeleton, SkeletonRows } from "@/shared/ui";
 import { Pagination } from "@/shared/ui/Pagination";
 
-import { OnboardingGuide } from "./OnboardingGuide";
 import { PeriodCards } from "./PeriodCards";
 
 const PERIOD_BUCKETS: { key: OrderBucket; label: string; alert?: boolean }[] = [
@@ -61,19 +59,6 @@ export default function DepartmentHome() {
 
   return (
     <div className="dashboard-page">
-      <div className="page-toolbar">
-        <div className="page-actions">
-          <Link to="/buyurtmalar" className="btn">
-            <FileText size={16} /> {T.nav.myOrders}
-          </Link>
-          <Button variant="primary" icon={<Plus />} onClick={newOrder}>
-            {T.orders.new}
-          </Button>
-        </div>
-      </div>
-
-      <OnboardingGuide onNewOrder={newOrder} />
-
       {summary.error && <ErrorBox error={summary.error} onRetry={() => summary.refetch()} />}
 
       <PeriodCards

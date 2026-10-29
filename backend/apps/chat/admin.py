@@ -2,10 +2,11 @@ from django.contrib import admin
 from django.utils.html import format_html
 
 from .models import ChatMessage
+from apps.core.recovery import RecoverableDeleteMixin
 
 
 @admin.register(ChatMessage)
-class ChatMessageAdmin(admin.ModelAdmin):
+class ChatMessageAdmin(RecoverableDeleteMixin, admin.ModelAdmin):
     list_display = ("id", "author_display", "recipient_display", "short_text", "is_read_badge", "created_at")
     list_filter = ("is_read", "created_at")
     search_fields = (

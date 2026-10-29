@@ -3,11 +3,12 @@ from django.contrib.admin.models import LogEntry
 from django.db import models
 from django.utils.html import format_html
 
-from .models import ActivityLog, Comment
+from .models import ActivityLog, AdminDeletedRecord, Comment
+from .recovery import RecoverableDeleteMixin
 
 
 @admin.register(Comment)
-class CommentAdmin(admin.ModelAdmin):
+class CommentAdmin(RecoverableDeleteMixin, admin.ModelAdmin):
     list_display = ("author", "target_object_display", "short_text", "created_at")
     list_filter = ("target_type", "created_at")
     search_fields = ("text", "author__username", "author__first_name", "author__last_name")
@@ -32,7 +33,7 @@ class ActivityLogActionFilter(admin.SimpleListFilter):
     def lookups(self, request, model_admin):
         return (
             ("deletions", "O'chirish va arxivlash"),
-            ("tasks", "Vazifalar amallari"),
+            ("tasks", "Topshiriqlar amallari"),
             ("projects", "Loyihalar amallari"),
             ("orders", "Buyurtmalar amallari"),
         )
@@ -51,7 +52,7 @@ class ActivityLogActionFilter(admin.SimpleListFilter):
 
 
 @admin.register(ActivityLog)
-class ActivityLogAdmin(admin.ModelAdmin):
+class ActivityLogAdmin(RecoverableDeleteMixin, admin.ModelAdmin):
     list_display = ("created_at", "actor_display", "action_badge", "message", "target_display")
     list_filter = (ActivityLogActionFilter, "verb", "created_at")
     search_fields = ("message", "actor__username", "actor__first_name", "actor__last_name")
@@ -97,6 +98,39 @@ class LogEntryAdmin(admin.ModelAdmin):
         }
         name, cls = flags.get(obj.action_flag, (str(obj.action_flag), "tf-badge-neutral"))
         return format_html('<span class="tf-badge {}">{}</span>', cls, name)
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
+@admin.register(AdminDeletedRecord)
+class AdminDeletedRecordAdmin(admin.ModelAdmin):
+    list_display = ("deleted_at", "model_label_display", "object_repr", "deleted_by", "restored_at", "restore_status")
+    list_filter = ("restored_at", "content_type", "deleted_at")
+    search_fields = ("object_repr", "object_id", "restore_error")
+    readonly_fields = (
+        "content_type", "object_id", "object_repr", "payload", "deleted_by", "deleted_at",
+        "restored_at", "restore_error",
+    )
+    date_hierarchy = "deleted_at"
+
+    @admin.display(description="Model", ordering="content_type")
+    def model_label_display(self, obj):
+        return obj.model_label
+
+    @admin.display(description="Holat", ordering="restored_at")
+    def restore_status(self, obj):
+        if obj.restored_at:
+            return format_html('<span class="tf-badge tf-badge-success">Tiklangan</span>')
+        if obj.restore_error:
+            return format_html('<span class="tf-badge tf-badge-danger">Xatolik</span>')
+        return format_html('<span class="tf-badge tf-badge-warning">Tiklanmagan</span>')
 
     def has_add_permission(self, request):
         return False

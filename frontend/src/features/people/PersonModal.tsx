@@ -17,6 +17,48 @@ import { ProfileHeader } from "./ProfileHeader";
 import { PersonWork } from "./PersonWork";
 import { ResponsibleProjects } from "./ResponsibleProjects";
 
+type PersonStatKey = "in_progress" | "overdue" | "in_review" | "done";
+
+const STAT_COPY: Record<PersonStatKey, { title: string; empty: string }> = {
+  in_progress: { title: "Faol topshiriqlar", empty: "Faol topshiriqlar topilmadi." },
+  overdue: { title: "Muddati o‘tgan topshiriqlar", empty: "Muddati o‘tgan topshiriqlar yo‘q." },
+  in_review: { title: "Tekshiruvdagi topshiriqlar", empty: "Tekshiruvdagi topshiriqlar yo‘q." },
+  done: { title: "Bajarilgan topshiriqlar", empty: "Bajarilgan topshiriqlar topilmadi." },
+};
+
+function PersonStatModal({
+  stat,
+  tasks,
+  loading,
+  onClose,
+}: {
+  stat: PersonStatKey;
+  tasks: Task[];
+  loading: boolean;
+  onClose: () => void;
+}) {
+  const filtered = tasks.filter((task) => {
+    if (stat === "overdue") return task.is_overdue;
+    if (stat === "in_review") return task.status === "in_review";
+    if (stat === "done") return task.status === "done";
+    return task.status !== "done";
+  });
+
+  return (
+    <Modal title={STAT_COPY[stat].title} subtitle="Xodim profili / topshiriqlar" size="lg" onClose={onClose} stacked>
+      <div className="stack">
+        <div className="card card-pad person-stat-modal-intro">
+          <strong>Joriy profil qadam saqlandi</strong>
+          <span className="muted small">Modalni yopganingizda xodim profilidagi avvalgi tab va filtrga qaytasiz.</span>
+        </div>
+        <div className="card">
+          <TaskTable tasks={filtered} loading={loading} emptyHint={STAT_COPY[stat].empty} />
+        </div>
+      </div>
+    </Modal>
+  );
+}
+
 export default function PersonModal({ id }: { id: number }) {
   const me = useMe();
   const isMgr = me.role === "boss" || me.role === "pm";
@@ -25,6 +67,7 @@ export default function PersonModal({ id }: { id: number }) {
   const [tab, setTab] = useState<"tasks" | "report">("tasks");
   const [dirty, setDirty] = useState(false);
   const [statusFilter, setStatusFilter] = useState<string>("");
+  const [statModal, setStatModal] = useState<PersonStatKey | null>(null);
 
   const personQuery = useQuery({
     queryKey: ["person", id],
@@ -63,8 +106,10 @@ export default function PersonModal({ id }: { id: number }) {
                 ? { active: person.active_tasks, overdue: person.overdue_tasks, review: person.review_tasks, done: person.done_tasks }
                 : null
             }
-            activeKey={statusFilter}
-            onSelect={(key) => setStatusFilter((curr) => (curr === key ? "" : key))}
+            onSelect={(key) => {
+              setStatusFilter((current) => (current === key ? "" : key));
+              setStatModal(key as PersonStatKey);
+            }}
           />
           {person.is_on_business_trip && <div className="card card-pad small">{T.people.onBusinessTrip}. {T.people.tripUntil(fmtDate(person.business_trip_return_date!))}. {T.people.tripBlocked}.</div>}
           {(person.role === "developer" || person.role === "pm") && <ResponsibleProjects key={person.id} employeeId={person.id} onDirtyChange={setDirty} />}
@@ -169,6 +214,14 @@ export default function PersonModal({ id }: { id: number }) {
             </div>
           )}
         </div>
+      )}
+      {person && statModal && (
+        <PersonStatModal
+          stat={statModal}
+          tasks={tasks}
+          loading={tasksQuery.isLoading}
+          onClose={() => setStatModal(null)}
+        />
       )}
     </Modal>
   );

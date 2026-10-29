@@ -1,14 +1,17 @@
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
 from django.test import TestCase
+from django.test import RequestFactory
 from django.urls import reverse
 from django.utils import timezone
 
 from apps.accounts.models import Role
 from apps.chat.models import ChatMessage
-from apps.core.models import ActivityLog
+from apps.core.models import ActivityLog, AdminDeletedRecord
+from apps.core.recovery import restore_snapshot
 from apps.notifications.models import Notification
 from apps.tasks.models import Task
+from apps.suggestions.models import Suggestion
 from config.urls import teamflow_admin_site
 
 
@@ -60,7 +63,7 @@ class AdminDashboardUITests(TestCase):
         self.assertContains(response, "tf-dashboard-toolbar")
         self.assertContains(response, "Foydalanuvchilar")
         self.assertContains(response, "Buyurtmalar")
-        self.assertContains(response, "O'chirilgan vazifalar")
+        self.assertContains(response, "O'chirilgan topshiriqlar")
         self.assertContains(response, "Yozishmalar (Chat)")
         self.assertContains(response, "Barcha bo'limlar")
         self.assertContains(response, "admin/teamflow.js")
@@ -170,6 +173,22 @@ class AdminDashboardUITests(TestCase):
         self.assertContains(response, "Meni esda saqlash")
         self.assertContains(response, "Tizimga kirish")
         self.assertContains(response, "Asosiy saytga qaytish")
+        self.assertContains(response, 'id="tf-forgot-help"')
+        self.assertContains(response, 'aria-pressed="false"')
+        self.assertNotContains(response, 'href="javascript:void(0)"')
+        self.assertNotContains(response, '<main class="tf-login-viewport">')
+
+    def test_login_displays_an_accessible_error_state_for_invalid_credentials(self):
+        self.client.logout()
+
+        response = self.client.post(
+            reverse("admin:login"),
+            {"username": "ui-admin", "password": "wrong-password", "next": "/admin/"},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'role="alert"')
+        self.assertContains(response, "Login yoki parol noto")
 
     def test_chat_messages_are_accessible_in_admin(self):
         ChatMessage.objects.create(
@@ -335,3 +354,25 @@ class AdminDashboardUITests(TestCase):
     def test_all_models_are_registered_in_admin(self):
         # Tizimdagi 30 dan ortiq barcha modellar admin panelda ro'yxatdan o'tgan
         self.assertGreaterEqual(len(teamflow_admin_site._registry), 30)
+
+    def test_admin_delete_is_snapshoted_and_restorable(self):
+        suggestion = Suggestion.objects.create(
+            title="Qayta tiklanadigan taklif",
+            body="Admin recovery markazi sinovi",
+            author=self.pm,
+        )
+        request = RequestFactory().post("/admin/suggestions/suggestion/")
+        request.user = self.admin
+        model_admin = teamflow_admin_site._registry[Suggestion]
+        suggestion_id = suggestion.pk
+
+        model_admin.delete_model(request, suggestion)
+
+        self.assertFalse(Suggestion.objects.filter(pk=suggestion_id).exists())
+        record = AdminDeletedRecord.objects.get(object_id=str(suggestion_id))
+        restored = restore_snapshot(record)
+
+        self.assertEqual(restored.pk, suggestion_id)
+        self.assertEqual(restored.title, "Qayta tiklanadigan taklif")
+        record.refresh_from_db()
+        self.assertIsNotNone(record.restored_at)

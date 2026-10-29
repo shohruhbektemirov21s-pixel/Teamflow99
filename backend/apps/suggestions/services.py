@@ -4,6 +4,7 @@ from django.utils import timezone
 from rest_framework.exceptions import PermissionDenied
 
 from apps.core.api_utils import ServiceError
+from apps.core.recovery import snapshot_instance
 
 from .models import Suggestion, SuggestionVote
 from .workflow import check_suggestion_transition
@@ -27,6 +28,7 @@ def delete_suggestion(suggestion, user):
         raise PermissionDenied("Faqat o'zingiz yozgan va anonim bo'lmagan takliflarni o'chira olasiz.")
     if suggestion.status != S.PENDING:
         raise ServiceError("Faqat kutilayotgan takliflarni o'chirish mumkin.")
+    snapshot_instance(suggestion, user)
     suggestion.delete()
 
 

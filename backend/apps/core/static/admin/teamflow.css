@@ -23,7 +23,7 @@
   --tf-subtle: #94a3b8;
   
   /* Brand / Primary */
-  --tf-primary: #3b82f6;
+  --tf-primary: #2563eb;
   --tf-primary-hover: #2563eb;
   --tf-primary-dark: #1d4ed8;
   --tf-primary-surface: #eff6ff;
@@ -1923,6 +1923,10 @@ body.login.tf-login-page #content {
   box-sizing: border-box;
 }
 
+body.login.tf-login-page #header.tf-login-navbar {
+  padding: 18px max(32px, calc((100vw - 1380px) / 2));
+}
+
 .tf-login-nav-brand {
   display: flex;
   align-items: center;
@@ -2200,7 +2204,7 @@ html[data-theme="dark"] .tf-hero-mockup-wrap {
   box-shadow: 0 25px 60px -15px rgba(15, 23, 42, 0.08), 0 0 1px 1px rgba(15, 23, 42, 0.04);
   border: 1px solid var(--tf-border);
   width: 100%;
-  max-width: 520px;
+  max-width: 620px;
   box-sizing: border-box;
 }
 
@@ -2452,10 +2456,15 @@ html[data-theme="dark"] .tf-login-error {
 }
 
 .tf-forgot-link {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  font: inherit;
   font-size: 13px;
   font-weight: 600;
   color: #2563eb;
   text-decoration: none;
+  cursor: pointer;
   transition: color 0.15s;
 }
 
@@ -2466,6 +2475,29 @@ html[data-theme="dark"] .tf-login-error {
 
 html[data-theme="dark"] .tf-forgot-link {
   color: #60a5fa;
+}
+
+.tf-forgot-link:focus-visible,
+.tf-password-toggle:focus-visible,
+.tf-login-submit:focus-visible,
+.tf-checkbox-wrap input:focus-visible ~ .tf-checkbox-custom {
+  outline: 3px solid rgba(37, 99, 235, 0.28);
+  outline-offset: 2px;
+}
+
+.tf-forgot-help {
+  margin: -8px 0 20px;
+  padding: 10px 12px;
+  border-radius: 9px;
+  background: var(--tf-surface-soft);
+  border: 1px solid var(--tf-border);
+  color: var(--tf-muted);
+  font-size: 12.5px;
+  line-height: 1.45;
+}
+
+.tf-forgot-help[hidden] {
+  display: none;
 }
 
 /* Submit Button */
@@ -2562,8 +2594,15 @@ html[data-theme="dark"] .tf-back-to-site {
 /* Responsive */
 @media (max-width: 1024px) {
   .tf-login-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     gap: 36px;
+    min-width: 0;
+  }
+  .tf-login-hero,
+  .tf-login-card-section,
+  .tf-login-card {
+    min-width: 0;
+    width: 100%;
   }
   .tf-hero-mockup-wrap {
     display: none;
@@ -2573,6 +2612,215 @@ html[data-theme="dark"] .tf-back-to-site {
   }
   .tf-login-viewport {
     padding: 16px 20px 32px;
+    min-width: 0;
+  }
+}
+
+@media (max-width: 680px) {
+  body.login.tf-login-page #header.tf-login-navbar {
+    padding: 14px 16px;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .tf-login-nav-end {
+    gap: 8px;
+  }
+
+  .tf-login-viewport {
+    padding: 16px 12px 28px;
+    flex: none;
+    align-items: flex-start;
+    justify-content: flex-start;
+    overflow-x: hidden;
+  }
+
+  .tf-login-grid {
+    gap: 24px;
+  }
+
+  .tf-login-card {
+    padding: 28px 20px;
+    border-radius: 22px;
+  }
+
+  .tf-card-title {
+    font-size: 24px;
+  }
+
+  .tf-form-options {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .tf-forgot-link {
+    margin-left: auto;
+  }
+}
+
+/* Model pages: every module gets the same intentional information hierarchy. */
+.tf-model-list-page #content-main,
+.tf-model-form-page #content-main {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.tf-page-hero {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 92px;
+  margin-bottom: 16px;
+  padding: 18px 20px;
+  border: 1px solid var(--tf-border);
+  border-radius: var(--tf-radius-lg);
+  background: linear-gradient(135deg, var(--tf-surface), var(--tf-surface-soft));
+  box-shadow: var(--tf-shadow-xs);
+}
+
+.tf-page-hero-icon {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 13px;
+  background: var(--tf-primary);
+  color: #fff;
+  font-size: 18px;
+  font-weight: 850;
+  box-shadow: 0 8px 18px rgba(37, 99, 235, .22);
+}
+
+.tf-page-hero-copy {
+  min-width: 0;
+  flex: 1;
+}
+
+.tf-page-hero-copy h1 {
+  margin: 2px 0 2px;
+  color: var(--tf-ink);
+  font-size: clamp(21px, 2.5vw, 28px);
+  font-weight: 820;
+  letter-spacing: -.035em;
+  line-height: 1.15;
+}
+
+.tf-page-hero-copy p {
+  margin: 0;
+  overflow: hidden;
+  color: var(--tf-muted);
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tf-page-hero-meta {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 10px;
+}
+
+.tf-live-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 9px;
+  border: 1px solid color-mix(in srgb, var(--tf-success) 30%, var(--tf-border));
+  border-radius: 99px;
+  background: var(--tf-success-surface);
+  color: var(--tf-success);
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: .05em;
+  white-space: nowrap;
+}
+
+.tf-live-chip i {
+  width: 6px;
+  height: 6px;
+  border-radius: 99px;
+  background: currentColor;
+  box-shadow: 0 0 0 3px color-mix(in srgb, currentColor 16%, transparent);
+}
+
+.tf-record-count {
+  display: grid;
+  min-width: 34px;
+  height: 34px;
+  place-items: center;
+  border-radius: 10px;
+  background: var(--tf-primary-surface);
+  color: var(--tf-primary);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.tf-page-hero-form {
+  margin-bottom: 14px;
+}
+
+.tf-model-list-page .object-tools,
+.tf-model-form-page .object-tools {
+  justify-content: flex-end;
+  margin-bottom: 14px;
+}
+
+.tf-model-list-page #changelist-search label {
+  color: var(--tf-muted);
+  font-weight: 650;
+}
+
+.tf-model-list-page #changelist .paginator {
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+}
+
+.tf-model-form-page #content-main > form > div,
+.tf-model-form-page #content-main > form > div > .module,
+.tf-model-form-page #content-main > form > div > .inline-group {
+  border-radius: var(--tf-radius-lg);
+}
+
+@media (max-width: 680px) {
+  .tf-page-hero {
+    align-items: flex-start;
+    min-height: 0;
+    padding: 14px;
+  }
+
+  .tf-page-hero-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    font-size: 15px;
+  }
+
+  .tf-page-hero-meta {
+    display: none;
+  }
+
+  .tf-page-hero-copy p {
+    white-space: normal;
+  }
+}
+
+@media (max-width: 390px) {
+  .tf-input-kbd {
+    display: none;
+  }
+
+  .tf-form-options {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .tf-forgot-link {
+    margin-left: 0;
   }
 }
 
@@ -2859,5 +3107,2018 @@ html[data-theme="dark"] .tf-back-to-site {
   }
   body.tf-admin-page:not(.tf-login-page) #nav-sidebar.tf-admin-sidebar .tf-sidebar-inner {
     display: flex !important;
+  }
+}
+
+/* ========================================================================
+   Premium admin refinements
+   ======================================================================== */
+.tf-activity-chart-panel {
+  margin-bottom: 20px;
+}
+
+.tf-chart-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.tf-chart-card {
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid var(--tf-border);
+  border-radius: var(--tf-radius);
+  background: var(--tf-surface-soft);
+}
+
+.tf-chart-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.tf-chart-card-head strong {
+  color: var(--tf-ink);
+  font-size: 12.5px;
+  font-weight: 750;
+}
+
+.tf-chart-card-head span {
+  color: var(--tf-subtle);
+  font-size: 10.5px;
+  font-weight: 700;
+}
+
+.tf-bars {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  align-items: end;
+  gap: 8px;
+  height: 142px;
+  padding-top: 8px;
+}
+
+.tf-chart-card:last-child .tf-bars {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+
+.tf-bar-column {
+  display: grid;
+  grid-template-rows: 1fr auto;
+  align-items: end;
+  gap: 8px;
+  min-width: 0;
+  height: 100%;
+  text-align: center;
+}
+
+.tf-bar-track {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  border-radius: 6px 6px 3px 3px;
+  background: color-mix(in srgb, var(--tf-primary) 8%, transparent);
+}
+
+.tf-bar-fill {
+  display: block;
+  width: min(24px, 70%);
+  min-height: 5px;
+  border-radius: 6px 6px 3px 3px;
+  background: linear-gradient(180deg, var(--tf-primary), #1d4ed8);
+  box-shadow: 0 4px 10px rgba(37, 99, 235, .2);
+}
+
+.tf-bar-fill-alt {
+  background: linear-gradient(180deg, #10b981, #059669);
+  box-shadow: 0 4px 10px rgba(16, 185, 129, .18);
+}
+
+.tf-bar-column small {
+  color: var(--tf-subtle);
+  font-size: 9.5px;
+  font-weight: 750;
+  letter-spacing: .04em;
+}
+
+.tf-status-danger {
+  background: var(--tf-danger) !important;
+  box-shadow: 0 0 0 3px var(--tf-danger-surface) !important;
+}
+
+.tf-inline-count {
+  display: inline-grid;
+  place-items: center;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 7px;
+  margin-left: 4px;
+  border-radius: 99px;
+  background: var(--tf-primary-surface);
+  color: var(--tf-primary);
+  font-size: 11px;
+  vertical-align: 2px;
+}
+
+.tf-btn-success {
+  background: var(--tf-success) !important;
+}
+
+.tf-status-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 0 8px;
+  border-radius: 99px;
+  font-size: 10px;
+  font-weight: 750;
+}
+
+.tf-status-pill-danger {
+  background: var(--tf-danger-surface);
+  color: var(--tf-danger);
+}
+
+/* Django's built-in model views share this treatment so all 16 admin
+   sections feel like one product, while their existing permissions/actions
+   remain untouched. */
+body.tf-admin-page .module,
+body.tf-admin-page #changelist,
+body.tf-admin-page .inline-group {
+  box-shadow: 0 1px 2px rgba(15, 23, 42, .03), 0 8px 24px rgba(15, 23, 42, .035);
+}
+
+body.tf-admin-page .submit-row .default,
+body.tf-admin-page input[type="submit"].default,
+body.tf-admin-page .button.default {
+  background: var(--tf-primary) !important;
+  border-color: var(--tf-primary) !important;
+}
+
+body.tf-admin-page .submit-row .deletelink,
+body.tf-admin-page .deletelink-box a,
+body.tf-admin-page .deletelink {
+  color: var(--tf-danger) !important;
+  border-color: color-mix(in srgb, var(--tf-danger) 32%, var(--tf-border)) !important;
+  background: var(--tf-danger-surface) !important;
+}
+
+body.tf-admin-page input[type="checkbox"],
+body.tf-admin-page input[type="radio"] {
+  accent-color: var(--tf-primary);
+}
+
+body.tf-admin-page .errornote,
+body.tf-admin-page ul.messagelist li {
+  border-radius: var(--tf-radius);
+  border: 1px solid var(--tf-border);
+  box-shadow: var(--tf-shadow-sm);
+}
+
+@media (max-width: 680px) {
+  .tf-chart-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .tf-chart-card {
+    padding: 14px;
+  }
+}
+
+
+
+/* High-specificity override for sidebar & topbar to prevent default Django admin collision */
+html body.tf-admin-page #nav-sidebar,
+html body.tf-admin-page .tf-admin-sidebar,
+#nav-sidebar.tf-admin-sidebar {
+  background: #0c1322 !important;
+  color: #94a3b8 !important;
+  border-right: 1px solid rgba(255, 255, 255, 0.08) !important;
+  width: var(--tf-sidebar-width) !important;
+  position: fixed !important;
+  top: 0 !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  z-index: 40 !important;
+}
+
+html body.tf-admin-page #header {
+  height: var(--tf-topbar-height) !important;
+  margin-left: var(--tf-sidebar-width) !important;
+  padding: 0 32px !important;
+  background: var(--tf-surface) !important;
+  border-bottom: 1px solid var(--tf-border) !important;
+  color: var(--tf-ink) !important;
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 30 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 20px !important;
+  box-shadow: var(--tf-shadow-xs) !important;
+}
+
+html body.tf-admin-page #content {
+  margin-left: var(--tf-sidebar-width) !important;
+  padding: 24px 32px 48px !important;
+  background-color: var(--tf-bg) !important;
+  min-height: calc(100vh - var(--tf-topbar-height)) !important;
+}
+
+/* Brand Row */
+#nav-sidebar .tf-sidebar-brand-row {
+  height: var(--tf-topbar-height) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 0 16px !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+#nav-sidebar .tf-brand-mark {
+  width: 36px !important;
+  height: 36px !important;
+  border-radius: 10px !important;
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%) !important;
+  color: #ffffff !important;
+  font-size: 17px !important;
+  font-weight: 800 !important;
+  display: grid !important;
+  place-items: center !important;
+}
+#nav-sidebar .tf-brand-copy strong {
+  color: #ffffff !important;
+  font-size: 16px !important;
+  font-weight: 700 !important;
+  display: block !important;
+}
+#nav-sidebar .tf-brand-copy small {
+  color: #94a3b8 !important;
+  font-size: 11.5px !important;
+  display: block !important;
+}
+#nav-sidebar .tf-sidebar-collapse-ico {
+  color: #64748b !important;
+  background: transparent !important;
+  border: none !important;
+  font-size: 18px !important;
+  cursor: pointer !important;
+}
+
+/* Sidebar Navigation Items */
+#nav-sidebar .tf-sidebar-item {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  padding: 10px 14px !important;
+  border-radius: 12px !important;
+  color: #94a3b8 !important;
+  font-size: 13.5px !important;
+  font-weight: 500 !important;
+  text-decoration: none !important;
+  transition: all 0.15s ease !important;
+  margin-bottom: 4px !important;
+}
+#nav-sidebar .tf-sidebar-item:hover {
+  background: rgba(255, 255, 255, 0.06) !important;
+  color: #ffffff !important;
+}
+#nav-sidebar .tf-sidebar-item.is-active,
+#nav-sidebar .tf-sidebar-item.tf-sidebar-primary.is-active {
+  background: #2563eb !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35) !important;
+}
+#nav-sidebar .tf-sidebar-item.is-active .tf-item-icon svg,
+#nav-sidebar .tf-sidebar-item:hover .tf-item-icon svg {
+  stroke: #ffffff !important;
+}
+#nav-sidebar .tf-item-icon {
+  display: grid !important;
+  place-items: center !important;
+  width: 20px !important;
+  height: 20px !important;
+  flex: 0 0 auto !important;
+}
+#nav-sidebar .tf-sidebar-badge-red {
+  background: #ef4444 !important;
+  color: #ffffff !important;
+  border-radius: 9999px !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  min-width: 18px !important;
+  height: 18px !important;
+  display: grid !important;
+  place-items: center !important;
+  margin-left: auto !important;
+  padding: 0 5px !important;
+}
+#nav-sidebar .tf-section-kicker {
+  color: #64748b !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.8px !important;
+  padding: 16px 14px 6px !important;
+  margin: 0 !important;
+}
+
+/* Sidebar Bottom Box */
+#nav-sidebar .tf-sidebar-bottom-box {
+  background: #131d36 !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 14px !important;
+  padding: 12px 14px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  margin-top: auto !important;
+  text-decoration: none !important;
+}
+#nav-sidebar .tf-crown-icon-box {
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 9px !important;
+  background: rgba(245, 158, 11, 0.15) !important;
+  display: grid !important;
+  place-items: center !important;
+  flex: 0 0 auto !important;
+}
+#nav-sidebar .tf-bottom-box-copy strong {
+  color: #ffffff !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  display: block !important;
+}
+#nav-sidebar .tf-bottom-box-copy small {
+  color: #94a3b8 !important;
+  font-size: 11px !important;
+  display: block !important;
+}
+#nav-sidebar .tf-bottom-chevron {
+  color: #64748b !important;
+  font-size: 16px !important;
+  margin-left: auto !important;
+}
+
+/* Topbar Pill Search */
+.tf-top-search-box {
+  position: relative !important;
+  width: 440px !important;
+}
+.tf-top-search-box input {
+  width: 100% !important;
+  height: 42px !important;
+  border-radius: 9999px !important;
+  border: 1px solid var(--tf-border) !important;
+  background: var(--tf-surface) !important;
+  padding: 0 76px 0 42px !important;
+  font-size: 13.5px !important;
+  color: var(--tf-ink) !important;
+  outline: none !important;
+  box-shadow: var(--tf-shadow-xs) !important;
+  transition: border-color 0.15s, box-shadow 0.15s !important;
+}
+.tf-top-search-box input:focus {
+  border-color: #3b82f6 !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15) !important;
+}
+.tf-search-ico {
+  position: absolute !important;
+  left: 14px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  color: #94a3b8 !important;
+  display: grid !important;
+  place-items: center !important;
+}
+.tf-search-kbd {
+  position: absolute !important;
+  right: 12px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  background: var(--tf-surface-soft) !important;
+  border: 1px solid var(--tf-border-strong) !important;
+  border-radius: 6px !important;
+  padding: 2px 7px !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  color: var(--tf-muted) !important;
+}
+
+/* User Chip & Topbar Buttons */
+.tf-topbar-end {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+}
+.tf-icon-button {
+  width: 40px !important;
+  height: 40px !important;
+  border-radius: 50% !important;
+  border: 1px solid var(--tf-border) !important;
+  background: var(--tf-surface) !important;
+  color: var(--tf-ink) !important;
+  display: grid !important;
+  place-items: center !important;
+  cursor: pointer !important;
+  position: relative !important;
+  transition: all 0.15s ease !important;
+}
+.tf-icon-button:hover {
+  background: var(--tf-surface-soft) !important;
+  border-color: var(--tf-border-strong) !important;
+}
+.tf-bell-dot {
+  position: absolute !important;
+  top: 4px !important;
+  right: 4px !important;
+  background: #ef4444 !important;
+  color: #ffffff !important;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  min-width: 16px !important;
+  height: 16px !important;
+  border-radius: 9999px !important;
+  display: grid !important;
+  place-items: center !important;
+  padding: 0 4px !important;
+  border: 2px solid var(--tf-surface) !important;
+}
+.tf-user-chip {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  background: var(--tf-surface) !important;
+  border: 1px solid var(--tf-border) !important;
+  border-radius: 9999px !important;
+  padding: 4px 14px 4px 5px !important;
+  box-shadow: var(--tf-shadow-xs) !important;
+}
+.tf-user-avatar {
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 50% !important;
+  background: #2563eb !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  display: grid !important;
+  place-items: center !important;
+  font-size: 14px !important;
+}
+.tf-user-copy {
+  display: flex !important;
+  flex-direction: column !important;
+}
+.tf-user-copy strong {
+  font-size: 12.5px !important;
+  font-weight: 700 !important;
+  color: var(--tf-ink) !important;
+  line-height: 1.2 !important;
+}
+.tf-user-copy small {
+  font-size: 10.5px !important;
+  color: var(--tf-muted) !important;
+}
+.tf-logout-btn {
+  background: transparent !important;
+  border: none !important;
+  color: var(--tf-subtle) !important;
+  cursor: pointer !important;
+  padding: 4px !important;
+  margin-left: 4px !important;
+  display: grid !important;
+  place-items: center !important;
+  border-radius: 6px !important;
+}
+.tf-logout-btn:hover {
+  color: var(--tf-danger) !important;
+  background: var(--tf-danger-surface) !important;
+}
+
+/* ==========================================================================
+   Figma Mockup Matching Dashboard Components
+   ========================================================================== */
+.tf-dash-hero {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 24px !important;
+  padding: 26px 32px !important;
+  border: 1px solid var(--tf-border) !important;
+  border-radius: 20px !important;
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 55%, #eef2ff 100%) !important;
+  box-shadow: 0 2px 10px rgba(15, 23, 42, 0.03) !important;
+  margin-bottom: 20px !important;
+}
+html[data-theme="dark"] .tf-dash-hero {
+  background: linear-gradient(135deg, #0f1726 0%, #162035 100%) !important;
+  border-color: #1e2c40 !important;
+}
+.tf-dash-hero-left {
+  flex: 1 1 auto !important;
+}
+.tf-hero-date-line {
+  margin-bottom: 6px !important;
+}
+.tf-hero-date-text {
+  font-size: 11.5px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.8px !important;
+  color: #3b82f6 !important;
+  text-transform: uppercase !important;
+}
+.tf-hero-h1 {
+  margin: 0 0 6px 0 !important;
+  font-size: 32px !important;
+  font-weight: 800 !important;
+  color: var(--tf-ink) !important;
+  letter-spacing: -0.6px !important;
+  line-height: 1.15 !important;
+}
+.tf-hero-sub {
+  margin: 0 !important;
+  font-size: 13.5px !important;
+  color: var(--tf-muted) !important;
+  max-width: 540px !important;
+  line-height: 1.5 !important;
+}
+.tf-dash-hero-right {
+  display: flex !important;
+  align-items: center !important;
+  gap: 18px !important;
+  flex: 0 0 auto !important;
+}
+.tf-hero-floating-card {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  padding: 8px 14px !important;
+  background: rgba(255, 255, 255, 0.75) !important;
+  backdrop-filter: blur(8px) !important;
+  border: 1px solid var(--tf-border) !important;
+  border-radius: 14px !important;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04) !important;
+}
+html[data-theme="dark"] .tf-hero-floating-card {
+  background: rgba(15, 23, 38, 0.85) !important;
+  border-color: #1e2c40 !important;
+}
+.tf-hero-card-copy {
+  display: flex !important;
+  flex-direction: column !important;
+}
+.tf-hero-card-copy strong {
+  font-size: 13.5px !important;
+  font-weight: 700 !important;
+  color: var(--tf-ink) !important;
+}
+.tf-hero-card-copy small {
+  font-size: 11.5px !important;
+  color: var(--tf-muted) !important;
+}
+.tf-hero-actions {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+}
+.tf-btn-hero-primary {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  background: #2563eb !important;
+  color: #ffffff !important;
+  font-size: 13.5px !important;
+  font-weight: 700 !important;
+  padding: 10px 18px !important;
+  border-radius: 12px !important;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.32) !important;
+  transition: all 0.15s ease !important;
+  text-decoration: none !important;
+}
+.tf-btn-hero-primary:hover {
+  background: #1d4ed8 !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.42) !important;
+}
+.tf-btn-hero-secondary {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  background: var(--tf-surface) !important;
+  color: var(--tf-ink) !important;
+  border: 1px solid var(--tf-border-strong) !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  padding: 10px 16px !important;
+  border-radius: 12px !important;
+  transition: all 0.15s ease !important;
+  text-decoration: none !important;
+}
+.tf-btn-hero-secondary:hover {
+  background: var(--tf-surface-soft) !important;
+  border-color: var(--tf-primary-border) !important;
+  color: var(--tf-primary) !important;
+}
+
+/* 6 KPI Cards Grid (Exact 6 in 1 row) */
+.tf-kpi-row {
+  display: grid !important;
+  grid-template-columns: repeat(6, 1fr) !important;
+  gap: 14px !important;
+  margin-bottom: 20px !important;
+}
+.tf-kpi-card {
+  display: flex !important;
+  flex-direction: column !important;
+  background: var(--tf-surface) !important;
+  border: 1px solid var(--tf-border) !important;
+  border-radius: 16px !important;
+  padding: 16px !important;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04) !important;
+  text-decoration: none !important;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  color: inherit !important;
+}
+.tf-kpi-card:hover {
+  transform: translateY(-2px) !important;
+  border-color: #cbd5e1 !important;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06) !important;
+}
+.tf-kpi-top {
+  display: flex !important;
+  align-items: center !important;
+  margin-bottom: 10px !important;
+}
+.tf-kpi-icon-box {
+  width: 36px !important;
+  height: 36px !important;
+  border-radius: 10px !important;
+  display: grid !important;
+  place-items: center !important;
+}
+.tf-kpi-purple .tf-kpi-icon-box { background: #f3e8ff !important; color: #8b5cf6 !important; }
+.tf-kpi-amber .tf-kpi-icon-box { background: #fef3c7 !important; color: #d97706 !important; }
+.tf-kpi-cyan .tf-kpi-icon-box { background: #e0f2fe !important; color: #0284c7 !important; }
+.tf-kpi-emerald .tf-kpi-icon-box { background: #dcfce7 !important; color: #16a34a !important; }
+.tf-kpi-violet .tf-kpi-icon-box { background: #ede9fe !important; color: #7c3aed !important; }
+.tf-kpi-rose .tf-kpi-icon-box { background: #ffe4e6 !important; color: #e11d48 !important; }
+
+.tf-kpi-mid {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 2px !important;
+}
+.tf-kpi-label {
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  color: var(--tf-muted) !important;
+}
+.tf-kpi-sub-tag {
+  font-size: 10px !important;
+  opacity: 0.7 !important;
+}
+.tf-kpi-value {
+  font-size: 26px !important;
+  font-weight: 800 !important;
+  color: var(--tf-ink) !important;
+  letter-spacing: -0.5px !important;
+  line-height: 1.1 !important;
+  margin-top: 2px !important;
+}
+.tf-kpi-bottom {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  margin-top: 10px !important;
+  padding-top: 8px !important;
+  border-top: 1px solid var(--tf-surface-soft) !important;
+}
+.tf-kpi-trend {
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 2px !important;
+}
+.tf-trend-pos { color: #10b981 !important; }
+.tf-trend-neg { color: #ef4444 !important; }
+.tf-trend-neutral { color: #94a3b8 !important; }
+.tf-kpi-sparkline svg {
+  display: block !important;
+}
+
+/* Middle Section: Tizim faolligi & Quick actions */
+.tf-middle-grid {
+  display: grid !important;
+  grid-template-columns: 58% calc(42% - 18px) !important;
+  gap: 18px !important;
+  margin-bottom: 20px !important;
+}
+.tf-panel-head {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 12px !important;
+  margin-bottom: 16px !important;
+}
+.tf-panel-head-left {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+}
+.tf-panel-icon {
+  width: 36px !important;
+  height: 36px !important;
+  border-radius: 50% !important;
+  display: grid !important;
+  place-items: center !important;
+}
+.tf-icon-purple-bubble { background: #ede9fe !important; color: #7c3aed !important; }
+.tf-icon-lightning { background: #ede9fe !important; color: #7c3aed !important; }
+.tf-icon-hourglass { background: #fef3c7 !important; color: #d97706 !important; }
+.tf-icon-clock { background: #e0f2fe !important; color: #0284c7 !important; }
+.tf-icon-shield { background: #dcfce7 !important; color: #16a34a !important; }
+.tf-icon-grid { background: #f1f5f9 !important; color: #64748b !important; }
+
+.tf-panel-title {
+  margin: 0 !important;
+  font-size: 17px !important;
+  font-weight: 700 !important;
+  color: var(--tf-ink) !important;
+}
+.tf-panel-subtitle {
+  margin: 0 !important;
+  font-size: 12.5px !important;
+  color: var(--tf-muted) !important;
+}
+.tf-period-select-pill {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  padding: 6px 12px !important;
+  border-radius: 9999px !important;
+  background: var(--tf-surface) !important;
+  border: 1px solid var(--tf-border) !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  color: var(--tf-ink) !important;
+  cursor: pointer !important;
+}
+
+/* Spline Chart */
+.tf-spline-chart-wrap {
+  display: flex !important;
+  align-items: stretch !important;
+  gap: 8px !important;
+  margin: 10px 0 !important;
+}
+.tf-y-axis-labels {
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between !important;
+  font-size: 11px !important;
+  color: var(--tf-subtle) !important;
+  padding: 2px 0 20px !important;
+  text-align: right !important;
+  min-width: 20px !important;
+}
+.tf-svg-chart-container {
+  flex: 1 1 auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+.tf-spline-svg {
+  width: 100% !important;
+  height: 150px !important;
+  display: block !important;
+}
+.tf-x-axis-labels {
+  display: flex !important;
+  justify-content: space-between !important;
+  font-size: 11px !important;
+  color: var(--tf-subtle) !important;
+  padding-top: 6px !important;
+  border-top: 1px solid var(--tf-border) !important;
+}
+.tf-chart-legend {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 20px !important;
+  margin-top: 14px !important;
+  padding-top: 12px !important;
+  border-top: 1px solid var(--tf-surface-soft) !important;
+}
+.tf-legend-item {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  font-size: 12px !important;
+  color: var(--tf-muted) !important;
+  font-weight: 500 !important;
+}
+.tf-legend-dot {
+  width: 8px !important;
+  height: 8px !important;
+  border-radius: 50% !important;
+  display: inline-block !important;
+}
+.tf-dot-purple { background: #6366f1 !important; }
+.tf-dot-cyan { background: #0ea5e9 !important; }
+.tf-dot-green { background: #10b981 !important; }
+.tf-dot-amber { background: #f59e0b !important; }
+
+/* 2x3 Quick Actions Grid */
+.tf-actions-grid-2x3 {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 12px !important;
+}
+.tf-action-tile {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  padding: 12px 14px !important;
+  border-radius: 14px !important;
+  text-decoration: none !important;
+  transition: all 0.15s ease !important;
+  border: 1px solid transparent !important;
+}
+.tf-action-tile:hover {
+  transform: translateY(-1px) !important;
+}
+.tf-tile-purple { background: #fdf4ff !important; }
+.tf-tile-purple:hover { background: #fae8ff !important; border-color: #f0abfc !important; }
+.tf-tile-purple .tf-tile-icon-box { background: #f0abfc !important; color: #a21caf !important; }
+.tf-tile-purple .tf-tile-arrow { color: #a21caf !important; }
+
+.tf-tile-cyan { background: #f0fdfa !important; }
+.tf-tile-cyan:hover { background: #ccfbf1 !important; border-color: #5eead4 !important; }
+.tf-tile-cyan .tf-tile-icon-box { background: #5eead4 !important; color: #0f766e !important; }
+.tf-tile-cyan .tf-tile-arrow { color: #0f766e !important; }
+
+.tf-tile-green { background: #f0fdf4 !important; }
+.tf-tile-green:hover { background: #dcfce7 !important; border-color: #86efac !important; }
+.tf-tile-green .tf-tile-icon-box { background: #86efac !important; color: #15803d !important; }
+.tf-tile-green .tf-tile-arrow { color: #15803d !important; }
+
+.tf-tile-amber { background: #fffbeb !important; }
+.tf-tile-amber:hover { background: #fef3c7 !important; border-color: #fde68a !important; }
+.tf-tile-amber .tf-tile-icon-box { background: #fde68a !important; color: #b45309 !important; }
+.tf-tile-amber .tf-tile-arrow { color: #b45309 !important; }
+
+.tf-tile-indigo { background: #eef2ff !important; }
+.tf-tile-indigo:hover { background: #e0e7ff !important; border-color: #a5b4fc !important; }
+.tf-tile-indigo .tf-tile-icon-box { background: #a5b4fc !important; color: #4338ca !important; }
+.tf-tile-indigo .tf-tile-arrow { color: #4338ca !important; }
+
+.tf-tile-pink { background: #fff1f2 !important; }
+.tf-tile-pink:hover { background: #ffe4e6 !important; border-color: #fecdd3 !important; }
+.tf-tile-pink .tf-tile-icon-box { background: #fecdd3 !important; color: #be123c !important; }
+.tf-tile-pink .tf-tile-arrow { color: #be123c !important; }
+
+html[data-theme="dark"] .tf-action-tile {
+  background: #162235 !important;
+}
+html[data-theme="dark"] .tf-action-tile:hover {
+  background: #1f2e46 !important;
+}
+
+.tf-tile-icon-box {
+  width: 34px !important;
+  height: 34px !important;
+  border-radius: 9px !important;
+  display: grid !important;
+  place-items: center !important;
+  flex: 0 0 auto !important;
+}
+.tf-tile-copy {
+  display: flex !important;
+  flex-direction: column !important;
+  min-width: 0 !important;
+  flex: 1 1 auto !important;
+}
+.tf-tile-copy strong {
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  color: var(--tf-ink) !important;
+  line-height: 1.2 !important;
+}
+.tf-tile-copy small {
+  font-size: 11px !important;
+  color: var(--tf-muted) !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  margin-top: 2px !important;
+}
+.tf-tile-arrow {
+  width: 22px !important;
+  height: 22px !important;
+  border-radius: 50% !important;
+  display: grid !important;
+  place-items: center !important;
+  font-weight: 700 !important;
+  font-size: 13px !important;
+  flex: 0 0 auto !important;
+}
+
+/* Bottom Dual Grid: Kutilayotganlar & So'nggi faolliklar */
+.tf-bottom-dual-grid {
+  display: grid !important;
+  grid-template-columns: 38% calc(62% - 18px) !important;
+  gap: 18px !important;
+  margin-bottom: 20px !important;
+}
+.tf-panel-link-more {
+  font-size: 12.5px !important;
+  font-weight: 600 !important;
+  color: #2563eb !important;
+  text-decoration: none !important;
+}
+.tf-panel-link-more:hover {
+  text-decoration: underline !important;
+}
+
+/* Queue items */
+.tf-queue-items-list {
+  display: flex !important;
+  flex-direction: column !important;
+}
+.tf-queue-item-row {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  padding: 13px 8px !important;
+  border-bottom: 1px solid var(--tf-border) !important;
+  text-decoration: none !important;
+  transition: background 0.15s ease !important;
+  border-radius: 8px !important;
+}
+.tf-queue-item-row:last-child {
+  border-bottom: none !important;
+}
+.tf-queue-item-row:hover {
+  background: var(--tf-surface-soft) !important;
+}
+.tf-dot-indicator {
+  width: 9px !important;
+  height: 9px !important;
+  border-radius: 50% !important;
+  flex: 0 0 auto !important;
+}
+.tf-dot-pink { background: #f43f5e !important; }
+.tf-dot-amber { background: #f59e0b !important; }
+.tf-dot-purple { background: #8b5cf6 !important; }
+.tf-dot-cyan { background: #0ea5e9 !important; }
+
+.tf-queue-item-copy {
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+}
+.tf-queue-item-copy strong {
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  color: var(--tf-ink) !important;
+}
+.tf-queue-item-copy small {
+  font-size: 11.5px !important;
+  color: var(--tf-muted) !important;
+}
+.tf-queue-badge {
+  min-width: 24px !important;
+  height: 22px !important;
+  padding: 0 6px !important;
+  border-radius: 9999px !important;
+  background: var(--tf-surface-soft) !important;
+  color: var(--tf-ink) !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  display: grid !important;
+  place-items: center !important;
+  flex: 0 0 auto !important;
+}
+.tf-queue-chevron {
+  color: var(--tf-subtle) !important;
+  font-size: 16px !important;
+  flex: 0 0 auto !important;
+}
+
+/* Activity items */
+.tf-activity-items-list {
+  display: flex !important;
+  flex-direction: column !important;
+}
+.tf-activity-item-row {
+  display: flex !important;
+  align-items: center !important;
+  gap: 14px !important;
+  padding: 11px 8px !important;
+  border-bottom: 1px solid var(--tf-border) !important;
+}
+.tf-activity-item-row:last-child {
+  border-bottom: none !important;
+}
+.tf-activity-icon-circle {
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 50% !important;
+  display: grid !important;
+  place-items: center !important;
+  flex: 0 0 auto !important;
+}
+.tf-icon-user { background: #f3e8ff !important; color: #8b5cf6 !important; }
+.tf-icon-project { background: #e0f2fe !important; color: #0284c7 !important; }
+.tf-icon-task { background: #dcfce7 !important; color: #16a34a !important; }
+.tf-icon-chat { background: #ede9fe !important; color: #7c3aed !important; }
+.tf-icon-trash { background: #ffe4e6 !important; color: #e11d48 !important; }
+
+.tf-activity-body {
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+}
+.tf-activity-body strong {
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  color: var(--tf-ink) !important;
+}
+.tf-activity-body small {
+  font-size: 11.5px !important;
+  color: var(--tf-muted) !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+.tf-activity-meta {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  flex: 0 0 auto !important;
+}
+.tf-activity-meta time {
+  font-size: 11.5px !important;
+  color: var(--tf-subtle) !important;
+}
+.tf-actor-badge {
+  font-size: 11.5px !important;
+  font-weight: 600 !important;
+  color: #2563eb !important;
+}
+
+
+/* ==========================================================================
+   Senior UI/UX Admin Polish & Ergonomic System (2026 Edition)
+   ========================================================================== */
+
+/* 1. Global Viewport & Layout Offsets (Zero horizontal overflow) */
+html, body.tf-admin-page {
+  max-width: 100vw !important;
+  overflow-x: hidden !important;
+  box-sizing: border-box !important;
+}
+
+#content-start {
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+  width: calc(100% - var(--tf-sidebar-width)) !important;
+  max-width: calc(100% - var(--tf-sidebar-width)) !important;
+  margin-left: var(--tf-sidebar-width) !important;
+  box-sizing: border-box !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+html body.tf-admin-page #content {
+  margin-left: 0 !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  padding: 24px 32px 48px !important;
+  box-sizing: border-box !important;
+}
+
+/* 2. Desktop vs Mobile Header Controls */
+@media (min-width: 1025px) {
+  #tf-mobile-sidebar-toggle,
+  .tf-mobile-toggle-btn {
+    display: none !important;
+  }
+}
+
+/* 3. Hide Raw Default Django Titles on all Admin Pages */
+#content > h1:first-child,
+.change-list #content > h1,
+.change-form #content > h1,
+.tf-admin-page #content > h1:not(.tf-page-title) {
+  display: none !important;
+}
+
+/* 4. Perfect Grid Proportions for Dashboard */
+.tf-kpi-row {
+  display: grid !important;
+  grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+  gap: 14px !important;
+  margin-bottom: 20px !important;
+}
+
+.tf-middle-grid {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr) !important;
+  gap: 18px !important;
+  margin-bottom: 20px !important;
+}
+
+.tf-bottom-dual-grid {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.45fr) !important;
+  gap: 18px !important;
+  margin-bottom: 20px !important;
+}
+
+.tf-actions-grid-2x3 {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 12px !important;
+}
+
+.tf-action-tile {
+  min-width: 0 !important;
+}
+
+.tf-action-info {
+  min-width: 0 !important;
+  overflow: hidden !important;
+}
+
+.tf-action-info strong,
+.tf-action-info span {
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  display: block !important;
+}
+
+/* 5. Senior Changelist (Table + Filters) Architecture */
+#changelist {
+  display: flex !important;
+  gap: 24px !important;
+  align-items: flex-start !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  width: 100% !important;
+}
+
+.changelist-form-container {
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+  background: var(--tf-surface) !important;
+  border: 1px solid var(--tf-border) !important;
+  border-radius: 18px !important;
+  padding: 22px !important;
+  box-shadow: var(--tf-shadow-sm) !important;
+  overflow-x: auto !important;
+}
+
+#changelist-filter {
+  flex: 0 0 260px !important;
+  width: 260px !important;
+  background: var(--tf-surface) !important;
+  border: 1px solid var(--tf-border) !important;
+  border-radius: 18px !important;
+  padding: 20px !important;
+  box-shadow: var(--tf-shadow-sm) !important;
+  position: sticky !important;
+  top: 80px !important;
+  max-height: calc(100vh - 100px) !important;
+  overflow-y: auto !important;
+}
+
+#changelist-filter h2 {
+  font-size: 13.5px !important;
+  font-weight: 700 !important;
+  color: var(--tf-ink) !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  margin-bottom: 14px !important;
+  padding-bottom: 8px !important;
+  border-bottom: 1px solid var(--tf-border) !important;
+}
+
+#changelist-filter h3 {
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  color: var(--tf-subtle) !important;
+  margin: 12px 0 6px !important;
+}
+
+#changelist-filter ul {
+  list-style: none !important;
+  padding: 0 !important;
+  margin: 0 0 12px !important;
+}
+
+#changelist-filter li {
+  padding: 4px 0 !important;
+  font-size: 13px !important;
+}
+
+#changelist-filter li.selected a {
+  color: var(--tf-primary) !important;
+  font-weight: 700 !important;
+}
+
+#changelist-filter a {
+  color: var(--tf-muted) !important;
+  text-decoration: none !important;
+  transition: color 0.15s ease !important;
+}
+
+#changelist-filter a:hover {
+  color: var(--tf-ink) !important;
+}
+
+/* 6. Clean Search & Actions Toolbar in Changelist */
+#toolbar {
+  background: transparent !important;
+  border: none !important;
+  padding: 0 0 16px 0 !important;
+  margin: 0 !important;
+}
+
+#changelist-search {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+}
+
+#changelist-search input[type="text"] {
+  height: 40px !important;
+  border: 1px solid var(--tf-border) !important;
+  border-radius: 10px !important;
+  padding: 0 14px !important;
+  font-size: 13.5px !important;
+  background: var(--tf-surface-soft) !important;
+  color: var(--tf-ink) !important;
+  outline: none !important;
+  transition: all 0.15s ease !important;
+  min-width: 260px !important;
+}
+
+#changelist-search input[type="text"]:focus {
+  border-color: var(--tf-primary) !important;
+  box-shadow: 0 0 0 3px var(--tf-primary-surface) !important;
+}
+
+#changelist-search input[type="submit"] {
+  height: 40px !important;
+  padding: 0 18px !important;
+  background: #2563eb !important;
+  color: #ffffff !important;
+  border: none !important;
+  border-radius: 10px !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  transition: background 0.15s ease !important;
+}
+
+#changelist-search input[type="submit"]:hover {
+  background: #1d4ed8 !important;
+}
+
+/* Bulk Actions */
+#changelist .actions {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  padding: 12px 0 16px 0 !important;
+  border-bottom: 1px solid var(--tf-border) !important;
+  margin-bottom: 16px !important;
+}
+
+#changelist .actions select {
+  height: 38px !important;
+  border: 1px solid var(--tf-border) !important;
+  border-radius: 9px !important;
+  padding: 0 12px !important;
+  background: var(--tf-surface-soft) !important;
+  color: var(--tf-ink) !important;
+  font-size: 13px !important;
+  outline: none !important;
+}
+
+#changelist .actions button.button {
+  height: 38px !important;
+  padding: 0 16px !important;
+  background: var(--tf-surface-soft) !important;
+  color: var(--tf-ink) !important;
+  border: 1px solid var(--tf-border) !important;
+  border-radius: 9px !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  transition: all 0.15s ease !important;
+}
+
+#changelist .actions button.button:hover {
+  background: var(--tf-surface-hover) !important;
+  border-color: var(--tf-border-strong) !important;
+}
+
+#changelist .actions span.action-counter {
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  color: var(--tf-muted) !important;
+}
+
+/* 7. Changelist Result Table */
+#result_list {
+  width: 100% !important;
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
+  border-radius: 12px !important;
+  overflow: hidden !important;
+}
+
+#result_list thead th {
+  background: var(--tf-surface-soft) !important;
+  color: var(--tf-subtle) !important;
+  font-size: 11.5px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.04em !important;
+  padding: 12px 14px !important;
+  border-bottom: 1px solid var(--tf-border) !important;
+  white-space: nowrap !important;
+}
+
+#result_list thead th a {
+  color: var(--tf-subtle) !important;
+  text-decoration: none !important;
+}
+
+#result_list tbody td,
+#result_list tbody th {
+  padding: 12px 14px !important;
+  font-size: 13px !important;
+  color: var(--tf-ink) !important;
+  border-bottom: 1px solid var(--tf-border) !important;
+  vertical-align: middle !important;
+}
+
+#result_list tbody tr:hover td,
+#result_list tbody tr:hover th {
+  background: var(--tf-surface-hover) !important;
+}
+
+#result_list tbody tr:last-child td,
+#result_list tbody tr:last-child th {
+  border-bottom: none !important;
+}
+
+/* Pagination */
+.paginator {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  padding: 16px 0 0 0 !important;
+  font-size: 12.5px !important;
+  color: var(--tf-muted) !important;
+  border-top: 1px solid var(--tf-border) !important;
+  margin-top: 14px !important;
+}
+
+.paginator a {
+  padding: 5px 10px !important;
+  border-radius: 8px !important;
+  border: 1px solid var(--tf-border) !important;
+  background: var(--tf-surface-soft) !important;
+  color: var(--tf-ink) !important;
+  text-decoration: none !important;
+  font-weight: 600 !important;
+}
+
+.paginator a:hover {
+  border-color: var(--tf-primary) !important;
+  color: var(--tf-primary) !important;
+}
+
+/* 8. Changeform (Card Fieldsets & Sticky Controls) */
+.change-form fieldset {
+  background: var(--tf-surface) !important;
+  border: 1px solid var(--tf-border) !important;
+  border-radius: 18px !important;
+  padding: 24px !important;
+  box-shadow: var(--tf-shadow-sm) !important;
+  margin-bottom: 24px !important;
+}
+
+.change-form fieldset h2 {
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  color: var(--tf-ink) !important;
+  margin-bottom: 18px !important;
+  padding-bottom: 10px !important;
+  border-bottom: 1px solid var(--tf-border) !important;
+}
+
+.change-form .form-row {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 6px !important;
+  padding: 12px 0 !important;
+  border-bottom: 1px solid var(--tf-border-subtle, rgba(0,0,0,0.04)) !important;
+}
+
+.change-form .form-row:last-child {
+  border-bottom: none !important;
+}
+
+.change-form .form-row label {
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  color: var(--tf-ink) !important;
+}
+
+.change-form .form-row label.required::after {
+  content: " *" !important;
+  color: #ef4444 !important;
+}
+
+.change-form input[type="text"],
+.change-form input[type="password"],
+.change-form input[type="email"],
+.change-form input[type="url"],
+.change-form select,
+.change-form textarea {
+  width: 100% !important;
+  max-width: 600px !important;
+  min-height: 40px !important;
+  border: 1px solid var(--tf-border) !important;
+  border-radius: 10px !important;
+  padding: 8px 14px !important;
+  font-size: 13.5px !important;
+  background: var(--tf-surface-soft) !important;
+  color: var(--tf-ink) !important;
+  outline: none !important;
+  transition: all 0.15s ease !important;
+  box-sizing: border-box !important;
+}
+
+.change-form input:focus,
+.change-form select:focus,
+.change-form textarea:focus {
+  border-color: var(--tf-primary) !important;
+  box-shadow: 0 0 0 3px var(--tf-primary-surface) !important;
+}
+
+/* Sticky Submit Bar */
+.submit-row {
+  background: var(--tf-surface) !important;
+  border: 1px solid var(--tf-border) !important;
+  border-radius: 18px !important;
+  padding: 16px 24px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  gap: 12px !important;
+  box-shadow: var(--tf-shadow-md) !important;
+  position: sticky !important;
+  bottom: 24px !important;
+  z-index: 10 !important;
+  backdrop-filter: blur(10px) !important;
+}
+
+.submit-row input[type="submit"] {
+  height: 42px !important;
+  padding: 0 20px !important;
+  border-radius: 10px !important;
+  font-size: 13.5px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  border: 1px solid var(--tf-border) !important;
+  background: var(--tf-surface-soft) !important;
+  color: var(--tf-ink) !important;
+  transition: all 0.15s ease !important;
+}
+
+.submit-row input[name="_save"] {
+  background: #2563eb !important;
+  color: #ffffff !important;
+  border: none !important;
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.3) !important;
+}
+
+.submit-row input[name="_save"]:hover {
+  background: #1d4ed8 !important;
+}
+
+.submit-row p.deletelink-box {
+  margin-right: auto !important;
+}
+
+.submit-row a.deletelink {
+  height: 42px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  padding: 0 16px !important;
+  border-radius: 10px !important;
+  background: #fef2f2 !important;
+  color: #ef4444 !important;
+  border: 1px solid #fecaca !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  text-decoration: none !important;
+}
+
+.submit-row a.deletelink:hover {
+  background: #fee2e2 !important;
+}
+
+/* 9. Dark Mode Refinements for Forms & Tables */
+html[data-theme="dark"] .changelist-form-container,
+html[data-theme="dark"] #changelist-filter,
+html[data-theme="dark"] .change-form fieldset,
+html[data-theme="dark"] .submit-row {
+  background: #0f1726 !important;
+  border-color: #1e2c40 !important;
+}
+
+html[data-theme="dark"] #result_list thead th {
+  background: #162235 !important;
+  border-bottom-color: #1e2c40 !important;
+  color: #94a3b8 !important;
+}
+
+html[data-theme="dark"] #result_list tbody td,
+html[data-theme="dark"] #result_list tbody th {
+  border-bottom-color: #1e2c40 !important;
+}
+
+html[data-theme="dark"] #result_list tbody tr:hover td,
+html[data-theme="dark"] #result_list tbody tr:hover th {
+  background: #1a273e !important;
+}
+
+html[data-theme="dark"] .submit-row a.deletelink {
+  background: rgba(239, 68, 68, 0.15) !important;
+  color: #f87171 !important;
+  border-color: rgba(239, 68, 68, 0.3) !important;
+}
+
+/* 10. Responsive Breakpoints */
+@media (max-width: 1200px) {
+  .tf-kpi-row {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+  .tf-middle-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .tf-bottom-dual-grid {
+    grid-template-columns: 1fr !important;
+  }
+  #changelist {
+    flex-direction: column !important;
+  }
+  #changelist-filter {
+    width: 100% !important;
+    flex: 1 1 auto !important;
+    position: static !important;
+  }
+}
+
+@media (max-width: 768px) {
+  #content-start {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-left: 0 !important;
+  }
+  html body.tf-admin-page #content {
+    padding: 16px !important;
+  }
+  .tf-kpi-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+  .tf-actions-grid-2x3 {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .tf-kpi-row {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+
+/* ==========================================================================
+   Mobile, Tablet & Desktop Fully Adaptive System (Senior UI/UX Standard)
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   A. BASE & DESKTOP (Screens >= 1025px)
+   -------------------------------------------------------------------------- */
+@media (min-width: 1025px) {
+  #tf-mobile-sidebar-toggle,
+  .tf-mobile-toggle-btn {
+    display: none !important;
+  }
+  
+  html body.tf-admin-page #header {
+    height: var(--tf-topbar-height) !important;
+    margin-left: var(--tf-sidebar-width) !important;
+    left: 0 !important;
+    width: calc(100% - var(--tf-sidebar-width)) !important;
+    padding: 0 32px !important;
+    box-sizing: border-box !important;
+  }
+
+  #content-start {
+    margin-left: var(--tf-sidebar-width) !important;
+    width: calc(100% - var(--tf-sidebar-width)) !important;
+    max-width: calc(100% - var(--tf-sidebar-width)) !important;
+  }
+
+  html body.tf-admin-page #content {
+    max-width: 1600px !important;
+    margin: 0 auto !important;
+    padding: 24px 32px 48px !important;
+  }
+
+  .tf-kpi-row {
+    grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+  }
+
+  .tf-middle-grid {
+    grid-template-columns: minmax(0, 1.38fr) minmax(0, 1fr) !important;
+  }
+
+  .tf-bottom-dual-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.48fr) !important;
+  }
+
+  #changelist {
+    display: flex !important;
+    gap: 24px !important;
+    align-items: flex-start !important;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   B. TABLET & COMPACT DESKTOP (Screens 769px - 1024px)
+   -------------------------------------------------------------------------- */
+@media (max-width: 1024px) {
+  .tf-kpi-row {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+
+  .tf-middle-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+
+  .tf-bottom-dual-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+
+  #changelist {
+    flex-direction: column !important;
+    gap: 20px !important;
+  }
+
+  #changelist-filter {
+    width: 100% !important;
+    flex: 1 1 auto !important;
+    position: static !important;
+    max-height: none !important;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   C. MOBILE & TABLET (Screens <= 900px)
+   -------------------------------------------------------------------------- */
+@media (max-width: 900px) {
+  /* Header & Topbar Full Width (Zero Sidebar Offset) */
+  html body.tf-admin-page #header {
+    height: 60px !important;
+    margin-left: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    max-width: 100vw !important;
+    padding: 0 14px !important;
+    box-sizing: border-box !important;
+  }
+
+  #tf-mobile-sidebar-toggle,
+  .tf-mobile-toggle-btn {
+    display: inline-grid !important;
+    place-items: center !important;
+    width: 38px !important;
+    height: 38px !important;
+    border-radius: 9px !important;
+    background: var(--tf-surface-soft) !important;
+    border: 1px solid var(--tf-border) !important;
+    color: var(--tf-ink) !important;
+    font-size: 18px !important;
+    cursor: pointer !important;
+  }
+
+  .tf-topbar-start {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+  }
+
+  .tf-top-search-box {
+    flex: 1 1 auto !important;
+    width: auto !important;
+    max-width: 200px !important;
+    min-width: 0 !important;
+    height: 38px !important;
+  }
+
+  .tf-top-search-box input {
+    width: 100% !important;
+    min-width: 0 !important;
+    height: 38px !important;
+    padding: 0 10px 0 32px !important;
+    font-size: 12.5px !important;
+  }
+
+  .tf-search-kbd {
+    display: none !important;
+  }
+
+  .tf-topbar-link {
+    display: none !important;
+  }
+
+  .tf-user-chip .tf-user-meta {
+    display: none !important;
+  }
+
+  .tf-user-chip {
+    padding: 4px 6px !important;
+    gap: 6px !important;
+  }
+
+  /* Slide-in Mobile Drawer Navigation */
+  html body #nav-sidebar.tf-admin-sidebar {
+    display: none !important;
+  }
+
+  html body #nav-sidebar.tf-admin-sidebar.is-mobile-open {
+    display: block !important;
+    position: fixed !important;
+    inset: 0 auto 0 0 !important;
+    width: min(300px, 85vw) !important;
+    height: 100vh !important;
+    z-index: 1000 !important;
+    transform: translateX(0) !important;
+    box-shadow: 12px 0 36px rgba(0, 0, 0, 0.5) !important;
+    background: #0c1322 !important;
+  }
+
+  .tf-sidebar-backdrop {
+    position: fixed !important;
+    inset: 0 !important;
+    background: rgba(0, 0, 0, 0.65) !important;
+    backdrop-filter: blur(4px) !important;
+    z-index: 999 !important;
+  }
+
+  .tf-sidebar-backdrop[hidden] {
+    display: none !important;
+  }
+
+  /* Content Container Full Width */
+  #content-start {
+    margin-left: 0 !important;
+    width: 100% !important;
+    max-width: 100vw !important;
+  }
+
+  html body.tf-admin-page #content {
+    padding: 16px 12px 36px !important;
+    width: 100% !important;
+    max-width: 100vw !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Hero Section Stacking */
+  .tf-dash-hero {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 16px !important;
+    padding: 18px !important;
+  }
+
+  .tf-dash-hero-left {
+    width: 100% !important;
+  }
+
+  .tf-dash-hero-left h1 {
+    font-size: 20px !important;
+    line-height: 1.25 !important;
+  }
+
+  .tf-dash-hero-right {
+    flex-direction: column !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    gap: 12px !important;
+  }
+
+  .tf-hero-floating-card {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .tf-hero-actions {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    width: 100% !important;
+    gap: 8px !important;
+  }
+
+  .tf-hero-btn {
+    flex: 1 1 auto !important;
+    text-align: center !important;
+    justify-content: center !important;
+  }
+
+  /* Page Hero on Model List & Change Pages */
+  .tf-page-hero {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 12px !important;
+    padding: 18px !important;
+  }
+
+  .tf-page-hero-meta {
+    margin-left: 0 !important;
+    width: 100% !important;
+    justify-content: flex-start !important;
+  }
+
+  /* Changelist Search & Actions */
+  #changelist-search {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 8px !important;
+  }
+
+  #changelist-search input[type="text"] {
+    min-width: 0 !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  #changelist-search input[type="submit"] {
+    width: 100% !important;
+  }
+
+  #changelist .actions {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 8px !important;
+  }
+
+  #changelist .actions select,
+  #changelist .actions button.button {
+    width: 100% !important;
+  }
+
+  /* Tables horizontal scroll container */
+  .changelist-form-container {
+    padding: 14px !important;
+    border-radius: 14px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  #result_list {
+    display: table !important;
+    min-width: 600px !important;
+  }
+
+  /* Changeform & Sticky Bar */
+  .change-form fieldset {
+    padding: 16px !important;
+    border-radius: 14px !important;
+  }
+
+  .change-form input[type="text"],
+  .change-form input[type="password"],
+  .change-form input[type="email"],
+  .change-form select,
+  .change-form textarea {
+    max-width: 100% !important;
+  }
+
+  .submit-row {
+    flex-direction: column-reverse !important;
+    align-items: stretch !important;
+    gap: 8px !important;
+    padding: 14px !important;
+    position: sticky !important;
+    bottom: 0 !important;
+    border-radius: 14px 14px 0 0 !important;
+    box-shadow: 0 -4px 14px rgba(0,0,0,0.1) !important;
+  }
+
+  .submit-row input[type="submit"],
+  .submit-row a.deletelink {
+    width: 100% !important;
+    text-align: center !important;
+    justify-content: center !important;
+    margin: 0 !important;
+  }
+
+  .submit-row p.deletelink-box {
+    margin: 0 !important;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   D. SMALL MOBILE (Screens <= 640px)
+   -------------------------------------------------------------------------- */
+@media (max-width: 640px) {
+  .tf-top-search-box {
+    max-width: 130px !important;
+  }
+
+  .tf-top-search-box input {
+    font-size: 11.5px !important;
+    padding: 0 6px 0 28px !important;
+  }
+
+  .tf-kpi-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 10px !important;
+  }
+
+  .tf-kpi-card {
+    padding: 12px !important;
+    min-height: 100px !important;
+  }
+
+  .tf-kpi-val {
+    font-size: 22px !important;
+  }
+
+  .tf-kpi-trend {
+    font-size: 11px !important;
+  }
+
+  .tf-actions-grid-2x3 {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+
+  .tf-health-grid {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+
+  .tf-app-grid {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+
+  .tf-chart-legend {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 8px 12px !important;
+  }
+
+  .tf-legend-item {
+    font-size: 11px !important;
+  }
+
+  .tf-activity-item {
+    padding: 10px 0 !important;
+    gap: 10px !important;
+  }
+
+  .tf-activity-meta {
+    flex-direction: column !important;
+    align-items: flex-end !important;
+    gap: 4px !important;
   }
 }

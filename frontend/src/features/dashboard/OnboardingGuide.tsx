@@ -100,8 +100,8 @@ export function OnboardingGuide({ onNewOrder }: OnboardingGuideProps) {
             <div className="onboarding-step">
               <span className="onboarding-step-num">2</span>
               <div>
-                <strong>Loyiha va vazifa bering</strong>
-                <p>Xodimlarni jamoaga yig‘ib, har biriga alohida vazifa biriktiring.</p>
+                <strong>Loyiha va topshiriq bering</strong>
+                <p>Xodimlarni jamoaga yig‘ib, har biriga alohida topshiriq biriktiring.</p>
                 <button
                   type="button"
                   className="onboarding-step-link btn-link-inline"
@@ -164,7 +164,7 @@ export function OnboardingGuide({ onNewOrder }: OnboardingGuideProps) {
               <span className="onboarding-step-num">1</span>
               <div>
                 <strong>Mening ishim doskasini oching</strong>
-                <p>Sizga biriktirilgan barcha faol vazifalarni ustunlar bo‘yicha ko‘ring.</p>
+                <p>Sizga biriktirilgan barcha faol topshiriqlarni ustunlar bo‘yicha ko‘ring.</p>
                 <Link to="/mening-ishim" className="onboarding-step-link">
                   Doskaga o‘tish <ChevronRight size={14} />
                 </Link>
@@ -175,7 +175,7 @@ export function OnboardingGuide({ onNewOrder }: OnboardingGuideProps) {
               <span className="onboarding-step-num">2</span>
               <div>
                 <strong>Ishni boshlang</strong>
-                <p>Vazifani ochib "Boshlash"ni bosing yoki "Jarayonda"ga suring.</p>
+                <p>Topshiriqni ochib "Boshlash"ni bosing yoki "Jarayonda"ga suring.</p>
                 <span className="onboarding-hint-pill">Vaqt hisobi yuritiladi</span>
               </div>
             </div>
@@ -195,7 +195,7 @@ export function OnboardingGuide({ onNewOrder }: OnboardingGuideProps) {
       <div className="onboarding-footer">
         <span className="onboarding-tip">
           <Lightbulb size={15} /> <strong>Tezkor maslahat:</strong> Istalgan joyda{" "}
-          <kbd>Ctrl</kbd> + <kbd>K</kbd> tugmasini bosib, vazifa kodi yoki odamni 1 soniyada topishingiz mumkin.
+          <kbd>Ctrl</kbd> + <kbd>K</kbd> tugmasini bosib, topshiriq kodi yoki odamni 1 soniyada topishingiz mumkin.
         </span>
       </div>
     </section>

@@ -7,6 +7,7 @@ from rest_framework.exceptions import PermissionDenied
 from apps.core.api_utils import ServiceError
 
 from apps.core.models import ActivityLog
+from apps.core.recovery import snapshot_instance
 from apps.core.services import log
 
 from .files import IMAGE_EXTENSIONS, extension, normalized_cover, normalized_image, validate_document, validate_video
@@ -83,6 +84,9 @@ def delete_item(item, user):
     _require_owner(user, item)
     if item.is_auto:
         raise ServiceError("TeamFlow loyihasi portfoliodan o'chirilmaydi.")
+    snapshot_instance(item, user)
+    for child in list(item.videos.all()) + list(item.attachments.all()):
+        snapshot_instance(child, user)
     ActivityLog.objects.filter(target_type=ContentType.objects.get_for_model(PortfolioItem), target_id=item.pk).delete()
     item.delete()  # video va fayllar diskdan birga o'chadi (signals.py)
     invalidate_developer_ranking()
@@ -102,6 +106,7 @@ def add_video(item, user, file):
 def delete_video(video, user):
     _require_owner(user, video.item)
     _log(user, "video_removed", f"videoni o'chirdi: {video.original_name[:100]}", video.item)
+    snapshot_instance(video, user)
     video.delete()
 
 
@@ -129,6 +134,7 @@ def delete_attachment(attachment, user):
     _require_owner(user, attachment.item)
     what = "rasmni" if attachment.kind == PortfolioAttachment.IMAGE else "faylni"
     _log(user, "file_removed", f"{what} o'chirdi: {attachment.original_name[:100]}", attachment.item)
+    snapshot_instance(attachment, user)
     attachment.delete()
 
 
@@ -141,6 +147,9 @@ def save_review(item, user, *, stars):
 
 
 def delete_review(item, user):
+    reviews = list(PortfolioReview.objects.filter(item=item, author=user))
+    for review in reviews:
+        snapshot_instance(review, user)
     deleted, _ = PortfolioReview.objects.filter(item=item, author=user).delete()
     if deleted:
         invalidate_developer_ranking()
@@ -161,6 +170,7 @@ def add_comment(item, user, *, text):
 def delete_comment(comment, user):
     if comment.author_id != user.pk:
         raise PermissionDenied("Faqat o'z sharhingizni o'chira olasiz.")
+    snapshot_instance(comment, user)
     comment.delete()
     invalidate_developer_ranking()
 
@@ -179,6 +189,9 @@ def follow(user, developer):
 
 
 def unfollow(user, developer):
+    follows = list(Follow.objects.filter(follower=user, developer=developer))
+    for item in follows:
+        snapshot_instance(item, user)
     deleted, _ = Follow.objects.filter(follower=user, developer=developer).delete()
     if deleted:
         invalidate_developer_ranking()

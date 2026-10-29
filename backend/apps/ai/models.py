@@ -16,7 +16,7 @@ class WebAgentRun(models.Model):
         FAILED = "failed", "Xatolik"
 
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="web_agent_runs")
-    task = models.TextField("Vazifa", max_length=2000)
+    task = models.TextField("Topshiriq mazmuni", max_length=2000)
     url = models.URLField("Boshlang'ich URL", blank=True, null=True)
     provider_kind = models.CharField("TinyFish turi", max_length=16, choices=ProviderKind.choices)
     provider_run_id = models.CharField("TinyFish run ID", max_length=120, unique=True)
