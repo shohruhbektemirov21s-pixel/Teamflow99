@@ -1,10 +1,8 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { AlertTriangle, Clock, Hourglass, FileText, FolderKanban, Plus, Users, ChevronRight } from "lucide-react";
+import { AlertTriangle, Clock, Hourglass, ChevronRight } from "lucide-react";
 import { useState } from "react";
-import { Link } from "react-router-dom";
 
 import { isManager, useMe } from "@/app/auth";
-import { useModal } from "@/app/modals";
 import { EMPTY_FILTERS, filterParams, TaskFilters, type TaskFilterState, TaskTable } from "@/features/tasks/TaskTable";
 import { api, qs } from "@/shared/api";
 import { useDebounced } from "@/shared/hooks";
@@ -12,7 +10,13 @@ import { T } from "@/shared/text";
 import type { Bucket, Dashboard as DashboardData, Paged, PeriodKey, Task } from "@/shared/types";
 import { AnimatedNumber, Button, ErrorBox } from "@/shared/ui";
 import { Pagination } from "@/shared/ui/Pagination";
-import { OnboardingGuide } from "./OnboardingGuide";
+import { PeriodCards } from "./PeriodCards";
+
+const PERIOD_BUCKETS: { key: "active" | "overdue" | "done"; label: string; alert?: boolean }[] = [
+  { key: "active", label: T.dashboard.active },
+  { key: "overdue", label: T.dashboard.overdue, alert: true },
+  { key: "done", label: T.dashboard.done },
+];
 
 interface Selection {
   bucket: Bucket;
@@ -23,13 +27,10 @@ interface Selection {
 export default function Dashboard() {
   const me = useMe();
   const manager = isManager(me);
-  const { open } = useModal();
   // Bosh panelga kirganda haftalik faol vazifalar jadvali darrov ochiq turadi (foydalanuvchi yopishi mumkin).
   const [selected, setSelected] = useState<Selection | null>({ bucket: "active", period: "week", title: T.dashboard.weekActive });
   const dash = useQuery({ queryKey: ["dashboard"], queryFn: () => api.get<DashboardData>("/dashboard/") });
   const d = dash.data;
-  const week = d?.periods?.find((period) => period.key === "week");
-  const year = d?.periods?.find((period) => period.key === "year");
 
   const pick = (s: Selection) =>
     setSelected((cur) => {
@@ -42,72 +43,14 @@ export default function Dashboard() {
 
   return (
     <div className="dashboard-page">
-      <div className="page-toolbar">
-        <div className="page-actions">
-          {manager ? (
-            <>
-              <Link to="/xodimlar" className="btn">
-                <Users size={16} /> {T.nav.people}
-              </Link>
-              {(d?.orders_pending ?? 0) > 0 && (
-                <Link to="/buyurtmalar" className="btn">
-                  <FileText size={16} /> {T.nav.orders}
-                  <span className="count-pill">{d?.orders_pending}</span>
-                </Link>
-              )}
-              <Button icon={<FolderKanban />} onClick={() => open({ new: "project" })}>
-                {T.projects.new}
-              </Button>
-              <Button variant="primary" icon={<Plus />} onClick={() => open({ new: "task" })}>
-                {T.tasks.new}
-              </Button>
-            </>
-          ) : (
-            <Link to="/mening-ishim" className="btn btn-primary">
-              {T.nav.myWork}
-            </Link>
-          )}
-        </div>
-      </div>
-
-      <OnboardingGuide />
-
       {dash.error && <ErrorBox error={dash.error} onRetry={() => dash.refetch()} />}
 
-      <section className="dashboard-summary-grid" aria-label="Bosh panel statistikasi">
-        {[
-          { label: "Jami", value: year ? year.counts.active + year.counts.overdue + year.counts.done : null, hint: "Barcha vazifalar", tone: "violet" },
-          { label: "Faol", value: week?.counts.active ?? null, hint: "Ish ketmoqda", tone: "slate" },
-          { label: "Muddati o'tgan", value: week?.counts.overdue ?? null, hint: "E'tibor talab qiladi", tone: "red" },
-          { label: "Tekshiruvda", value: d?.totals.review ?? null, hint: "Tasdiqlash kutilmoqda", tone: "purple" },
-          { label: "Yakunlangan", value: year?.counts.done ?? null, hint: "Muvaffaqiyatli tugagan", tone: "green" },
-        ].map((item) => (
-          <div key={item.label} className="card dashboard-summary-card">
-            <span className={`dashboard-summary-icon tone-${item.tone}`} aria-hidden />
-            <div className="dashboard-summary-copy">
-              <span>{item.label}</span>
-              <strong>{item.value ?? "—"}</strong>
-              <small>{item.hint}</small>
-            </div>
-          </div>
-        ))}
-      </section>
-
-      <section className="card dashboard-filter-card" aria-label="Vazifalar filtri">
-        <div className="dashboard-filter-chips">
-          {[
-            { bucket: "active" as const, label: "Faol", value: week?.counts.active ?? 0 },
-            { bucket: "overdue" as const, label: "Muddati o'tgan", value: week?.counts.overdue ?? 0 },
-            { bucket: "done" as const, label: "Bajarilgan", value: week?.counts.done ?? 0 },
-            { bucket: "review" as const, label: "Tekshiruv kutilmoqda", value: d?.totals.review ?? 0 },
-          ].map((item) => (
-            <button key={item.bucket} type="button" className={`dashboard-filter-chip ${isOn(item.bucket, "week") || (item.bucket === "review" && isOn("review")) ? "selected" : ""}`}
-              onClick={() => pick({ bucket: item.bucket, period: item.bucket === "review" ? undefined : "week", title: item.label })}>
-              <span>{item.label}</span><b>{item.value}</b>
-            </button>
-          ))}
-        </div>
-      </section>
+      <PeriodCards
+        periods={d?.periods}
+        buckets={PERIOD_BUCKETS}
+        isOn={isOn}
+        onPick={(bucket, period, title) => pick({ bucket, period, title })}
+      />
 
       <div className="grid-3">
         {(
@@ -147,8 +90,13 @@ function SelectedTasks({ selection, onClose, manager, mine }: { selection: Selec
   const query = useQuery({
     queryKey: ["tasks", "dashboard", selection.bucket, selection.period, debounced, mine, page],
     queryFn: () =>
-      api.get<Paged<Task>>(`/tasks/${qs({ bucket: selection.bucket, period: selection.period, mine: mine ? 1 : undefined,
-        ...filterParams(debounced), page: page === 1 ? undefined : page })}`),
+      api.get<Paged<Task>>(`/tasks/${qs({
+        ...filterParams(debounced),
+        bucket: selection.bucket,
+        period: selection.period,
+        mine: mine ? 1 : undefined,
+        page: page === 1 ? undefined : page,
+      })}`),
     placeholderData: keepPreviousData,
   });
   return (

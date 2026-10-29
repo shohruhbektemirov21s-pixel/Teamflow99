@@ -114,7 +114,12 @@ export default function PeoplePage() {
       {/* ─── 1. Statistik Kartalar (4 ta ixcham karta va mini bar chartlar) ─── */}
       <section className="people-stats-grid" aria-label="Xodimlar statistikasi">
         {/* 1. Jami xodimlar */}
-        <div className="card people-stat-card">
+        <button
+          type="button"
+          className={`card people-stat-card clickable ${taskStatus === "all" && !onlyFree ? "selected is-active" : ""}`}
+          aria-pressed={taskStatus === "all" && !onlyFree}
+          onClick={() => { setTaskStatus("all"); setOnlyFree(false); }}
+        >
           <div className="people-stat-card-left">
             <div className="people-stat-icon-wrap primary">
               <Users size={22} />
@@ -128,10 +133,18 @@ export default function PeoplePage() {
               </div>
             </div>
           </div>
-        </div>
+          <span className="project-summary-spark tone-primary" aria-hidden>
+            <i /><i /><i /><i /><i />
+          </span>
+        </button>
 
         {/* 2. Jarayondagi vazifalar */}
-        <div className="card people-stat-card">
+        <button
+          type="button"
+          className={`card people-stat-card clickable ${taskStatus === "busy" ? "selected is-active" : ""}`}
+          aria-pressed={taskStatus === "busy"}
+          onClick={() => { setTaskStatus("busy"); setOnlyFree(false); }}
+        >
           <div className="people-stat-card-left">
             <div className="people-stat-icon-wrap info">
               <Calendar size={22} />
@@ -145,10 +158,18 @@ export default function PeoplePage() {
               </div>
             </div>
           </div>
-        </div>
+          <span className="project-summary-spark tone-info" aria-hidden>
+            <i /><i /><i /><i /><i />
+          </span>
+        </button>
 
         {/* 3. Kechikkan vazifalar */}
-        <div className="card people-stat-card">
+        <button
+          type="button"
+          className={`card people-stat-card clickable ${taskStatus === "overdue" ? "selected is-active" : ""}`}
+          aria-pressed={taskStatus === "overdue"}
+          onClick={() => { setTaskStatus("overdue"); setOnlyFree(false); }}
+        >
           <div className="people-stat-card-left">
             <div className="people-stat-icon-wrap danger">
               <Clock size={22} />
@@ -162,10 +183,18 @@ export default function PeoplePage() {
               </div>
             </div>
           </div>
-        </div>
+          <span className="project-summary-spark tone-danger" aria-hidden>
+            <i /><i /><i /><i /><i />
+          </span>
+        </button>
 
         {/* 4. Bo'sh xodimlar */}
-        <div className="card people-stat-card">
+        <button
+          type="button"
+          className={`card people-stat-card clickable ${effectiveFree ? "selected is-active" : ""}`}
+          aria-pressed={effectiveFree}
+          onClick={() => { setTaskStatus("free"); setOnlyFree(true); }}
+        >
           <div className="people-stat-card-left">
             <div className="people-stat-icon-wrap success">
               <UserCheck size={22} />
@@ -180,7 +209,10 @@ export default function PeoplePage() {
               </div>
             </div>
           </div>
-        </div>
+          <span className="project-summary-spark tone-success" aria-hidden>
+            <i /><i /><i /><i /><i />
+          </span>
+        </button>
       </section>
 
       {/* ─── 2. Qidiruv va Filtrlar Toolbari ─── */}

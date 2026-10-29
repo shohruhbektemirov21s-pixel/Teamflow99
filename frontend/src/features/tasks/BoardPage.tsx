@@ -11,7 +11,7 @@ import {
   useSensors,
 } from "@dnd-kit/core";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { CalendarClock, GripVertical, Lock, MoreHorizontal, Plus } from "lucide-react";
+import { AlertTriangle, CalendarClock, CheckCircle2, Clock3, GripVertical, Hourglass, Lock, MoreHorizontal, Play, Plus } from "lucide-react";
 import { type ReactNode, useState } from "react";
 
 import { useModal } from "@/app/modals";
@@ -22,7 +22,7 @@ import { useMeta } from "@/shared/meta";
 import { boardMove, TASK_TONE } from "@/shared/status";
 import { T } from "@/shared/text";
 import type { Paged, Task, TaskStatus } from "@/shared/types";
-import { Button, CodeTag, Due, ErrorBox, People, PriorityBadge, Segmented, Skeleton, useToast } from "@/shared/ui";
+import { Button, CodeTag, Due, ErrorBox, People, PriorityBadge, Segmented, Skeleton, SummaryGrid, type SummaryCardItem, useToast } from "@/shared/ui";
 import { Pagination } from "@/shared/ui/Pagination";
 
 type DueFilter = "" | "today" | "week";
@@ -86,8 +86,24 @@ export default function BoardPage() {
   };
 
   const tasks = query.data ?? [];
+  const controlCount = tasks.filter((t) => t.status === "control").length;
+  const inProgressCount = tasks.filter((t) => t.status === "in_progress").length;
+  const inReviewCount = tasks.filter((t) => t.status === "in_review").length;
+  const doneCount = tasks.filter((t) => t.status === "done").length;
+  const overdueCount = tasks.filter((t) => t.is_overdue).length;
+
+  const boardSummary: SummaryCardItem[] = [
+    { key: "control", label: "Nazoratda", value: controlCount, hint: "Yangi biriktirilgan", icon: Clock3, tone: "slate" },
+    { key: "progress", label: "Jarayonda", value: inProgressCount, hint: "Ish ketmoqda", icon: Play, tone: "info" },
+    { key: "review", label: "Tekshiruvda", value: inReviewCount, hint: "Tasdiqlash kutilmoqda", icon: Hourglass, tone: "violet" },
+    { key: "done", label: "Bajarildi", value: doneCount, hint: "Muvaffaqiyatli", icon: CheckCircle2, tone: "success" },
+    { key: "overdue", label: "Muddati o'tgan", value: overdueCount, hint: "Kechikkan ishlar", icon: AlertTriangle, tone: "danger" },
+  ];
+
   return (
     <>
+      <SummaryGrid items={boardSummary} loading={query.isLoading} />
+
       <div className="card card-pad row-wrap" style={{ gap: 16, alignItems: "flex-end" }}>
         <label className="field" style={{ minWidth: 220 }}>
           <span className="field-label">{T.filters.project}</span>

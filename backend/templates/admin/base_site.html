@@ -7,12 +7,12 @@
 
 {% block extrastyle %}
   {{ block.super }}
-  <link rel="stylesheet" href="{% static 'admin/teamflow.css' %}?v=20261024.9">
+  <link rel="stylesheet" href="{% static 'admin/teamflow.css' %}?v=20261029.1">
 {% endblock %}
 
 {% block extrahead %}
   {{ block.super }}
-  <script src="{% static 'admin/teamflow.js' %}?v=20261024.9" defer></script>
+  <script src="{% static 'admin/teamflow.js' %}?v=20261029.1" defer></script>
 {% endblock %}
 
 {% block header %}
@@ -58,30 +58,28 @@
     <div class="tf-sidebar-inner" data-testid="admin-left-sidebar">
       <div class="tf-sidebar-brand-row"><a href="{% url 'admin:index' %}" class="tf-sidebar-brand-link"><span class="tf-brand-mark">T</span><span class="tf-brand-copy"><strong>TeamFlow</strong><small>Operations console</small></span></a><button type="button" class="tf-sidebar-collapse-ico" id="tf-toggle-collapse" title="Yon panelni yig'ish" aria-label="Yon panelni yig'ish" aria-pressed="false">‹</button></div>
       <div class="tf-nav-scroll">
-        <p class="tf-section-kicker">ASOSIY</p><a class="tf-sidebar-item{% if request.resolver_match.url_name == 'index' %} is-active{% endif %}" href="{% url 'admin:index' %}"><span class="tf-item-icon">⌂</span><span class="tf-item-text">Boshqaruv markazi</span></a>
-        <p class="tf-section-kicker tf-primary-kicker">LOYIHALAR</p>
+        <p class="tf-section-kicker">ASOSIY</p>
+        <a class="tf-sidebar-item{% if request.resolver_match.url_name == 'index' %} is-active{% endif %}" href="{% url 'admin:index' %}"><span class="tf-item-icon">⌂</span><span class="tf-item-text">Boshqaruv markazi</span></a>
+
+        <p class="tf-section-kicker">ISH VA BOSHQARUV</p>
         {% if perms.projects.view_project %}<a data-testid="admin-nav-projects" class="tf-sidebar-item tf-primary-nav-item{% if request.resolver_match.url_name == 'projects_project_changelist' %} is-active{% endif %}" href="{% url 'admin:projects_project_changelist' %}"><span class="tf-item-icon">□</span><span class="tf-item-text">Loyihalar</span></a>{% endif %}
-        <p class="tf-section-kicker tf-primary-kicker">VAZIFALAR</p>
         {% if perms.tasks.view_task %}<a data-testid="admin-nav-tasks" class="tf-sidebar-item tf-primary-nav-item{% if request.resolver_match.url_name == 'tasks_task_changelist' %} is-active{% endif %}" href="{% url 'admin:tasks_task_changelist' %}"><span class="tf-item-icon">✓</span><span class="tf-item-text">Vazifalar</span></a>{% endif %}
-        <p class="tf-section-kicker tf-primary-kicker">CHAT</p>
-        {% if perms.chat.view_chatmessage %}<a data-testid="admin-nav-chat" class="tf-sidebar-item tf-primary-nav-item{% if request.resolver_match.url_name == 'chat_chatmessage_changelist' %} is-active{% endif %}" href="{% url 'admin:chat_chatmessage_changelist' %}"><span class="tf-item-icon">✉</span><span class="tf-item-text">Chat</span>{% if admin_nav_counts.chat %}<span class="tf-pill-badge" data-testid="chat-count">{{ admin_nav_counts.chat }}</span>{% endif %}</a>{% endif %}
-        <p class="tf-section-kicker tf-primary-kicker">O'CHIRILGANLAR</p>
-        {% if request.user.is_superuser %}<a data-testid="admin-nav-trash" class="tf-sidebar-item tf-primary-nav-item{% if request.resolver_match.url_name == 'trash' %} is-active{% endif %}" href="{% url 'admin:trash' %}"><span class="tf-item-icon">⌫</span><span class="tf-item-text">O'chirilganlar</span></a>{% endif %}
-        <p class="tf-section-kicker">FOYDALANUVCHILAR</p>
+        {% if perms.orders.view_order %}<a class="tf-sidebar-item{% if request.resolver_match.url_name == 'orders_order_changelist' %} is-active{% endif %}" href="{% url 'admin:orders_order_changelist' %}"><span class="tf-item-icon">≡</span><span class="tf-item-text">Buyurtmalar</span></a>{% endif %}
+        {% if perms.suggestions.view_suggestion %}<a class="tf-sidebar-item{% if request.resolver_match.url_name == 'suggestions_suggestion_changelist' %} is-active{% endif %}" href="{% url 'admin:suggestions_suggestion_changelist' %}"><span class="tf-item-icon">✦</span><span class="tf-item-text">Takliflar</span></a>{% endif %}
+
+        <p class="tf-section-kicker">JAMOAT VA MULOQOT</p>
         {% if perms.accounts.view_user %}<a class="tf-sidebar-item{% if request.resolver_match.url_name == 'accounts_user_changelist' %} is-active{% endif %}" href="{% url 'admin:accounts_user_changelist' %}"><span class="tf-item-icon">◎</span><span class="tf-item-text">Foydalanuvchilar</span></a>{% endif %}
         {% if perms.auth.view_group %}<a class="tf-sidebar-item{% if request.resolver_match.url_name == 'auth_group_changelist' %} is-active{% endif %}" href="{% url 'admin:auth_group_changelist' %}"><span class="tf-item-icon">◈</span><span class="tf-item-text">Guruhlar va huquqlar</span></a>{% endif %}
-        <p class="tf-section-kicker">BUYURTMALAR</p>
-        {% if perms.orders.view_order %}<a class="tf-sidebar-item{% if request.resolver_match.url_name == 'orders_order_changelist' %} is-active{% endif %}" href="{% url 'admin:orders_order_changelist' %}"><span class="tf-item-icon">≡</span><span class="tf-item-text">Buyurtmalar</span></a>{% endif %}
-        <p class="tf-section-kicker">TAKLIFLAR</p>
-        {% if perms.suggestions.view_suggestion %}<a class="tf-sidebar-item{% if request.resolver_match.url_name == 'suggestions_suggestion_changelist' %} is-active{% endif %}" href="{% url 'admin:suggestions_suggestion_changelist' %}"><span class="tf-item-icon">✦</span><span class="tf-item-text">Takliflar</span></a>{% endif %}
-        <p class="tf-section-kicker">IZOHLAR</p>
+        {% if perms.chat.view_chatmessage %}<a data-testid="admin-nav-chat" class="tf-sidebar-item tf-primary-nav-item{% if request.resolver_match.url_name == 'chat_chatmessage_changelist' %} is-active{% endif %}" href="{% url 'admin:chat_chatmessage_changelist' %}"><span class="tf-item-icon">✉</span><span class="tf-item-text">Chat</span>{% if admin_nav_counts.chat %}<span class="tf-pill-badge" data-testid="chat-count">{{ admin_nav_counts.chat }}</span>{% endif %}</a>{% endif %}
         {% if perms.core.view_comment %}<a class="tf-sidebar-item{% if request.resolver_match.url_name == 'core_comment_changelist' %} is-active{% endif %}" href="{% url 'admin:core_comment_changelist' %}"><span class="tf-item-icon">◌</span><span class="tf-item-text">Izohlar</span></a>{% endif %}
         {% if perms.notifications.view_notification %}<a class="tf-sidebar-item{% if request.resolver_match.url_name == 'notifications_notification_changelist' %} is-active{% endif %}" href="{% url 'admin:notifications_notification_changelist' %}"><span class="tf-item-icon">♢</span><span class="tf-item-text">Bildirishnomalar</span></a>{% endif %}
         {% if perms.notifications.view_telegramdelivery %}<a class="tf-sidebar-item{% if request.resolver_match.url_name == 'notifications_telegramdelivery_changelist' %} is-active{% endif %}" href="{% url 'admin:notifications_telegramdelivery_changelist' %}"><span class="tf-item-icon">➤</span><span class="tf-item-text">Telegram yuborishlar</span></a>{% endif %}
-        <p class="tf-section-kicker">BOSHQA</p>
+
+        <p class="tf-section-kicker">TIZIM VA AUDIT</p>
         {% if perms.portfolio.view_portfolioitem %}<a class="tf-sidebar-item{% if request.resolver_match.url_name == 'portfolio_portfolioitem_changelist' %} is-active{% endif %}" href="{% url 'admin:portfolio_portfolioitem_changelist' %}"><span class="tf-item-icon">▦</span><span class="tf-item-text">Portfolio</span></a>{% endif %}
         {% if perms.core.view_activitylog %}<a class="tf-sidebar-item{% if request.resolver_match.url_name == 'core_activitylog_changelist' %} is-active{% endif %}" href="{% url 'admin:core_activitylog_changelist' %}"><span class="tf-item-icon">▤</span><span class="tf-item-text">Tizim jurnali</span></a>{% endif %}
         {% if perms.ai.view_webagentrun %}<a class="tf-sidebar-item{% if request.resolver_match.url_name == 'ai_webagentrun_changelist' %} is-active{% endif %}" href="{% url 'admin:ai_webagentrun_changelist' %}"><span class="tf-item-icon">✧</span><span class="tf-item-text">AI Web Agent</span></a>{% endif %}
+        {% if request.user.is_superuser %}<a data-testid="admin-nav-trash" class="tf-sidebar-item tf-primary-nav-item{% if request.resolver_match.url_name == 'trash' %} is-active{% endif %}" href="{% url 'admin:trash' %}"><span class="tf-item-icon">⌫</span><span class="tf-item-text">O'chirilganlar</span></a>{% endif %}
       </div>
       {% if request.user.is_superuser %}<a href="{% url 'admin:trash' %}" class="tf-sidebar-bottom-box"><span class="tf-bottom-status"></span><span><strong>Admin rejimi</strong><small>Tizim faol va himoyalangan</small></span><b>›</b></a>{% endif %}
     </div>

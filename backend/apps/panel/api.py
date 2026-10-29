@@ -145,6 +145,7 @@ def _people_rows(qs, due_condition=None):
         {
             "id": u.pk, "full_name": u.full_name, "role": u.role, "role_label": u.get_role_display(),
             "specialty": u.specialty.name if u.specialty else "", "department_name": u.department_name,
+            "telegram_username": u.telegram_username,
             "responsible_projects": responsible.get(u.pk, []),
             "avatar": avatar_url(u), "active_tasks": u.active_tasks, "overdue_tasks": u.overdue_tasks,
             "business_trip_return_date": u.business_trip_return_date, "is_on_business_trip": u.is_on_business_trip,
@@ -223,6 +224,7 @@ def people_create(request):
     if not request.user.is_boss and role != Role.DEVELOPER:
         raise PermissionDenied("PM faqat dasturchi yarata oladi.")
 
+    from apps.accounts.serializers import normalize_telegram
     user = User.objects.create_user(
         username=data["username"],
         password=data["password"],
@@ -230,7 +232,7 @@ def people_create(request):
         last_name=data["last_name"],
         role=role,
         department_name=data.get("department_name", ""),
-        telegram_username=data.get("telegram_username", "").lstrip("@"),
+        telegram_username=normalize_telegram(data.get("telegram_username", "")),
         specialty_id=data.get("specialty_id"),
         is_active=True,
     )

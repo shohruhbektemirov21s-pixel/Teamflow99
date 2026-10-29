@@ -15,6 +15,7 @@ export interface Me {
   specialty: string | null;
   department_name: string;
   telegram_username: string;
+  telegram_linked?: boolean;
   avatar?: string | null;
 }
 
@@ -60,6 +61,7 @@ export interface UserBrief {
   full_name: string;
   role: Role;
   department_name: string;
+  telegram_username?: string;
   avatar?: string | null;
   business_trip_return_date?: string | null;
   is_on_business_trip?: boolean;

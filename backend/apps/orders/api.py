@@ -62,6 +62,20 @@ class OrderViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.Crea
         order = self.get_queryset().select_related("project").prefetch_related("versions__decided_by").get(pk=order.pk)
         return OrderDetailSerializer(order, context={"request": self.request}).data
 
+    @action(detail=False, methods=["get"])
+    def summary(self, request):
+        qs = visible_orders(request.user)
+        total = qs.count()
+        submitted = qs.filter(status="submitted").count()
+        approved = qs.filter(status__in=["approved", "project_created"]).count()
+        rejected = qs.filter(status="rejected").count()
+        return Response({
+            "total": total,
+            "submitted": submitted,
+            "approved": approved,
+            "rejected": rejected,
+        })
+
     @action(detail=True, methods=["post"])
     def versions(self, request, pk=None):
         order = self.get_object()

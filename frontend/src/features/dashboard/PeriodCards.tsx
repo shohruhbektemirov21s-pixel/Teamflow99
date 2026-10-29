@@ -42,7 +42,7 @@ export function PeriodCards<B extends string>({
                   return (
                     <button
                       key={b.key}
-                      className="stat"
+                      className={`stat ${on ? "selected" : ""}`}
                       aria-pressed={on}
                       onClick={() => onPick(b.key, p.key, T.dashboard.tableTitle(p.label, b.label))}
                     >

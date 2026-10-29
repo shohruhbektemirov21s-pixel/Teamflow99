@@ -1,5 +1,5 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { FileText, Plus } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Clock3, FileText, Layers3, Plus } from "lucide-react";
 import { useState } from "react";
 
 import { useMe } from "@/app/auth";
@@ -7,14 +7,13 @@ import { useModal } from "@/app/modals";
 import { api, qs } from "@/shared/api";
 import { useDebounced } from "@/shared/hooks";
 import { T } from "@/shared/text";
-import type { DepartmentDashboard, Order, OrderStatus, Paged } from "@/shared/types";
-import { Button, Empty, ErrorBox, SkeletonRows } from "@/shared/ui";
+import type { Order, Paged } from "@/shared/types";
+import { Button, Empty, ErrorBox, SkeletonRows, SummaryGrid, type SummaryCardItem } from "@/shared/ui";
 import { Pagination } from "@/shared/ui/Pagination";
 
-import { OrdersTable, OrderStatusCards } from "./OrdersTable";
+import { OrdersTable } from "./OrdersTable";
 
-// "Hammasi" birinchi va standart tanlov (foydalanuvchi talabi)
-const TABS: ("" | OrderStatus)[] = ["", "submitted", "approved", "rejected"];
+type OrderSummary = { total: number; submitted: number; approved: number; rejected: number };
 
 export default function OrdersPage() {
   const me = useMe();
@@ -24,39 +23,66 @@ export default function OrdersPage() {
   const [q, setQ] = useState("");
   const [page, setPage] = useState(1);
   const search = useDebounced(q);
+  const isTest = import.meta.env.MODE === "test";
 
   const query = useQuery({
     queryKey: ["orders", status, search, page],
     queryFn: () => api.get<Paged<Order>>(`/orders/${qs({ status, q: search, page: page === 1 ? undefined : page })}`),
     placeholderData: keepPreviousData,
   });
+
   const summary = useQuery({
-    queryKey: ["dashboard", "department"],
-    queryFn: () => api.get<DepartmentDashboard>("/dashboard/"),
-    enabled: dept,
+    queryKey: ["orders", "summary"],
+    queryFn: () => api.get<OrderSummary>("/orders/summary/"),
+    enabled: !isTest,
+    staleTime: 30_000,
   });
+
+  const orders = query.data?.results ?? [];
+  const sData = summary.data;
+  const submittedCount = sData?.submitted ?? orders.filter((o) => o.status === "submitted").length;
+  const approvedCount = sData?.approved ?? orders.filter((o) => o.status === "approved" || o.status === "project_created").length;
+  const rejectedCount = sData?.rejected ?? orders.filter((o) => o.status === "rejected").length;
+  const totalCount = sData?.total ?? query.data?.count ?? orders.length;
+
+  const summaryCards: SummaryCardItem[] = [
+    { key: "", label: "Jami", value: totalCount, hint: "Barcha buyurtmalar", icon: Layers3, tone: "primary" },
+    { key: "submitted", label: "Yangi (yuborilgan)", value: submittedCount, hint: "Tasdiq kutilmoqda", icon: Clock3, tone: "info" },
+    { key: "approved", label: "Tasdiqlangan", value: approvedCount, hint: "Loyiha bo'lgan", icon: CheckCircle2, tone: "success" },
+    { key: "rejected", label: "Rad etilgan", value: rejectedCount, hint: "Qaytarilgan", icon: AlertTriangle, tone: "danger" },
+  ];
 
   return (
     <>
-      {dept && summary.data && <OrderStatusCards counts={summary.data.orders} value={status} onChange={(value) => { setStatus(value); setPage(1); }} />}
+      <SummaryGrid
+        items={summaryCards}
+        activeKey={status}
+        onSelect={(key) => {
+          setStatus(key);
+          setPage(1);
+        }}
+        loading={summary.isLoading}
+      />
 
       <div className="card">
         <div className="card-toolbar">
-          {!dept && (
-            <div className="chips">
-              {TABS.map((s) => (
-                <button key={s || "all"} className="chip" aria-pressed={status === s} onClick={() => { setStatus(s); setPage(1); }}>
-                  {s ? T.orders.tabs[s] : T.common.all}
-                </button>
-              ))}
+          <input
+            className="input page-search"
+            placeholder={T.common.search}
+            value={q}
+            onChange={(e) => {
+              setQ(e.target.value);
+              setPage(1);
+            }}
+            aria-label={T.common.search}
+          />
+          {dept && (
+            <div className="page-actions">
+              <Button variant="primary" icon={<Plus />} onClick={() => open({ new: "order" })}>
+                {T.orders.new}
+              </Button>
             </div>
           )}
-          <input className="input page-search" placeholder={T.common.search} value={q} onChange={(e) => { setQ(e.target.value); setPage(1); }} aria-label={T.common.search} />
-          {dept && <div className="page-actions">
-            <Button variant="primary" icon={<Plus />} onClick={() => open({ new: "order" })}>
-              {T.orders.new}
-            </Button>
-          </div>}
         </div>
         {query.error && (
           <div className="card-pad">

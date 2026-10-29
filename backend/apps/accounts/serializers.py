@@ -133,14 +133,18 @@ class ProfileSerializer(serializers.ModelSerializer):
     stats = serializers.SerializerMethodField()
     activity = serializers.SerializerMethodField()
     avatar = serializers.SerializerMethodField()
+    telegram_linked = serializers.SerializerMethodField()
 
     class Meta:
         model = User
         fields = [
             "id", "username", "first_name", "last_name", "full_name",
             "role", "role_label", "specialty", "department_name",
-            "telegram_username", "date_joined", "stats", "activity", "avatar", "email", "bio",
+            "telegram_username", "telegram_linked", "date_joined", "stats", "activity", "avatar", "email", "bio",
         ]
+
+    def get_telegram_linked(self, user):
+        return bool(user.telegram_chat_id)
 
     def get_activity(self, user):
         """Oddiy foydalanuvchi faolligi: nechta baho qo'ygan va kimni kuzatadi."""

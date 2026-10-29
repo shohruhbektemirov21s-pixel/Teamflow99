@@ -1,6 +1,7 @@
 from django.db.models import Count, OuterRef, Prefetch, Q, Subquery
 from django.db.models.functions import Coalesce
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.exceptions import PermissionDenied, ValidationError
@@ -77,6 +78,45 @@ class TaskViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.Gen
     def _detail(self, task):
         self.action = "retrieve"
         return TaskDetailSerializer(self.get_queryset().get(pk=task.pk), context={"request": self.request}).data
+
+    @action(detail=False, methods=["get"])
+    def summary(self, request):
+        qs = visible_tasks(request.user).filter(archived_at__isnull=True)
+        params = request.query_params
+        if params.get("mine") == "1":
+            qs = qs.filter(assignments__developer=request.user)
+        elif params.get("assignee"):
+            try:
+                assignee_id = int(params["assignee"])
+                qs = qs.filter(assignments__developer_id=assignee_id)
+            except (TypeError, ValueError):
+                pass
+        if params.get("project"):
+            try:
+                project_id = int(params["project"])
+                qs = qs.filter(project_id=project_id)
+            except (TypeError, ValueError):
+                pass
+
+        now = timezone.now()
+        total = qs.count()
+        control = qs.filter(status="control").count()
+        in_progress = qs.filter(status="in_progress").count()
+        in_review = qs.filter(status="in_review").count()
+        done = qs.filter(status="done").count()
+        overdue = qs.filter(
+            due_at__lt=now,
+            status__in=["control", "in_progress", "in_review"],
+        ).count()
+
+        return Response({
+            "total": total,
+            "control": control,
+            "in_progress": in_progress,
+            "in_review": in_review,
+            "done": done,
+            "overdue": overdue,
+        })
 
     def create(self, request):
         s = TaskCreateSerializer(data=request.data)

@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { Building2, CheckCircle2, ClipboardCheck, Code2, FolderKanban, KanbanSquare, Sparkles } from "lucide-react";
+import { Building2, CheckCircle2, ClipboardCheck, Code2, FolderKanban, KanbanSquare, Send, Sparkles } from "lucide-react";
 import { type FormEvent, type ReactNode, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
@@ -110,7 +110,8 @@ export function RegisterPage() {
     }
   };
 
-  if (done)
+  if (done) {
+    const bot = meta.telegram_bot;
     return (
       <AuthShell>
         <div className="empty" style={{ padding: 0 }}>
@@ -119,12 +120,35 @@ export function RegisterPage() {
           </div>
           <h1 style={{ fontSize: 24 }}>{T.auth.registered}</h1>
           <p>{T.auth.registeredText}</p>
-          <Link to="/kirish" className="btn btn-primary btn-lg" style={{ marginTop: 12 }}>
+          {bot && (
+            <div className="card card-pad stack" style={{ marginTop: 16, textAlign: "left", background: "var(--surface-2)" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <Send size={20} style={{ color: "#0284c7", flexShrink: 0 }} />
+                <div>
+                  <strong style={{ fontSize: 14 }}>Telegram botga ulanish</strong>
+                  <p style={{ margin: "2px 0 0", fontSize: 13, color: "var(--text-2)" }}>
+                    Bildirishnomalarni Telegram'ga qabul qilish uchun botimizga kiring va <strong>/start</strong> bosing.
+                  </p>
+                </div>
+              </div>
+              <a
+                href={`https://t.me/${bot}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn btn-outline"
+                style={{ justifyContent: "center", gap: 8, color: "#0284c7", borderColor: "#bae6fd", fontWeight: 700 }}
+              >
+                <Send size={15} /> @{bot} botiga o'tish →
+              </a>
+            </div>
+          )}
+          <Link to="/kirish" className="btn btn-primary btn-lg" style={{ marginTop: 16 }}>
             {T.auth.toLogin}
           </Link>
         </div>
       </AuthShell>
     );
+  }
 
   const fe = (k: string) => error?.field(k);
   return (
@@ -173,7 +197,27 @@ export function RegisterPage() {
             {(id, bad) => <input id={id} className="input" aria-invalid={bad} value={form.department_name} onChange={set("department_name")} autoFocus />}
           </Field>
         )}
-        <Field label={T.auth.telegram} hint={T.auth.telegramHint} error={fe("telegram_username")}>
+        <Field
+          label={T.auth.telegram}
+          hint={
+            meta.telegram_bot ? (
+              <span className="row-wrap" style={{ gap: 6, alignItems: "center" }}>
+                <span>{T.auth.telegramHint}.</span>
+                <a
+                  href={`https://t.me/${meta.telegram_bot}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ display: "inline-flex", alignItems: "center", gap: 4, fontWeight: 700, color: "#0284c7" }}
+                >
+                  <Send size={13} /> @{meta.telegram_bot} botiga o'tish →
+                </a>
+              </span>
+            ) : (
+              T.auth.telegramHint
+            )
+          }
+          error={fe("telegram_username")}
+        >
           {(id, bad) => <input id={id} className="input" aria-invalid={bad} value={form.telegram_username} onChange={set("telegram_username")} placeholder={T.auth.telegramPh} />}
         </Field>
         <Field label={T.auth.username} required error={fe("username")}>

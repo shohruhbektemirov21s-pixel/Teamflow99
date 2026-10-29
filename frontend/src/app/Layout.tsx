@@ -94,7 +94,6 @@ export default function Layout() {
           </span>
           <span className="brand-copy">
             <strong>{T.app}</strong>
-            <span className="brand-tag">// NEO DEV</span>
           </span>
         </Link>
         <nav className="nav" aria-label={T.nav.menu}>

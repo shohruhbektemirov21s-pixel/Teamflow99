@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Calendar,
   Check,
+  Send,
   ChevronRight,
   Heart,
   ImagePlus,
@@ -22,6 +23,7 @@ import { useTheme } from "@/app/Layout";
 import { useModal } from "@/app/modals";
 import { api, ApiError, formData } from "@/shared/api";
 import { fmtDate } from "@/shared/format";
+import { useMeta } from "@/shared/meta";
 import { PasswordField } from "@/shared/PasswordField";
 import { T } from "@/shared/text";
 import type { Profile } from "@/shared/types";
@@ -48,6 +50,8 @@ export function UserProfileView() {
   const qc = useQueryClient();
   const [theme, toggleTheme] = useTheme();
 
+  const meta = useMeta();
+  const bot = meta.telegram_bot;
   const [activeTab, setActiveTab] = useState<ProfileTab>("info");
   const [first, setFirst] = useState("");
   const [last, setLast] = useState("");
@@ -323,18 +327,70 @@ export function UserProfileView() {
 
                 <Field
                   label={T.profile.telegram}
-                  hint={T.user.telegramSimpleHint}
+                  hint={
+                    bot ? (
+                      <span className="row-wrap" style={{ gap: 6, alignItems: "center" }}>
+                        <span>{T.user.telegramSimpleHint}.</span>
+                        <a
+                          href={`https://t.me/${bot}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{ display: "inline-flex", alignItems: "center", gap: 4, fontWeight: 700, color: "var(--primary)" }}
+                        >
+                          <Send size={12} /> @{bot} botiga o'tish →
+                        </a>
+                      </span>
+                    ) : (
+                      T.user.telegramSimpleHint
+                    )
+                  }
                   error={fieldError(infoMut.error, "telegram_username")}
                 >
                   {(id, bad) => (
-                    <input
-                      id={id}
-                      className="input"
-                      aria-invalid={bad}
-                      value={telegram}
-                      placeholder="@username"
-                      onChange={(e) => setTelegram(e.target.value)}
-                    />
+                    <div className="stack" style={{ gap: 6 }}>
+                      <div className="row-wrap" style={{ gap: 8 }}>
+                        <input
+                          id={id}
+                          className="input"
+                          style={{ flex: 1 }}
+                          aria-invalid={bad}
+                          value={telegram}
+                          placeholder="@username"
+                          onChange={(e) => setTelegram(e.target.value)}
+                        />
+                        {bot && (
+                          <a
+                            href={`https://t.me/${bot}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="btn btn-outline"
+                            style={{
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: 6,
+                              color: "#0284c7",
+                              borderColor: "#bae6fd",
+                              fontWeight: 650,
+                              whiteSpace: "nowrap",
+                            }}
+                          >
+                            <Send size={14} /> Botga o'tish →
+                          </a>
+                        )}
+                      </div>
+                      {p?.telegram_linked ? (
+                        <span style={{ fontSize: 12, color: "var(--success)", display: "inline-flex", alignItems: "center", gap: 5, fontWeight: 600 }}>
+                          <Check size={14} /> Telegram bot ulangan (xabarlar faol keladi)
+                        </span>
+                      ) : bot ? (
+                        <span style={{ fontSize: 12, color: "var(--muted)", display: "inline-flex", alignItems: "center", gap: 5 }}>
+                          <span>Botga kirib <strong>/start</strong> bosing:</span>
+                          <a href={`https://t.me/${bot}`} target="_blank" rel="noopener noreferrer" style={{ fontWeight: 650, color: "var(--primary)" }}>
+                            @{bot}
+                          </a>
+                        </span>
+                      ) : null}
+                    </div>
                   )}
                 </Field>
               </div>

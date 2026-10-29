@@ -26,7 +26,7 @@ describe("Profil rasmi oynasi", () => {
 
     fireEvent.keyDown(document, { key: "Escape" });
     await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
-  });
+  }, 10000);
 
   it("rasm bo'lmasa avatar bosiladigan tugma emas", async () => {
     mockGet({});

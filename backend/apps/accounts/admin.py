@@ -1,8 +1,11 @@
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
+from django.contrib.auth.forms import AdminUserCreationForm
+from django.shortcuts import redirect
+from django.urls import path
 from django.utils.html import format_html
 
-from .models import ResponsibleProject, ResponsibleProjectNews, Specialty, User
+from .models import ResponsibleProject, ResponsibleProjectNews, Role, Specialty, User
 
 
 @admin.register(Specialty)
@@ -53,8 +56,31 @@ class ResponsibleProjectNewsAdmin(admin.ModelAdmin):
         return text if len(text) <= 60 else f"{text[:60]}..."
 
 
+class CustomUserCreationForm(AdminUserCreationForm):
+    """Admin panel orqali yangi Boshliq yoki boshqa xodimlarni login va parol bilan yaratish formasi."""
+
+    class Meta(AdminUserCreationForm.Meta):
+        model = User
+        fields = (
+            "username",
+            "first_name",
+            "last_name",
+            "role",
+            "specialty",
+            "department_name",
+            "telegram_username",
+            "is_active",
+        )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if "is_active" in self.fields:
+            self.fields["is_active"].initial = True
+
+
 @admin.register(User)
 class UserAdmin(DjangoUserAdmin):
+    add_form = CustomUserCreationForm
     list_display = (
         "username",
         "full_name",
@@ -72,12 +98,54 @@ class UserAdmin(DjangoUserAdmin):
     fieldsets = DjangoUserAdmin.fieldsets + (
         ("TeamFlow", {"fields": ("role", "specialty", "department_name", "telegram_username", "business_trip_return_date")}),
     )
-    add_fieldsets = DjangoUserAdmin.add_fieldsets + (
-        ("TeamFlow", {"fields": ("first_name", "last_name", "role", "specialty", "department_name", "telegram_username")}),
+    add_fieldsets = (
+        (
+            "Asosiy ma'lumotlar",
+            {
+                "classes": ("wide",),
+                "fields": ("username", "role", "first_name", "last_name", "usable_password", "password1", "password2"),
+            },
+        ),
+        (
+            "Qo'shimcha va holat",
+            {
+                "classes": ("wide",),
+                "fields": ("specialty", "department_name", "telegram_username", "is_active"),
+            },
+        ),
     )
+
+    def get_urls(self):
+        urls = super().get_urls()
+        custom_urls = [
+            path(
+                "<id>/approve/",
+                self.admin_site.admin_view(self.process_approve),
+                name="accounts_user_approve",
+            ),
+        ]
+        return custom_urls + urls
+
+    def process_approve(self, request, id, *args, **kwargs):
+        user = self.get_object(request, id)
+        if user:
+            user.is_active = True
+            user.save(update_fields=["is_active"])
+            self.message_user(
+                request,
+                f"{user.full_name or user.username} akkaunti muvaffaqiyatli tasdiqlandi (faollashtirildi).",
+                level=messages.SUCCESS,
+            )
+        return redirect(request.META.get("HTTP_REFERER") or "admin:accounts_user_changelist")
 
     @admin.display(description="Holat", ordering="is_active")
     def status_badge(self, obj):
         if obj.is_active:
             return format_html('<span class="tf-badge tf-badge-success">Faol</span>')
-        return format_html('<span class="tf-badge tf-badge-danger">Kutilmoqda / Nofaol</span>')
+        return format_html(
+            '<span class="tf-badge tf-badge-danger">Kutilmoqda</span> '
+            '<a href="{}/approve/" style="display:inline-block; margin-left:6px; padding:2px 8px; font-size:11px; '
+            'background:#16a34a; color:#fff; border-radius:4px; text-decoration:none; font-weight:600;">'
+            'Tasdiqlash ✓</a>',
+            obj.pk,
+        )

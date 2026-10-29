@@ -24,6 +24,7 @@ export default function PersonModal({ id }: { id: number }) {
 
   const [tab, setTab] = useState<"tasks" | "report">("tasks");
   const [dirty, setDirty] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<string>("");
 
   const personQuery = useQuery({
     queryKey: ["person", id],
@@ -62,6 +63,8 @@ export default function PersonModal({ id }: { id: number }) {
                 ? { active: person.active_tasks, overdue: person.overdue_tasks, review: person.review_tasks, done: person.done_tasks }
                 : null
             }
+            activeKey={statusFilter}
+            onSelect={(key) => setStatusFilter((curr) => (curr === key ? "" : key))}
           />
           {person.is_on_business_trip && <div className="card card-pad small">{T.people.onBusinessTrip}. {T.people.tripUntil(fmtDate(person.business_trip_return_date!))}. {T.people.tripBlocked}.</div>}
           {(person.role === "developer" || person.role === "pm") && <ResponsibleProjects key={person.id} employeeId={person.id} onDirtyChange={setDirty} />}
@@ -108,7 +111,17 @@ export default function PersonModal({ id }: { id: number }) {
           {person.role === "developer" && tasksQuery.error && <ErrorBox error={tasksQuery.error} onRetry={() => tasksQuery.refetch()} />}
           {person.role === "developer" && tab === "tasks" && !tasksQuery.error && (
             <div className="card">
-              <TaskTable tasks={tasksQuery.data} loading={tasksQuery.isLoading} emptyHint={T.people.noTasksHint} />
+              <TaskTable
+                tasks={
+                  statusFilter === "overdue"
+                    ? tasks.filter((t) => t.is_overdue)
+                    : statusFilter
+                    ? tasks.filter((t) => t.status === statusFilter)
+                    : tasksQuery.data
+                }
+                loading={tasksQuery.isLoading}
+                emptyHint={T.people.noTasksHint}
+              />
               <Pagination data={tasksQuery.pagination} page={tasksQuery.page} onPageChange={tasksQuery.onPageChange} />
             </div>
           )}

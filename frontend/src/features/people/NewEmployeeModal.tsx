@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { UserPlus } from "lucide-react";
+import { Send, UserPlus } from "lucide-react";
 import { useState } from "react";
 
 import { useMe } from "@/app/auth";
@@ -153,7 +153,19 @@ export default function NewEmployeeModal({ onClose, onSuccess }: Props) {
           </div>
 
           <div className="field">
-            <label className="field-label">Telegram username</label>
+            <div className="row-wrap" style={{ justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+              <label className="field-label" style={{ margin: 0 }}>Telegram username</label>
+              {meta.telegram_bot && (
+                <a
+                  href={`https://t.me/${meta.telegram_bot}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 12, fontWeight: 650, color: "var(--primary)" }}
+                >
+                  <Send size={12} /> @{meta.telegram_bot} botiga o'tish →
+                </a>
+              )}
+            </div>
             <input
               type="text"
               className="input"
@@ -161,6 +173,9 @@ export default function NewEmployeeModal({ onClose, onSuccess }: Props) {
               value={telegram}
               onChange={(e) => setTelegram(e.target.value)}
             />
+            <span className="field-hint" style={{ fontSize: 11.5, marginTop: 4, display: "block" }}>
+              Xodim botga kirib /start yuborsa, akkaunti avtomatik bog'lanadi.
+            </span>
           </div>
         </div>
 

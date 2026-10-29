@@ -13,6 +13,7 @@ export interface TaskFilterState {
   date_from: string;
   date_to: string;
   status: string;
+  bucket?: string;
   assignee_name: string;
 }
 
@@ -21,6 +22,7 @@ export const EMPTY_FILTERS: TaskFilterState = {
   date_from: "",
   date_to: "",
   status: "",
+  bucket: "",
   assignee_name: "",
 };
 
@@ -166,6 +168,7 @@ export function filterParams(f: TaskFilterState) {
     due_from: f.date_from,
     due_to: f.date_to,
     status: f.status,
+    bucket: f.bucket || undefined,
     assignee_name: f.assignee_name,
   };
 }

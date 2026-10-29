@@ -20,7 +20,7 @@ describe("Dashboard", () => {
     });
     renderApp(<Dashboard />);
 
-    const chip = await screen.findByRole("button", { name: /Faol\s*3/ });
+    const chip = await screen.findByRole("button", { name: /(?:Faol\s*3|3\s*Faol)/i });
     expect(chip.className).toContain("selected");
   });
 });

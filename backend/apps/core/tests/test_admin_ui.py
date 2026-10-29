@@ -161,6 +161,15 @@ class AdminDashboardUITests(TestCase):
         self.assertContains(response, "admin/teamflow.css")
         self.assertContains(response, "tf-login-page")
         self.assertContains(response, "Admin panelga kirish")
+        self.assertContains(response, "Boshqaruv markazi")
+        self.assertContains(response, "Tizimni boshqarish")
+        self.assertContains(response, "Nazorat va xavfsizlik")
+        self.assertContains(response, "Samarali boshqaruv")
+        self.assertContains(response, "Foydalanuvchi nomini kiriting")
+        self.assertContains(response, "Parolni kiriting")
+        self.assertContains(response, "Meni esda saqlash")
+        self.assertContains(response, "Tizimga kirish")
+        self.assertContains(response, "Asosiy saytga qaytish")
 
     def test_chat_messages_are_accessible_in_admin(self):
         ChatMessage.objects.create(
