@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Permission
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
@@ -59,10 +60,27 @@ class AdminDashboardUITests(TestCase):
         self.assertContains(response, "tf-dashboard-toolbar")
         self.assertContains(response, "Foydalanuvchilar")
         self.assertContains(response, "Buyurtmalar")
-        self.assertContains(response, "O‘chirilgan vazifalar")
+        self.assertContains(response, "O'chirilgan vazifalar")
         self.assertContains(response, "Yozishmalar (Chat)")
-        self.assertContains(response, "Barcha bo‘limlar")
+        self.assertContains(response, "Barcha bo'limlar")
         self.assertContains(response, "admin/teamflow.js")
+        self.assertContains(response, 'data-testid="admin-dashboard"')
+        self.assertContains(response, 'data-testid="admin-sidebar"')
+        self.assertContains(response, 'data-testid="admin-left-sidebar"')
+        self.assertContains(response, 'data-testid="admin-simple-panel"')
+        self.assertContains(response, 'data-testid="admin-nav-projects"')
+        self.assertContains(response, 'data-testid="admin-nav-tasks"')
+        self.assertContains(response, 'data-testid="admin-nav-chat"')
+        self.assertContains(response, 'data-testid="admin-nav-trash"')
+        self.assertContains(response, "O'chirilganlar")
+        self.assertContains(response, "Chat")
+        self.assertContains(response, 'data-testid="admin-kpi-grid"')
+        self.assertContains(response, 'data-testid="admin-global-search"')
+        self.assertContains(response, 'data-testid="admin-theme-toggle"')
+        self.assertContains(response, 'data-testid="admin-command-palette"')
+        self.assertIn(response.context["admin_runtime"]["database"], {"SQLite", "PostgreSQL"})
+        self.assertIn(response.context["admin_runtime"]["cache"], {"Django cache", "Redis"})
+        self.assertIn("media", response.context["admin_runtime"])
         self.assertNotContains(response, "testuser123")
         self.assertNotContains(response, "↑ +2 bu oy")
 
@@ -103,6 +121,8 @@ class AdminDashboardUITests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "tf-admin-sidebar")
+        self.assertContains(response, 'data-testid="admin-sidebar"')
+        self.assertContains(response, 'data-testid="admin-page-shell"')
         self.assertContains(response, reverse("admin:index"))
         self.assertContains(response, reverse("admin:accounts_user_changelist"))
         self.assertContains(response, reverse("admin:projects_project_changelist"))
@@ -115,6 +135,32 @@ class AdminDashboardUITests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "admin/teamflow.css")
         self.assertContains(response, "Foydalanuvchilar")
+
+    def test_all_admin_surfaces_share_the_figma_shell(self):
+        urls = (
+            reverse("admin:accounts_user_changelist"),
+            reverse("admin:projects_project_add"),
+            reverse("admin:global_search"),
+            reverse("admin:trash"),
+        )
+
+        for url in urls:
+            with self.subTest(url=url):
+                response = self.client.get(url)
+                self.assertEqual(response.status_code, 200)
+                self.assertContains(response, 'data-testid="admin-page-shell"')
+                self.assertContains(response, 'data-testid="admin-topbar"')
+                self.assertContains(response, 'data-testid="admin-left-sidebar"')
+                self.assertContains(response, "tf-admin-page")
+
+    def test_login_keeps_the_teamflow_visual_system(self):
+        self.client.logout()
+        response = self.client.get(reverse("admin:login"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "admin/teamflow.css")
+        self.assertContains(response, "tf-login-page")
+        self.assertContains(response, "Admin panelga kirish")
 
     def test_chat_messages_are_accessible_in_admin(self):
         ChatMessage.objects.create(
@@ -235,6 +281,47 @@ class AdminDashboardUITests(TestCase):
         response = self.client.get(reverse("admin:trash"))
 
         self.assertEqual(response.status_code, 403)
+
+    def test_dashboard_does_not_expose_records_without_view_permission(self):
+        ChatMessage.objects.create(
+            author=self.dev,
+            recipient=self.pm,
+            text="Faqat chat ruxsati bor admin ko'rishi kerak",
+        )
+        Task.objects.create(
+            title="Faqat vazifa ruxsati bor admin ko'rishi kerak",
+            created_by=self.pm,
+            archived_at=timezone.now(),
+        )
+        ActivityLog.objects.create(
+            actor=self.pm,
+            verb="task_deleted",
+            message="Faqat log ruxsati bor admin ko'rishi kerak",
+        )
+        staff = get_user_model().objects.create_user(
+            username="dashboard-staff",
+            password="Limited-parol-2026",
+            is_staff=True,
+            is_active=True,
+        )
+        staff.user_permissions.add(
+            Permission.objects.get(codename="view_user", content_type__app_label="accounts")
+        )
+        self.client.force_login(staff)
+
+        response = self.client.get(reverse("admin:index"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context["admin_metrics"]["total_chat_messages"], 0)
+        self.assertEqual(response.context["recent_activities"], [])
+        self.assertEqual(list(response.context["recent_archived_tasks"]), [])
+        self.assertNotContains(response, reverse("admin:projects_project_changelist"))
+        self.assertNotContains(response, reverse("admin:chat_chatmessage_changelist"))
+        self.assertNotContains(response, reverse("admin:orders_order_changelist"))
+        self.assertNotContains(response, reverse("admin:trash"))
+        self.assertNotContains(response, "Faqat chat ruxsati bor admin ko'rishi kerak")
+        self.assertNotContains(response, "Faqat vazifa ruxsati bor admin ko'rishi kerak")
+        self.assertNotContains(response, "Faqat log ruxsati bor admin ko'rishi kerak")
 
     def test_all_models_are_registered_in_admin(self):
         # Tizimdagi 30 dan ortiq barcha modellar admin panelda ro'yxatdan o'tgan

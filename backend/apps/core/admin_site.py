@@ -1,9 +1,10 @@
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.admin import AdminSite
 from django.contrib.admin.models import LogEntry
 from django.core.cache import cache
 from django.core.exceptions import PermissionDenied
-from django.db import models
+from django.db import connection, models
 from django.shortcuts import redirect
 from django.template.response import TemplateResponse
 from django.urls import path, reverse
@@ -50,31 +51,59 @@ class TeamFlowAdminSite(AdminSite):
         from apps.tasks.models import Task
 
         today = timezone.localdate()
+        can_view_users = request.user.has_perm("accounts.view_user")
+        can_view_projects = request.user.has_perm("projects.view_project")
+        can_view_tasks = request.user.has_perm("tasks.view_task")
+        can_view_orders = request.user.has_perm("orders.view_order")
+        can_view_suggestions = request.user.has_perm("suggestions.view_suggestion")
+        can_view_chat = request.user.has_perm("chat.view_chatmessage")
+        can_view_comments = request.user.has_perm("core.view_comment")
+        can_view_activity = request.user.has_perm("core.view_activitylog")
+        can_view_trash = request.user.is_superuser
         uz_months = ["YANVAR", "FEVRAL", "MART", "APREL", "MAY", "IYUN", "IYUL", "AVGUST", "SENTABR", "OKTABR", "NOYABR", "DEKABR"]
         uz_weekdays = ["DUSHANBA", "SESHANBA", "CHORSHANBA", "PAYSHANBA", "JUMA", "SHANBA", "YAKSHANBA"]
         formatted_date = f"{today.day} {uz_months[today.month - 1]} {today.year}, {uz_weekdays[today.weekday()]}"
+        database_name = {"sqlite": "SQLite", "postgresql": "PostgreSQL"}.get(
+            connection.vendor, connection.vendor.title()
+        )
+        cache_backend = settings.CACHES["default"]["BACKEND"].lower()
+        admin_runtime = {
+            "database": database_name,
+            "cache": "Redis" if "redis" in cache_backend else "Django cache",
+            "media": "Nginx protected media"
+            if settings.PROTECTED_MEDIA_ACCEL_PREFIX
+            else "Django media",
+        }
 
         metrics = {
-            "total_users": User.objects.count(),
-            "pending_users": User.objects.filter(is_active=False).count(),
+            "total_users": User.objects.count() if can_view_users else 0,
+            "pending_users": User.objects.filter(is_active=False).count() if can_view_users else 0,
             "active_projects": Project.objects.exclude(
                 stage__in=(Project.Stage.DONE, Project.Stage.REJECTED)
-            ).count(),
-            "open_tasks": Task.objects.filter(archived_at__isnull=True).exclude(status=Task.Status.DONE).count(),
-            "archived_tasks": Task.objects.filter(archived_at__isnull=False).count(),
-            "pending_orders": Order.objects.filter(status=Order.Status.SUBMITTED).count(),
-            "pending_suggestions": Suggestion.objects.filter(status=Suggestion.Status.PENDING).count(),
-            "total_chat_messages": ChatMessage.objects.count(),
-            "total_comments": Comment.objects.count(),
+            ).count() if can_view_projects else 0,
+            "open_tasks": Task.objects.filter(archived_at__isnull=True).exclude(status=Task.Status.DONE).count()
+            if can_view_tasks else 0,
+            "archived_tasks": Task.objects.filter(archived_at__isnull=False).count() if can_view_trash else 0,
+            "pending_orders": Order.objects.filter(status=Order.Status.SUBMITTED).count() if can_view_orders else 0,
+            "pending_suggestions": Suggestion.objects.filter(status=Suggestion.Status.PENDING).count()
+            if can_view_suggestions else 0,
+            "total_chat_messages": ChatMessage.objects.count() if can_view_chat else 0,
+            "total_comments": Comment.objects.count() if can_view_comments else 0,
             "total_deletions": ActivityLog.objects.filter(
                 models.Q(verb__icontains="delete") | models.Q(verb__icontains="archive")
-            ).count(),
+            ).count() if can_view_activity else 0,
             "today": today,
             "formatted_date": formatted_date,
         }
 
-        recent_chats = ChatMessage.objects.select_related("author", "recipient").order_by("-created_at")[:6]
-        recent_logs = ActivityLog.objects.select_related("actor").order_by("-created_at")[:8]
+        recent_chats = (
+            ChatMessage.objects.select_related("author", "recipient").order_by("-created_at")[:6]
+            if can_view_chat else []
+        )
+        recent_logs = (
+            ActivityLog.objects.select_related("actor").order_by("-created_at")[:8]
+            if can_view_activity else []
+        )
         recent_activities = []
         for chat in recent_chats:
             recent_activities.append({
@@ -97,11 +126,15 @@ class TeamFlowAdminSite(AdminSite):
         recent_activities = recent_activities[:6]
 
         # So'nggi arxivlangan vazifalar
-        recent_archived_tasks = Task.objects.filter(archived_at__isnull=False).order_by("-archived_at")[:5]
+        recent_archived_tasks = (
+            Task.objects.filter(archived_at__isnull=False).order_by("-archived_at")[:5]
+            if can_view_trash else []
+        )
 
         context = {
             **(extra_context or {}),
             "admin_metrics": metrics,
+            "admin_runtime": admin_runtime,
             "recent_activities": recent_activities,
             "recent_chats": recent_chats,
             "recent_archived_tasks": recent_archived_tasks,

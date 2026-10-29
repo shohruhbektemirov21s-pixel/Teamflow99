@@ -21,3 +21,4 @@ backend/staticfiles/
 **/scratch/
 
 backend/db.sqlite3.bak-*
+artifacts/

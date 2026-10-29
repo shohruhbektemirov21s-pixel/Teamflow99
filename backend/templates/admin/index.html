@@ -3,388 +3,60 @@
 
 {% block title %}Boshqaruv markazi | {{ site_title|default:_('TeamFlow') }}{% endblock %}
 {% block coltype %}colM{% endblock %}
-{% block bodyclass %}{{ block.super }} tf-dashboard-page{% endblock %}
+{% block bodyclass %}{{ block.super }} tf-dashboard-page tf-simple-admin-page{% endblock %}
 {% block nav-breadcrumbs %}{% endblock %}
 {% block content_title %}{% endblock %}
 
 {% block content %}
-<div class="tf-dashboard-container">
-  <!-- Hero Section -->
-  <section class="tf-dash-hero tf-dashboard-toolbar">
+<div class="tf-dashboard-container tf-simple-panel" data-testid="admin-dashboard">
+  <section class="tf-dash-hero tf-dashboard-toolbar" data-testid="admin-simple-panel">
     <div class="tf-dash-hero-left">
-      <div class="tf-dash-date-pill">
-        <span class="tf-pulse-dot"></span>
-        <span class="tf-dash-date-eyebrow">{{ admin_metrics.formatted_date }}</span>
-      </div>
-      <h1 class="tf-dash-main-heading">Boshqaruv markazi</h1>
-      <p class="tf-dash-subtitle">Jarayonlar, yozishmalar va o‘chirilgan ma’lumotlarni bir joydan boshqaring.</p>
+      <span class="tf-status-line"><i></i> LIVE OPERATIONS · {{ admin_metrics.formatted_date }}</span>
+      <h1>Boshqaruv markazi</h1>
+      <p>TeamFlow ish jarayonlarini, jamoani va tizim signalini bir oynada boshqaring.</p>
     </div>
-
-    <div class="tf-welcome-card-box">
-      <div class="tf-welcome-card-content">
-        <span class="tf-welcome-avatar" aria-hidden="true">{{ request.user.first_name|default:request.user.username|make_list|first|upper }}</span>
-        <div class="tf-welcome-headings">
-          <h2>Xush kelibsiz, {{ request.user.first_name|default:request.user.username|capfirst }}!</h2>
-          <p>Tizim to‘liq nazorat ostida. Bugungi muhim ko‘rsatkichlar quyida jamlangan.</p>
-        </div>
-      </div>
-      <div class="tf-welcome-actions">
-        {% if perms.accounts.add_user %}
-          <a href="{% url 'admin:accounts_user_add' %}" class="tf-btn-add-primary"><span aria-hidden="true">+</span> Yangi foydalanuvchi</a>
-        {% endif %}
-        <a href="/" target="_blank" rel="noopener noreferrer" class="tf-btn-site-secondary">Saytga o‘tish ↗</a>
-      </div>
+    <div class="tf-hero-actions">
+      {% if perms.accounts.add_user %}<a class="tf-btn-primary" href="{% url 'admin:accounts_user_add' %}"><span>+</span> Foydalanuvchi</a>{% endif %}
+      <a class="tf-btn-secondary" href="/" target="_blank" rel="noopener noreferrer">Ilovani ko'rish ↗</a>
     </div>
   </section>
 
-  <!-- KPI Cards Grid (6 cards with real stats & visual sparklines) -->
-  <section class="tf-kpi-row" aria-label="Asosiy ko‘rsatkichlar">
-    <!-- 1. Jami foydalanuvchilar -->
-    <a href="{% url 'admin:accounts_user_changelist' %}" class="tf-stat-card tf-stat-purple">
-      <div class="tf-stat-top">
-        <span class="tf-stat-icon-sq tf-sq-purple" aria-hidden="true">👥</span>
-        <span class="tf-stat-trend">Faol baza</span>
-      </div>
-      <div class="tf-stat-middle">
-        <span class="tf-stat-label">Jami foydalanuvchilar</span>
-        <strong class="tf-stat-number">{{ admin_metrics.total_users }}</strong>
-      </div>
-      <div class="tf-stat-bottom">
-        <svg class="tf-sparkline" viewBox="0 0 100 24" preserveAspectRatio="none">
-          <path d="M0,20 Q25,8 50,15 T100,5" fill="none" stroke="#8b5cf6" stroke-width="2.2" stroke-linecap="round"/>
-        </svg>
-        <small class="tf-stat-note">Barcha akkauntlar</small>
-      </div>
-    </a>
-
-    <!-- 2. Tasdiqlash kutilmoqda -->
-    <a href="{% url 'admin:accounts_user_changelist' %}?is_active__exact=0" class="tf-stat-card tf-stat-amber">
-      <div class="tf-stat-top">
-        <span class="tf-stat-icon-sq tf-sq-amber" aria-hidden="true">◷</span>
-        {% if admin_metrics.pending_users > 0 %}
-          <span class="tf-stat-trend tf-trend-warn">Kutilmoqda</span>
-        {% else %}
-          <span class="tf-stat-trend">Navbat bo‘sh</span>
-        {% endif %}
-      </div>
-      <div class="tf-stat-middle">
-        <span class="tf-stat-label">Tasdiqlash kutilmoqda</span>
-        <strong class="tf-stat-number">{{ admin_metrics.pending_users }}</strong>
-      </div>
-      <div class="tf-stat-bottom">
-        <svg class="tf-sparkline" viewBox="0 0 100 24" preserveAspectRatio="none">
-          <path d="M0,18 Q30,22 60,10 T100,12" fill="none" stroke="#f59e0b" stroke-width="2.2" stroke-linecap="round"/>
-        </svg>
-        <small class="tf-stat-note">Nofaol akkauntlar</small>
-      </div>
-    </a>
-
-    <!-- 3. Faol loyihalar -->
-    <a href="{% url 'admin:projects_project_changelist' %}" class="tf-stat-card tf-stat-blue">
-      <div class="tf-stat-top">
-        <span class="tf-stat-icon-sq tf-sq-blue" aria-hidden="true">▣</span>
-        <span class="tf-stat-trend">Ish jarayonida</span>
-      </div>
-      <div class="tf-stat-middle">
-        <span class="tf-stat-label">Faol loyihalar</span>
-        <strong class="tf-stat-number">{{ admin_metrics.active_projects }}</strong>
-      </div>
-      <div class="tf-stat-bottom">
-        <svg class="tf-sparkline" viewBox="0 0 100 24" preserveAspectRatio="none">
-          <path d="M0,15 Q35,5 70,18 T100,4" fill="none" stroke="#3b82f6" stroke-width="2.2" stroke-linecap="round"/>
-        </svg>
-        <small class="tf-stat-note">Jarayondagi loyihalar</small>
-      </div>
-    </a>
-
-    <!-- 4. Ochiq vazifalar -->
-    <a href="{% url 'admin:tasks_task_changelist' %}" class="tf-stat-card tf-stat-green">
-      <div class="tf-stat-top">
-        <span class="tf-stat-icon-sq tf-sq-green" aria-hidden="true">✓</span>
-        <span class="tf-stat-trend">Ijroda</span>
-      </div>
-      <div class="tf-stat-middle">
-        <span class="tf-stat-label">Ochiq vazifalar</span>
-        <strong class="tf-stat-number">{{ admin_metrics.open_tasks }}</strong>
-      </div>
-      <div class="tf-stat-bottom">
-        <svg class="tf-sparkline" viewBox="0 0 100 24" preserveAspectRatio="none">
-          <path d="M0,22 Q20,12 55,14 T100,6" fill="none" stroke="#10b981" stroke-width="2.2" stroke-linecap="round"/>
-        </svg>
-        <small class="tf-stat-note">Bajarilishi kerak</small>
-      </div>
-    </a>
-
-    <!-- 5. Yozishmalar (jami) -->
-    <a href="{% url 'admin:chat_chatmessage_changelist' %}" class="tf-stat-card tf-stat-indigo">
-      <div class="tf-stat-top">
-        <span class="tf-stat-icon-sq tf-sq-indigo" aria-hidden="true">✉</span>
-        <span class="tf-stat-trend">Jonli muloqot</span>
-      </div>
-      <div class="tf-stat-middle">
-        <span class="tf-stat-label">Yozishmalar (jami)</span>
-        <strong class="tf-stat-number">{{ admin_metrics.total_chat_messages }}</strong>
-      </div>
-      <div class="tf-stat-bottom">
-        <svg class="tf-sparkline" viewBox="0 0 100 24" preserveAspectRatio="none">
-          <path d="M0,12 Q30,19 65,8 T100,14" fill="none" stroke="#6366f1" stroke-width="2.2" stroke-linecap="round"/>
-        </svg>
-        <small class="tf-stat-note">Chat xabarlari</small>
-      </div>
-    </a>
-
-    <!-- 6. O‘chirilgan vazifalar -->
-    <a href="{% url 'admin:trash' %}" class="tf-stat-card tf-stat-red">
-      <div class="tf-stat-top">
-        <span class="tf-stat-icon-sq tf-sq-red" aria-hidden="true">♲</span>
-        <span class="tf-stat-trend">Chiqindilar qutisi</span>
-      </div>
-      <div class="tf-stat-middle">
-        <span class="tf-stat-label">O‘chirilgan vazifalar</span>
-        <strong class="tf-stat-number">{{ admin_metrics.archived_tasks }}</strong>
-      </div>
-      <div class="tf-stat-bottom">
-        <svg class="tf-sparkline" viewBox="0 0 100 24" preserveAspectRatio="none">
-          <path d="M0,10 Q40,24 75,12 T100,18" fill="none" stroke="#ef4444" stroke-width="2.2" stroke-linecap="round"/>
-        </svg>
-        <small class="tf-stat-note">Qayta tiklash mumkin</small>
-      </div>
-    </a>
+  {% if request.user.is_superuser %}
+  <section class="tf-kpi-row" data-testid="admin-kpi-grid" aria-label="Asosiy ko'rsatkichlar">
+    <a href="{% url 'admin:accounts_user_changelist' %}" class="tf-stat-card tf-stat-purple"><span class="tf-stat-icon-sq">◎</span><span class="tf-stat-label">Jami foydalanuvchilar</span><strong class="tf-stat-number">{{ admin_metrics.total_users }}</strong><small>Faol baza <b>→</b></small></a>
+    <a href="{% url 'admin:accounts_user_changelist' %}?is_active__exact=0" class="tf-stat-card tf-stat-amber"><span class="tf-stat-icon-sq">!</span><span class="tf-stat-label">Tasdiqlash kutilmoqda</span><strong class="tf-stat-number">{{ admin_metrics.pending_users }}</strong><small>Nofaol akkauntlar <b>→</b></small></a>
+    <a href="{% url 'admin:projects_project_changelist' %}" class="tf-stat-card tf-stat-blue"><span class="tf-stat-icon-sq">□</span><span class="tf-stat-label">Faol loyihalar</span><strong class="tf-stat-number">{{ admin_metrics.active_projects }}</strong><small>Ish jarayonida <b>→</b></small></a>
+    <a href="{% url 'admin:tasks_task_changelist' %}" class="tf-stat-card tf-stat-green"><span class="tf-stat-icon-sq">✓</span><span class="tf-stat-label">Ochiq vazifalar</span><strong class="tf-stat-number">{{ admin_metrics.open_tasks }}</strong><small>Ijroda <b>→</b></small></a>
+    <a href="{% url 'admin:chat_chatmessage_changelist' %}" class="tf-stat-card tf-stat-indigo"><span class="tf-stat-icon-sq">✉</span><span class="tf-stat-label">Yozishmalar (Chat)</span><strong class="tf-stat-number">{{ admin_metrics.total_chat_messages }}</strong><small>Jonli muloqot <b>→</b></small></a>
+    <a href="{% url 'admin:trash' %}" class="tf-stat-card tf-stat-red"><span class="tf-stat-icon-sq">⌫</span><span class="tf-stat-label">O'chirilgan vazifalar</span><strong class="tf-stat-number">{{ admin_metrics.archived_tasks }}</strong><small>Qayta tiklash mumkin <b>→</b></small></a>
   </section>
 
-  <!-- Middle Grid: Quick Actions & Attention / Queue -->
-  <div class="tf-middle-grid">
-    <!-- Left: Quick Actions + System Health -->
-    <div class="tf-middle-left-col">
-      <section class="tf-card-panel tf-actions-panel">
-        <div class="tf-card-header">
-          <div>
-            <p class="tf-eyebrow">Tezkor navigatsiya</p>
-            <h2 class="tf-card-title">Tezkor amallar</h2>
-            <p class="tf-card-sub">Ko‘p ishlatiladigan asosiy boshqaruv sahifalari.</p>
-          </div>
-        </div>
-        <div class="tf-actions-grid-2x3">
-          <a href="{% url 'admin:accounts_user_changelist' %}" class="tf-action-tile tf-tile-purple">
-            <span class="tf-tile-icon tf-tile-icon-purple">👥</span>
-            <span class="tf-tile-body">
-              <strong>Foydalanuvchilar</strong>
-              <small>Akkauntlarni boshqarish</small>
-            </span>
-            <span class="tf-tile-arrow">→</span>
-          </a>
+  <div class="tf-dashboard-grid">
+    <section class="tf-card-panel tf-queue-panel">
+      <div class="tf-card-header"><div><span class="tf-eyebrow">ACTION QUEUE</span><h2 class="tf-card-title">Tezkor amallar</h2><p class="tf-card-sub">Bugun e'tibor talab qilayotgan navbatlar.</p></div><span class="tf-card-count">{{ admin_metrics.pending_users|add:admin_metrics.pending_orders|add:admin_metrics.pending_suggestions }}</span></div>
+      <div class="tf-queue-list">
+        <a href="{% url 'admin:accounts_user_changelist' %}?is_active__exact=0" class="tf-queue-row"><span class="tf-queue-icon tf-icon-warn">!</span><span><strong>Yangi akkauntlar</strong><small>Faollashtirish navbatida</small></span><b>{{ admin_metrics.pending_users }}</b></a>
+        <a href="{% url 'admin:orders_order_changelist' %}?status__exact=submitted" class="tf-queue-row"><span class="tf-queue-icon tf-icon-blue">≡</span><span><strong>Buyurtmalar</strong><small>Ko'rib chiqilmagan TZlar</small></span><b>{{ admin_metrics.pending_orders }}</b></a>
+        <a href="{% url 'admin:suggestions_suggestion_changelist' %}?status__exact=pending" class="tf-queue-row"><span class="tf-queue-icon tf-icon-purple">✦</span><span><strong>Takliflar</strong><small>Qaror kutilayotgan fikrlar</small></span><b>{{ admin_metrics.pending_suggestions }}</b></a>
+        <a href="{% url 'admin:trash' %}" class="tf-queue-row"><span class="tf-queue-icon tf-icon-red">⌫</span><span><strong>O'chirilgan vazifalar</strong><small>Arxivdagi tiklanadigan yozuvlar</small></span><b>{{ admin_metrics.archived_tasks }}</b></a>
+      </div>
+    </section>
 
-          <a href="{% url 'admin:projects_project_changelist' %}" class="tf-action-tile tf-tile-blue">
-            <span class="tf-tile-icon tf-tile-icon-blue">▣</span>
-            <span class="tf-tile-body">
-              <strong>Loyihalar</strong>
-              <small>Loyihalarni ko‘rish</small>
-            </span>
-            <span class="tf-tile-arrow">→</span>
-          </a>
-
-          <a href="{% url 'admin:tasks_task_changelist' %}" class="tf-action-tile tf-tile-green">
-            <span class="tf-tile-icon tf-tile-icon-green">✓</span>
-            <span class="tf-tile-body">
-              <strong>Vazifalar</strong>
-              <small>Vazifalarni boshqarish</small>
-            </span>
-            <span class="tf-tile-arrow">→</span>
-          </a>
-
-          <a href="{% url 'admin:orders_order_changelist' %}" class="tf-action-tile tf-tile-amber">
-            <span class="tf-tile-icon tf-tile-icon-amber">≡</span>
-            <span class="tf-tile-body">
-              <strong>Buyurtmalar</strong>
-              <small>TZ so‘rovlarini ko‘rish</small>
-            </span>
-            <span class="tf-tile-arrow">→</span>
-          </a>
-
-          <a href="{% url 'admin:chat_chatmessage_changelist' %}" class="tf-action-tile tf-tile-indigo">
-            <span class="tf-tile-icon tf-tile-icon-indigo">✉</span>
-            <span class="tf-tile-body">
-              <strong>Yozishmalar</strong>
-              <small>Chat tarixini ko‘rish</small>
-            </span>
-            <span class="tf-tile-arrow">→</span>
-          </a>
-
-          <a href="{% url 'admin:trash' %}" class="tf-action-tile tf-tile-rose">
-            <span class="tf-tile-icon tf-tile-icon-rose">♲</span>
-            <span class="tf-tile-body">
-              <strong>O‘chirilganlar va kesh</strong>
-              <small>Tiklash va kesh nazorati</small>
-            </span>
-            <span class="tf-tile-arrow">→</span>
-          </a>
-        </div>
-      </section>
-
-      <!-- System Health Bar -->
-      <section class="tf-card-panel tf-health-panel">
-        <div class="tf-health-header">
-          <div class="tf-health-title-box">
-            <span class="tf-status-dot-green"></span>
-            <strong>Tizim holati: Barqaror</strong>
-          </div>
-          <small class="tf-health-time">Django REST + React 2026</small>
-        </div>
-        <div class="tf-health-grid">
-          <div class="tf-health-item">
-            <span class="tf-health-label">Ma’lumotlar bazasi</span>
-            <span class="tf-health-val tf-val-ok">SQLite (WAL rejimida)</span>
-          </div>
-          <div class="tf-health-item">
-            <span class="tf-health-label">Kesh xotirasi</span>
-            <span class="tf-health-val tf-val-ok">Faol (Django Cache)</span>
-          </div>
-          <div class="tf-health-item">
-            <span class="tf-health-label">Xavfsizlik</span>
-            <span class="tf-health-val tf-val-ok">CSRF / Role-based Himoyalangan</span>
-          </div>
-          <div class="tf-health-item">
-            <span class="tf-health-label">Media & Fayllar</span>
-            <span class="tf-health-val tf-val-ok">Ruxsatlar sozlangan (775)</span>
-          </div>
-        </div>
-      </section>
-    </div>
-
-    <!-- Right: Attention / Pending Queues & Recent Activities -->
-    <div class="tf-middle-right-col">
-      <section class="tf-card-panel tf-pending-panel">
-        <div class="tf-card-header">
-          <div>
-            <p class="tf-eyebrow">Nazorat</p>
-            <h2 class="tf-card-title">E’tibor talab qiladi</h2>
-            <p class="tf-card-sub">Qaror yoki amal kutilayotgan navbatlar.</p>
-          </div>
-        </div>
-        <div class="tf-pending-list">
-          <a href="{% url 'admin:accounts_user_changelist' %}?is_active__exact=0" class="tf-pending-row">
-            <span class="tf-pending-left">
-              <i class="tf-status-dot tf-dot-red"></i>
-              <span>
-                <strong>Yangi akkauntlar</strong>
-                <small>Faollashtirish navbatida</small>
-              </span>
-            </span>
-            <span class="tf-pending-count">{{ admin_metrics.pending_users }}</span>
-          </a>
-
-          <a href="{% url 'admin:orders_order_changelist' %}?status__exact=submitted" class="tf-pending-row">
-            <span class="tf-pending-left">
-              <i class="tf-status-dot tf-dot-amber"></i>
-              <span>
-                <strong>Buyurtmalar</strong>
-                <small>Ko‘rib chiqilmagan TZlar</small>
-              </span>
-            </span>
-            <span class="tf-pending-count">{{ admin_metrics.pending_orders }}</span>
-          </a>
-
-          <a href="{% url 'admin:suggestions_suggestion_changelist' %}?status__exact=pending" class="tf-pending-row">
-            <span class="tf-pending-left">
-              <i class="tf-status-dot tf-dot-purple"></i>
-              <span>
-                <strong>Takliflar</strong>
-                <small>Qaror kutilayotgan fikrlar</small>
-              </span>
-            </span>
-            <span class="tf-pending-count">{{ admin_metrics.pending_suggestions }}</span>
-          </a>
-
-          <a href="{% url 'admin:trash' %}" class="tf-pending-row">
-            <span class="tf-pending-left">
-              <i class="tf-status-dot tf-dot-blue"></i>
-              <span>
-                <strong>O‘chirilgan vazifalar</strong>
-                <small>Arxivdagi tiklanadigan yozuvlar</small>
-              </span>
-            </span>
-            <span class="tf-pending-count">{{ admin_metrics.archived_tasks }}</span>
-          </a>
-        </div>
-      </section>
-
-      <!-- Live Activities / Audits -->
-      <section class="tf-card-panel tf-activity-panel">
-        <div class="tf-card-header">
-          <div>
-            <p class="tf-eyebrow">Jonli ma’lumot</p>
-            <h2 class="tf-card-title">So‘nggi faolliklar</h2>
-            <p class="tf-card-sub">Faqat tizimdagi haqiqiy yozuvlar ko‘rsatiladi.</p>
-          </div>
-          <a href="{% url 'admin:core_activitylog_changelist' %}" class="tf-card-link-more">Barchasini ko‘rish →</a>
-        </div>
-        <div class="tf-activity-list">
-          {% for act in recent_activities %}
-            <div class="tf-activity-item">
-              <span class="tf-act-icon-box tf-act-icon-{{ act.icon }}" aria-hidden="true">
-                {% if act.icon == 'chat' %}✉{% elif act.icon == 'trash' %}♲{% else %}✓{% endif %}
-              </span>
-              <span class="tf-act-content">
-                <strong>{{ act.title }}</strong>
-                <small>{{ act.desc }}</small>
-              </span>
-              <span class="tf-act-meta">
-                <time datetime="{{ act.created_at|date:'c' }}">{{ act.created_at|date:"d.m.Y H:i" }}</time>
-                <small>{{ act.actor }}</small>
-              </span>
-            </div>
-          {% empty %}
-            <div class="tf-empty-state" role="status">
-              <strong>Faolliklar hali yo‘q</strong>
-              <p>Yangi amallar va yozishmalar shu yerda paydo bo‘ladi.</p>
-            </div>
-          {% endfor %}
-        </div>
-      </section>
-    </div>
+    <section class="tf-card-panel tf-activity-panel">
+      <div class="tf-card-header"><div><span class="tf-eyebrow">ACTIVITY STREAM</span><h2 class="tf-card-title">So'nggi faolliklar</h2><p class="tf-card-sub">Tizimdagi eng yangi amallar.</p></div><a class="tf-card-link-more" href="{% url 'admin:core_activitylog_changelist' %}">Jurnal →</a></div>
+      <div class="tf-activity-list">
+        {% for act in recent_activities %}<div class="tf-activity-item"><span class="tf-activity-marker tf-marker-{{ act.icon }}"></span><span class="tf-act-content"><strong>{{ act.title }}</strong><small>{{ act.desc|truncatechars:90 }}</small></span><time>{{ act.created_at|date:"d.m.Y H:i" }}</time></div>{% empty %}<div class="tf-empty-state"><strong>Faolliklar hali yo'q</strong><p>Yangi amallar va yozishmalar shu yerda paydo bo'ladi.</p></div>{% endfor %}
+      </div>
+    </section>
   </div>
+  {% endif %}
 
-  <!-- All Sections / Complete Django Admin Catalog -->
-  <section class="tf-card-panel tf-app-catalog" aria-labelledby="all-sections-title">
-    <div class="tf-card-header">
-      <div>
-        <p class="tf-eyebrow">To‘liq boshqaruv</p>
-        <h2 class="tf-card-title" id="all-sections-title">Barcha bo‘limlar</h2>
-        <p class="tf-card-sub">Sizda ruxsat bor barcha ma’lumotlar bazasi modellari va boshqaruv nuqtalari.</p>
-      </div>
-    </div>
-    <div class="tf-app-grid">
-      {% for app in app_list %}
-        <article class="tf-app-card">
-          <div class="tf-app-card-head">
-            <span class="tf-app-icon" aria-hidden="true">{{ app.name|make_list|first|upper }}</span>
-            <div class="tf-app-info">
-              <h3>{{ app.name }}</h3>
-              <small>{{ app.models|length }} ta model</small>
-            </div>
-          </div>
-          <div class="tf-model-links">
-            {% for model in app.models %}
-              <div class="tf-model-link-row">
-                {% if model.admin_url %}
-                  <a href="{{ model.admin_url }}" class="tf-model-title-link">
-                    <span>{{ model.name }}</span>
-                  </a>
-                {% else %}
-                  <span class="tf-model-link-disabled">{{ model.name }}</span>
-                {% endif %}
-
-                {% if model.add_url %}
-                  <a href="{{ model.add_url }}" class="tf-model-add-link" title="{{ model.name }} qo‘shish">+ Qo‘shish</a>
-                {% endif %}
-              </div>
-            {% endfor %}
-          </div>
-        </article>
-      {% empty %}
-        <p class="tf-empty-state">Ko‘rish uchun ruxsat berilgan bo‘limlar topilmadi.</p>
-      {% endfor %}
-    </div>
-  </section>
+  <div class="tf-bottom-grid">
+    <section class="tf-card-panel tf-health-panel">
+      <div class="tf-card-header"><div><span class="tf-eyebrow">SYSTEM STATUS</span><h2 class="tf-card-title">Tizim holati</h2><p class="tf-card-sub">Muhit va xizmatlar haqida qisqa signal.</p></div><span class="tf-health-badge"><i></i> Tizim faol</span></div>
+      <div class="tf-health-grid"><div><small>Ma'lumotlar bazasi</small><strong>{{ admin_runtime.database }}</strong></div><div><small>Kesh xotirasi</small><strong>{{ admin_runtime.cache }}</strong></div><div><small>Xavfsizlik</small><strong>CSRF / RBAC</strong></div><div><small>Media</small><strong>{{ admin_runtime.media }}</strong></div></div>
+    </section>
+    <section class="tf-card-panel tf-app-catalog" aria-labelledby="all-sections-title"><div class="tf-card-header"><div><span class="tf-eyebrow">WORKSPACE MAP</span><h2 class="tf-card-title" id="all-sections-title">Barcha bo'limlar</h2><p class="tf-card-sub">Sizdagi ruxsatlar asosida ochilgan modullar.</p></div></div><div class="tf-app-grid">{% for app in app_list %}<article class="tf-app-card"><div class="tf-app-card-head"><span class="tf-app-icon">{{ app.name|make_list|first|upper }}</span><div><h3>{{ app.name }}</h3><small>{{ app.models|length }} ta model</small></div></div><div class="tf-model-links">{% for model in app.models %}<div class="tf-model-link-row">{% if model.admin_url %}<a href="{{ model.admin_url }}">{{ model.name }}</a>{% else %}<span>{{ model.name }}</span>{% endif %}{% if model.add_url %}<a class="tf-model-add-link" href="{{ model.add_url }}">+</a>{% endif %}</div>{% endfor %}</div></article>{% empty %}<div class="tf-empty-state">Ko'rish uchun ruxsat berilgan bo'limlar topilmadi.</div>{% endfor %}</div></section>
+  </div>
 </div>
 {% endblock %}

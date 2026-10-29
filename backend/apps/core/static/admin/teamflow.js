@@ -1,188 +1,87 @@
-/**
- * TeamFlow Modern SaaS Admin Engine
- * Handles theme toggling, quick search palette (Ctrl+K), sidebar collapse & responsive drawer.
- */
+/* TeamFlow Admin interactions: theme, responsive navigation and command palette. */
 (function () {
   "use strict";
 
-  // 1. Theme Management
-  var STORAGE_THEME_KEY = "tf_admin_theme";
-  var htmlEl = document.documentElement;
+  var THEME_KEY = "tf_admin_theme";
+  var COLLAPSE_KEY = "tf_sidebar_collapsed";
+  var html = document.documentElement;
+
+  function setTheme(theme) {
+    var value = theme === "dark" ? "dark" : "light";
+    html.setAttribute("data-theme", value);
+    localStorage.setItem(THEME_KEY, value);
+    var toggle = document.getElementById("tf-theme-btn");
+    if (toggle) toggle.setAttribute("aria-pressed", value === "dark" ? "true" : "false");
+  }
 
   function initTheme() {
-    var saved = localStorage.getItem(STORAGE_THEME_KEY);
-    if (!saved) {
-      saved = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-    }
-    applyTheme(saved);
+    var saved = localStorage.getItem(THEME_KEY);
+    if (!saved && window.matchMedia) saved = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    setTheme(saved || "light");
+    var toggle = document.getElementById("tf-theme-btn");
+    if (toggle) toggle.addEventListener("click", function () { setTheme(html.getAttribute("data-theme") === "dark" ? "light" : "dark"); });
   }
-
-  function applyTheme(theme) {
-    htmlEl.setAttribute("data-theme", theme);
-    localStorage.setItem(STORAGE_THEME_KEY, theme);
-
-    var sunIcon = document.querySelector(".tf-icon-sun");
-    var moonIcon = document.querySelector(".tf-icon-moon");
-    if (sunIcon && moonIcon) {
-      if (theme === "dark") {
-        sunIcon.style.display = "none";
-        moonIcon.style.display = "block";
-      } else {
-        sunIcon.style.display = "block";
-        moonIcon.style.display = "none";
-      }
-    }
-  }
-
-  function toggleTheme() {
-    var current = htmlEl.getAttribute("data-theme") || "light";
-    applyTheme(current === "dark" ? "light" : "dark");
-  }
-
-  // 2. Sidebar Collapse & Mobile Drawer
-  var STORAGE_COLLAPSE_KEY = "tf_sidebar_collapsed";
 
   function initSidebar() {
-    var navSidebar = document.getElementById("nav-sidebar");
-    var collapseBtn = document.getElementById("tf-toggle-collapse");
-    var mobileToggle = document.getElementById("tf-mobile-sidebar-toggle");
+    var sidebar = document.getElementById("nav-sidebar");
+    var collapse = document.getElementById("tf-toggle-collapse");
+    var mobile = document.getElementById("tf-mobile-sidebar-toggle");
+    var legacy = document.getElementById("toggle-nav-sidebar");
     var backdrop = document.getElementById("tf-sidebar-backdrop");
-    var legacyToggle = document.getElementById("toggle-nav-sidebar");
+    if (!sidebar) return;
 
-    // Restore desktop collapsed state
-    if (navSidebar && localStorage.getItem(STORAGE_COLLAPSE_KEY) === "1") {
-      navSidebar.classList.add("is-collapsed");
-      document.body.classList.add("tf-sidebar-is-collapsed");
-    }
+    var collapsed = localStorage.getItem(COLLAPSE_KEY) === "1";
+    if (collapsed && window.innerWidth > 900) { sidebar.classList.add("is-collapsed"); document.body.classList.add("tf-sidebar-is-collapsed"); }
 
-    if (collapseBtn && navSidebar) {
-      collapseBtn.addEventListener("click", function () {
-        var isCollapsed = navSidebar.classList.toggle("is-collapsed");
-        document.body.classList.toggle("tf-sidebar-is-collapsed", isCollapsed);
-        localStorage.setItem(STORAGE_COLLAPSE_KEY, isCollapsed ? "1" : "0");
-        collapseBtn.textContent = isCollapsed ? "›" : "‹";
-      });
+    function setExpanded(value) {
+      if (mobile) mobile.setAttribute("aria-expanded", value ? "true" : "false");
+      if (legacy) legacy.setAttribute("aria-expanded", value ? "true" : "false");
     }
+    function closeMobile() { sidebar.classList.remove("is-mobile-open"); if (backdrop) backdrop.hidden = true; document.body.classList.remove("tf-mobile-locked"); setExpanded(false); }
+    function openMobile() { sidebar.classList.add("is-mobile-open"); if (backdrop) backdrop.hidden = false; document.body.classList.add("tf-mobile-locked"); setExpanded(true); }
 
-    function openMobileDrawer() {
-      if (navSidebar) navSidebar.classList.add("is-mobile-open");
-      if (backdrop) backdrop.hidden = false;
-      document.body.classList.add("tf-mobile-locked");
-    }
-
-    function closeMobileDrawer() {
-      if (navSidebar) navSidebar.classList.remove("is-mobile-open");
-      if (backdrop) backdrop.hidden = true;
-      document.body.classList.remove("tf-mobile-locked");
-    }
-
-    if (mobileToggle) {
-      mobileToggle.addEventListener("click", openMobileDrawer);
-    }
-    if (legacyToggle) {
-      legacyToggle.addEventListener("click", function (e) {
-        e.preventDefault();
-        if (navSidebar && navSidebar.classList.contains("is-mobile-open")) {
-          closeMobileDrawer();
-        } else {
-          openMobileDrawer();
-        }
-      });
-    }
-    if (backdrop) {
-      backdrop.addEventListener("click", closeMobileDrawer);
-    }
-  }
-
-  // 3. Quick Search Palette (Ctrl+K / ⌘K)
-  function initSearchPalette() {
-    var paletteBackdrop = document.getElementById("tf-palette-backdrop");
-    var paletteInput = document.getElementById("tf-palette-input");
-    var paletteClose = document.getElementById("tf-palette-close");
-    var topSearchInput = document.getElementById("tf-top-search-input");
-
-    function openPalette() {
-      if (!paletteBackdrop) return;
-      paletteBackdrop.hidden = false;
-      if (paletteInput) {
-        paletteInput.value = "";
-        setTimeout(function () { paletteInput.focus(); }, 50);
-      }
-    }
-
-    function closePalette() {
-      if (!paletteBackdrop) return;
-      paletteBackdrop.hidden = true;
-    }
-
-    // Keyboard shortcut Ctrl+K or ⌘K
-    window.addEventListener("keydown", function (e) {
-      if ((e.ctrlKey || e.metaKey) && (e.key === "k" || e.key === "K")) {
-        e.preventDefault();
-        if (paletteBackdrop && !paletteBackdrop.hidden) {
-          closePalette();
-        } else {
-          openPalette();
-        }
-      }
-      if (e.key === "Escape" && paletteBackdrop && !paletteBackdrop.hidden) {
-        closePalette();
-      }
+    if (collapse) collapse.addEventListener("click", function () {
+      var next = !document.body.classList.contains("tf-sidebar-is-collapsed");
+      document.body.classList.toggle("tf-sidebar-is-collapsed", next);
+      sidebar.classList.toggle("is-collapsed", next);
+      collapse.setAttribute("aria-pressed", next ? "true" : "false");
+      collapse.textContent = next ? "›" : "‹";
+      localStorage.setItem(COLLAPSE_KEY, next ? "1" : "0");
     });
-
-    if (topSearchInput) {
-      topSearchInput.addEventListener("click", function (e) {
-        // If clicked on desktop, open palette for richer quick navigation
-        if (window.innerWidth > 768) {
-          e.preventDefault();
-          openPalette();
-        }
-      });
-    }
-
-    if (paletteClose) {
-      paletteClose.addEventListener("click", closePalette);
-    }
-
-    if (paletteBackdrop) {
-      paletteBackdrop.addEventListener("click", function (e) {
-        if (e.target === paletteBackdrop) {
-          closePalette();
-        }
-      });
-    }
-
-    if (paletteInput) {
-      paletteInput.addEventListener("keydown", function (e) {
-        if (e.key === "Enter" && paletteInput.value.trim().length > 0) {
-          e.preventDefault();
-          window.location.href = "/admin/search/?q=" + encodeURIComponent(paletteInput.value.trim());
-        }
-      });
-    }
+    if (mobile) mobile.addEventListener("click", openMobile);
+    if (legacy) legacy.addEventListener("click", function (event) { event.preventDefault(); sidebar.classList.contains("is-mobile-open") ? closeMobile() : openMobile(); });
+    if (backdrop) backdrop.addEventListener("click", closeMobile);
+    sidebar.querySelectorAll("a").forEach(function (link) { link.addEventListener("click", function () { if (window.innerWidth <= 900) closeMobile(); }); });
+    window.addEventListener("resize", function () { if (window.innerWidth > 900) closeMobile(); });
   }
 
-  // 4. Auto-dismiss alerts & messages
+  function initPalette() {
+    var backdrop = document.getElementById("tf-palette-backdrop");
+    var input = document.getElementById("tf-palette-input");
+    var topInput = document.getElementById("tf-top-search-input");
+    var close = document.getElementById("tf-palette-close");
+    var lastFocus = null;
+    if (!backdrop) return;
+
+    function open() { lastFocus = document.activeElement; backdrop.hidden = false; window.setTimeout(function () { if (input) input.focus(); }, 20); }
+    function hide() { backdrop.hidden = true; if (lastFocus && lastFocus.focus) lastFocus.focus(); }
+    window.addEventListener("keydown", function (event) {
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") { event.preventDefault(); backdrop.hidden ? open() : hide(); }
+      if (event.key === "Escape" && !backdrop.hidden) hide();
+    });
+    if (topInput) topInput.addEventListener("focus", function (event) { if (window.innerWidth > 680) { event.preventDefault(); open(); } });
+    if (close) close.addEventListener("click", hide);
+    backdrop.addEventListener("click", function (event) { if (event.target === backdrop) hide(); });
+    var form = document.getElementById("tf-palette-form");
+    if (form) form.addEventListener("submit", function (event) { if (input && input.value.trim().length < 2) { event.preventDefault(); input.focus(); } });
+  }
+
   function initMessages() {
-    var messageItems = document.querySelectorAll(".messagelist li");
-    messageItems.forEach(function (item) {
-      item.addEventListener("click", function () {
-        item.style.opacity = "0";
-        setTimeout(function () { item.remove(); }, 200);
-      });
+    document.querySelectorAll(".messagelist li").forEach(function (item) {
+      item.setAttribute("role", "status");
+      item.addEventListener("click", function () { item.classList.add("tf-message-dismissed"); window.setTimeout(function () { item.remove(); }, 180); });
     });
   }
 
-  // Document ready execution
-  document.addEventListener("DOMContentLoaded", function () {
-    initTheme();
-    initSidebar();
-    initSearchPalette();
-    initMessages();
-
-    var themeBtn = document.getElementById("tf-theme-btn");
-    if (themeBtn) {
-      themeBtn.addEventListener("click", toggleTheme);
-    }
-  });
+  document.addEventListener("DOMContentLoaded", function () { initTheme(); initSidebar(); initPalette(); initMessages(); });
 })();
